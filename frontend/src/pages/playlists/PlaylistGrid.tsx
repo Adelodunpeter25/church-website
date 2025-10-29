@@ -2,9 +2,9 @@
 
 
 import { useState } from 'react';
-import EditPlaylistModal from '@/components/EditPlaylistModal';
-import SharePlaylistModal from '@/components/SharePlaylistModal';
-import ConfirmDialog from '@/components/ConfirmDialog';
+import EditPlaylistModal from '@/components/modals/EditPlaylistModal';
+import SharePlaylistModal from '@/components/modals/SharePlaylistModal';
+import ConfirmDialog from '@/components/modals/ConfirmDialog';
 
 interface PlaylistGridProps {
   viewMode: 'grid' | 'list';

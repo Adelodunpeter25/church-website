@@ -2,7 +2,7 @@
 
 
 import { useState, useMemo } from 'react';
-import ConfirmDialog from '@/components/ConfirmDialog';
+import ConfirmDialog from '@/components/modals/ConfirmDialog';
 
 interface SermonGridProps {
   searchTerm: string;

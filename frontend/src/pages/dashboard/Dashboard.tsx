@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import Sidebar from '@/components/Sidebar';
-import DashboardHeader from '@/components/DashboardHeader';
-import QuickAccessPanel from '@/components/QuickAccessPanel';
-import RecentActivity from '@/components/RecentActivity';
-import StatsOverview from '@/components/StatsOverview';
+import Sidebar from '@/components/layout/Sidebar';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import QuickAccessPanel from '@/components/dashboard/QuickAccessPanel';
+import RecentActivity from '@/components/dashboard/RecentActivity';
+import StatsOverview from '@/components/dashboard/StatsOverview';
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);

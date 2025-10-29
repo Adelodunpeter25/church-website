@@ -1,9 +1,9 @@
 
 
 import { useState } from 'react';
-import EditUserModal from '@/components/EditUserModal';
-import ResetPasswordModal from '@/components/ResetPasswordModal';
-import ConfirmDialog from '@/components/ConfirmDialog';
+import EditUserModal from '@/components/modals/EditUserModal';
+import ResetPasswordModal from '@/components/modals/ResetPasswordModal';
+import ConfirmDialog from '@/components/modals/ConfirmDialog';
 
 export default function UserManagement() {
   const [searchTerm, setSearchTerm] = useState('');

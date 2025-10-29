@@ -2,15 +2,15 @@
 
 
 import { useState } from 'react';
-import Sidebar from '@/components/Sidebar';
-import DashboardHeader from '@/components/DashboardHeader';
+import Sidebar from '@/components/layout/Sidebar';
+import DashboardHeader from '@/components/layout/DashboardHeader';
 import EventCalendar from './EventCalendar';
 import EventList from './EventList';
 import CreateEventModal from './CreateEventModal';
-import EventCard from '@/components/EventCard';
-import EditEventModal from '@/components/EditEventModal';
-import ManageAttendeesModal from '@/components/ManageAttendeesModal';
-import ConfirmDialog from '@/components/ConfirmDialog';
+import EventCard from '@/components/events/EventCard';
+import EditEventModal from '@/components/modals/EditEventModal';
+import ManageAttendeesModal from '@/components/modals/ManageAttendeesModal';
+import ConfirmDialog from '@/components/modals/ConfirmDialog';
 
 const upcomingEvents = [
   {

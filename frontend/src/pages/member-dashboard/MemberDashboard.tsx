@@ -3,8 +3,8 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import EventRegistrationModal from '@/components/EventRegistrationModal';
-import ConfirmDialog from '@/components/ConfirmDialog';
+import EventRegistrationModal from '@/components/modals/EventRegistrationModal';
+import ConfirmDialog from '@/components/modals/ConfirmDialog';
 
 export default function MemberDashboard() {
   const [activeTab, setActiveTab] = useState('overview');

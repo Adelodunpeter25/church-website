@@ -2,8 +2,8 @@
 
 
 import { useState } from 'react';
-import Sidebar from '@/components/Sidebar';
-import DashboardHeader from '@/components/DashboardHeader';
+import Sidebar from '@/components/layout/Sidebar';
+import DashboardHeader from '@/components/layout/DashboardHeader';
 import AnnouncementList from './AnnouncementList';
 import CreateAnnouncementModal from './CreateAnnouncementModal';
 

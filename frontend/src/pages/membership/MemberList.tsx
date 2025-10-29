@@ -2,9 +2,9 @@
 
 
 import { useState } from 'react';
-import EditMemberModal from '@/components/EditMemberModal';
-import ViewMemberModal from '@/components/ViewMemberModal';
-import ConfirmDialog from '@/components/ConfirmDialog';
+import EditMemberModal from '@/components/modals/EditMemberModal';
+import ViewMemberModal from '@/components/modals/ViewMemberModal';
+import ConfirmDialog from '@/components/modals/ConfirmDialog';
 
 interface MemberListProps {
   searchTerm: string;

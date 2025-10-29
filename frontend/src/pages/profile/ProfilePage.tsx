@@ -2,8 +2,8 @@
 
 
 import { useState } from 'react';
-import Sidebar from '@/components/Sidebar';
-import DashboardHeader from '@/components/DashboardHeader';
+import Sidebar from '@/components/layout/Sidebar';
+import DashboardHeader from '@/components/layout/DashboardHeader';
 import ProfileSettings from './ProfileSettings';
 import NotificationSettings from './NotificationSettings';
 import SecuritySettings from './SecuritySettings';
