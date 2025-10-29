@@ -3,9 +3,14 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import EventRegistrationModal from '@/components/EventRegistrationModal';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 export default function MemberDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<string>('');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -266,13 +271,25 @@ export default function MemberDashboard() {
                             <button className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer whitespace-nowrap">
                               View Details
                             </button>
-                            <button className="text-red-600 hover:text-red-800 text-sm cursor-pointer whitespace-nowrap">
+                            <button 
+                              onClick={() => {
+                                setSelectedEvent(event.title);
+                                setShowCancelConfirm(true);
+                              }}
+                              className="text-red-600 hover:text-red-800 text-sm cursor-pointer whitespace-nowrap"
+                            >
                               Cancel Registration
                             </button>
                           </>
                         ) : (
                           <>
-                            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm cursor-pointer whitespace-nowrap">
+                            <button 
+                              onClick={() => {
+                                setSelectedEvent(event.title);
+                                setShowRegistrationModal(true);
+                              }}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm cursor-pointer whitespace-nowrap"
+                            >
                               Register
                             </button>
                             <button className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer whitespace-nowrap">
@@ -438,6 +455,24 @@ export default function MemberDashboard() {
           </div>
         </div>
       </div>
+
+      <EventRegistrationModal
+        isOpen={showRegistrationModal}
+        onClose={() => setShowRegistrationModal(false)}
+        eventTitle={selectedEvent}
+      />
+
+      <ConfirmDialog
+        isOpen={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={() => {
+          console.log('Cancelling registration for:', selectedEvent);
+        }}
+        title="Cancel Registration"
+        message={`Are you sure you want to cancel your registration for "${selectedEvent}"?`}
+        confirmText="Cancel Registration"
+        type="warning"
+      />
     </div>
   );
 }
