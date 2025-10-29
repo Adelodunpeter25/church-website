@@ -45,3 +45,4 @@ coverage/
 *.pem
 *.key
 .vercel
+.gitcli-config.json

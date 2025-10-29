@@ -1,14 +1,27 @@
 import express from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import pool from './config/database.js';
+import { initializeSocket } from './config/socket.js';
+import healthRoutes from './routes/healthRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import memberRoutes from './routes/memberRoutes.js';
 import sermonRoutes from './routes/sermonRoutes.js';
+import eventRoutes from './routes/eventRoutes.js';
+import announcementRoutes from './routes/announcementRoutes.js';
+import formRoutes from './routes/formRoutes.js';
+import playlistRoutes from './routes/playlistRoutes.js';
+import livestreamRoutes from './routes/livestreamRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import contentRoutes from './routes/contentRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
+import profileRoutes from './routes/profileRoutes.js';
 
 dotenv.config();
 
 const app = express();
+const httpServer = createServer(app);
 const PORT = process.env.PORT;
 
 app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
@@ -20,16 +33,29 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/api/health', (req, res) => {
+app.get('/', (req, res) => {
   res.json({ status: 'ok', message: 'Church API is running' });
 });
 
+app.use('/api/health', healthRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/sermons', sermonRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/forms', formRoutes);
+app.use('/api/playlists', playlistRoutes);
+app.use('/api/livestreams', livestreamRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/content', contentRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/profile', profileRoutes);
 
-app.listen(PORT, async () => {
+initializeSocket(httpServer);
+
+httpServer.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
+  console.log('WebSocket server ready');
   try {
     const result = await pool.query('SELECT NOW()');
     console.log('Database connected successfully at:', result.rows[0].now);
