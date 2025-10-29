@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface DashboardHeaderProps {
   onMenuClick: () => void;
@@ -8,6 +8,25 @@ interface DashboardHeaderProps {
 export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase();
+      if (search.includes('sermon') || search.includes('message') || search.includes('preach')) {
+        navigate('/sermons');
+      } else if (search.includes('member') || search.includes('people') || search.includes('contact')) {
+        navigate('/membership');
+      } else if (search.includes('event') || search.includes('calendar') || search.includes('schedule')) {
+        navigate('/events');
+      } else {
+        navigate('/sermons');
+      }
+      setSearchTerm('');
+    }
+  };
 
   return (
     <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
@@ -22,16 +41,18 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
       <div className="h-6 w-px bg-gray-200 lg:hidden"></div>
 
       <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-        <div className="relative flex flex-1">
+        <form onSubmit={handleSearch} className="relative flex flex-1">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3">
             <i className="ri-search-line text-gray-400 text-sm"></i>
           </div>
           <input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="block h-full w-full border-0 py-0 pl-10 pr-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 text-sm"
             placeholder="Search sermons, members, events..."
             type="search"
           />
-        </div>
+        </form>
         <div className="flex items-center gap-x-4 lg:gap-x-6">
           <div className="relative">
             <button

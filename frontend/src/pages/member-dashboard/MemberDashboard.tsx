@@ -21,6 +21,21 @@ export default function MemberDashboard() {
   const [showPrayerDetailsModal, setShowPrayerDetailsModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [selectedPrayerRequest, setSelectedPrayerRequest] = useState<any>(null);
+  const [sermonSearchTerm, setSermonSearchTerm] = useState('');
+
+  const sermons = [
+    { title: 'Walking in Faith - Part 3', speaker: 'Pastor John', date: 'Jan 14, 2025', duration: '42 min', plays: 156 },
+    { title: 'The Power of Prayer', speaker: 'Pastor Sarah', date: 'Jan 7, 2025', duration: '38 min', plays: 203 },
+    { title: 'Love Your Neighbor', speaker: 'Pastor John', date: 'Dec 31, 2023', duration: '45 min', plays: 189 },
+    { title: 'Hope in Difficult Times', speaker: 'Pastor David', date: 'Dec 24, 2023', duration: '35 min', plays: 245 }
+  ];
+
+  const filteredSermons = sermons.filter(sermon => {
+    const search = sermonSearchTerm.toLowerCase();
+    return sermon.title.toLowerCase().includes(search) ||
+           sermon.speaker.toLowerCase().includes(search) ||
+           sermon.date.toLowerCase().includes(search);
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -198,6 +213,8 @@ export default function MemberDashboard() {
                   <div className="relative">
                     <input
                       type="text"
+                      value={sermonSearchTerm}
+                      onChange={(e) => setSermonSearchTerm(e.target.value)}
                       placeholder="Search sermons..."
                       className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -206,12 +223,7 @@ export default function MemberDashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                  {[
-                    { title: 'Walking in Faith - Part 3', speaker: 'Pastor John', date: 'Jan 14, 2025', duration: '42 min', plays: 156 },
-                    { title: 'The Power of Prayer', speaker: 'Pastor Sarah', date: 'Jan 7, 2025', duration: '38 min', plays: 203 },
-                    { title: 'Love Your Neighbor', speaker: 'Pastor John', date: 'Dec 31, 2023', duration: '45 min', plays: 189 },
-                    { title: 'Hope in Difficult Times', speaker: 'Pastor David', date: 'Dec 24, 2023', duration: '35 min', plays: 245 }
-                  ].map((sermon, index) => (
+                  {filteredSermons.length > 0 ? filteredSermons.map((sermon, index) => (
                     <div key={index} className="bg-white border border-gray-200 rounded-lg p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
@@ -236,7 +248,12 @@ export default function MemberDashboard() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="col-span-2 text-center py-12">
+                      <i className="ri-search-line text-4xl text-gray-300 mb-2"></i>
+                      <p className="text-gray-500">No sermons found matching "{sermonSearchTerm}"</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
