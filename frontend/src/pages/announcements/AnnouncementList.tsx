@@ -2,6 +2,7 @@
 
 
 import { useState } from 'react';
+import EditAnnouncementModal from '../../components/EditAnnouncementModal';
 
 interface AnnouncementListProps {
   filterStatus: string;
@@ -60,6 +61,25 @@ const announcements = [
 
 export default function AnnouncementList({ filterStatus }: AnnouncementListProps) {
   const [expandedAnnouncement, setExpandedAnnouncement] = useState<number | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showMoreModal, setShowMoreModal] = useState(false);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<number | null>(null);
+
+  const handleEdit = (id: number) => {
+    setSelectedAnnouncement(id);
+    setShowEditModal(true);
+  };
+
+  const handleShare = (id: number) => {
+    setSelectedAnnouncement(id);
+    setShowShareModal(true);
+  };
+
+  const handleMore = (id: number) => {
+    setSelectedAnnouncement(id);
+    setShowMoreModal(true);
+  };
 
   const filteredAnnouncements = announcements.filter(announcement => {
     if (filterStatus === 'all') return true;
@@ -137,21 +157,56 @@ export default function AnnouncementList({ filterStatus }: AnnouncementListProps
                   </button>
                   
                   <div className="flex items-center space-x-3">
-                    <button className="p-2 text-gray-400 hover:text-blue-600 cursor-pointer">
+                    <button 
+                      onClick={() => handleEdit(announcement.id)}
+                      className="p-2 text-gray-400 hover:text-blue-600 cursor-pointer"
+                      title="Edit"
+                    >
                       <div className="w-4 h-4 flex items-center justify-center">
                         <i className="ri-edit-line"></i>
                       </div>
                     </button>
-                    <button className="p-2 text-gray-400 hover:text-green-600 cursor-pointer">
+                    <button 
+                      onClick={() => handleShare(announcement.id)}
+                      className="p-2 text-gray-400 hover:text-green-600 cursor-pointer"
+                      title="Share"
+                    >
                       <div className="w-4 h-4 flex items-center justify-center">
                         <i className="ri-share-line"></i>
                       </div>
                     </button>
-                    <button className="p-2 text-gray-400 hover:text-gray-600 cursor-pointer">
-                      <div className="w-4 h-4 flex items-center justify-center">
-                        <i className="ri-more-2-line"></i>
-                      </div>
-                    </button>
+                    <div className="relative">
+                      <button 
+                        onClick={() => handleMore(announcement.id)}
+                        className="p-2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                        title="More options"
+                      >
+                        <div className="w-4 h-4 flex items-center justify-center">
+                          <i className="ri-more-2-line"></i>
+                        </div>
+                      </button>
+                      {showMoreModal && selectedAnnouncement === announcement.id && (
+                        <>
+                          <div className="fixed inset-0 z-40" onClick={() => setShowMoreModal(false)}></div>
+                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                            <div className="py-2">
+                              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-sm text-gray-700">
+                                <i className="ri-file-copy-line mr-3"></i>
+                                Duplicate
+                              </button>
+                              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-sm text-gray-700">
+                                <i className="ri-archive-line mr-3"></i>
+                                Archive
+                              </button>
+                              <button className="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 flex items-center text-sm">
+                                <i className="ri-delete-bin-line mr-3"></i>
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -179,6 +234,58 @@ export default function AnnouncementList({ filterStatus }: AnnouncementListProps
           </p>
         </div>
       )}
+
+      {/* Edit Modal */}
+      {showEditModal && selectedAnnouncement && (
+        <EditAnnouncementModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          announcementId={selectedAnnouncement}
+          announcement={announcements.find(a => a.id === selectedAnnouncement)!}
+        />
+      )}
+
+      {/* Share Modal */}
+      {showShareModal && selectedAnnouncement && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 transition-opacity" onClick={() => setShowShareModal(false)}>
+              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Share Announcement</h3>
+                <button onClick={() => setShowShareModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <i className="ri-close-line text-xl"></i>
+                </button>
+              </div>
+              <div className="space-y-4">
+                <p className="text-gray-600">Share this announcement via:</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <i className="ri-mail-line mr-2"></i>
+                    Email
+                  </button>
+                  <button className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <i className="ri-message-line mr-2"></i>
+                    SMS
+                  </button>
+                  <button className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <i className="ri-facebook-fill mr-2"></i>
+                    Facebook
+                  </button>
+                  <button className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <i className="ri-twitter-fill mr-2"></i>
+                    Twitter
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
     </div>
   );
 }
