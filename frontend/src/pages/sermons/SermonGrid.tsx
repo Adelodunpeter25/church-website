@@ -2,6 +2,7 @@
 
 
 import { useState, useMemo } from 'react';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface SermonGridProps {
   searchTerm: string;
@@ -114,6 +115,8 @@ export default function SermonGrid({
   viewMode 
 }: SermonGridProps) {
   const [playingSermon, setPlayingSermon] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [sermonToDelete, setSermonToDelete] = useState<{ id: number; title: string } | null>(null);
 
   const filteredAndSortedSermons = useMemo(() => {
     let filtered = sermons.filter(sermon => {
@@ -264,9 +267,16 @@ export default function SermonGrid({
                         <i className="ri-download-line"></i>
                       </div>
                     </button>
-                    <button className="p-2 text-gray-400 hover:text-gray-600 cursor-pointer">
+                    <button 
+                      onClick={() => {
+                        setSermonToDelete({ id: sermon.id, title: sermon.title });
+                        setShowDeleteConfirm(true);
+                      }}
+                      className="p-2 text-gray-400 hover:text-red-600 cursor-pointer"
+                      title="Delete"
+                    >
                       <div className="w-5 h-5 flex items-center justify-center">
-                        <i className="ri-more-2-line"></i>
+                        <i className="ri-delete-bin-line"></i>
                       </div>
                     </button>
                   </div>
@@ -350,19 +360,43 @@ export default function SermonGrid({
                   <i className={`${playingSermon === sermon.id ? 'ri-pause-line' : 'ri-play-line'} mr-1`}></i>
                   {playingSermon === sermon.id ? 'Playing' : 'Play'}
                 </button>
-                <button
-                  onClick={() => downloadSermon(sermon)}
-                  className="flex items-center px-3 py-1 rounded-md text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer whitespace-nowrap"
-                >
-                  <i className="ri-download-line mr-1"></i>
-                  Download
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => downloadSermon(sermon)}
+                    className="p-2 text-gray-400 hover:text-blue-600 cursor-pointer"
+                    title="Download"
+                  >
+                    <i className="ri-download-line"></i>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSermonToDelete({ id: sermon.id, title: sermon.title });
+                      setShowDeleteConfirm(true);
+                    }}
+                    className="p-2 text-gray-400 hover:text-red-600 cursor-pointer"
+                    title="Delete"
+                  >
+                    <i className="ri-delete-bin-line"></i>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         ))}
       </div>
       
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={() => {
+          console.log('Deleting sermon:', sermonToDelete?.id);
+        }}
+        title="Delete Sermon"
+        message={`Are you sure you want to delete "${sermonToDelete?.title}"? This action cannot be undone.`}
+        confirmText="Delete"
+        type="danger"
+      />
+
       {filteredAndSortedSermons.length === 0 && (
         <div className="text-center py-12">
           <i className="ri-file-search-line text-gray-400 text-4xl mb-4"></i>
