@@ -6,9 +6,7 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "migrate": "node migrations/run.js"
   },
   "keywords": ["church", "management", "api"],
   "author": "",
