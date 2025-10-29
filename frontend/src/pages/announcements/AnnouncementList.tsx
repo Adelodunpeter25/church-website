@@ -63,7 +63,6 @@ export default function AnnouncementList({ filterStatus }: AnnouncementListProps
   const [expandedAnnouncement, setExpandedAnnouncement] = useState<number | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [showMoreModal, setShowMoreModal] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<number | null>(null);
 
   const handleEdit = (id: number) => {
@@ -74,11 +73,6 @@ export default function AnnouncementList({ filterStatus }: AnnouncementListProps
   const handleShare = (id: number) => {
     setSelectedAnnouncement(id);
     setShowShareModal(true);
-  };
-
-  const handleMore = (id: number) => {
-    setSelectedAnnouncement(id);
-    setShowMoreModal(true);
   };
 
   const filteredAnnouncements = announcements.filter(announcement => {
@@ -175,38 +169,6 @@ export default function AnnouncementList({ filterStatus }: AnnouncementListProps
                         <i className="ri-share-line"></i>
                       </div>
                     </button>
-                    <div className="relative">
-                      <button 
-                        onClick={() => handleMore(announcement.id)}
-                        className="p-2 text-gray-400 hover:text-gray-600 cursor-pointer"
-                        title="More options"
-                      >
-                        <div className="w-4 h-4 flex items-center justify-center">
-                          <i className="ri-more-2-line"></i>
-                        </div>
-                      </button>
-                      {showMoreModal && selectedAnnouncement === announcement.id && (
-                        <>
-                          <div className="fixed inset-0 z-40" onClick={() => setShowMoreModal(false)}></div>
-                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                            <div className="py-2">
-                              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-sm text-gray-700">
-                                <i className="ri-file-copy-line mr-3"></i>
-                                Duplicate
-                              </button>
-                              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-sm text-gray-700">
-                                <i className="ri-archive-line mr-3"></i>
-                                Archive
-                              </button>
-                              <button className="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 flex items-center text-sm">
-                                <i className="ri-delete-bin-line mr-3"></i>
-                                Delete
-                              </button>
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </div>
                   </div>
                 </div>
 

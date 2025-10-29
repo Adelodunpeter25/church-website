@@ -2,6 +2,10 @@
 
 
 import { useState } from 'react';
+import ViewFormModal from '../../components/ViewFormModal';
+import ViewResponsesModal from '../../components/ViewResponsesModal';
+import ShareFormModal from '../../components/ShareFormModal';
+import EditFormModal from '../../components/EditFormModal';
 
 interface FormsListProps {
   filterStatus: string;
@@ -77,6 +81,44 @@ const forms = [
 
 export default function FormsList({ filterStatus }: FormsListProps) {
   const [selectedForms, setSelectedForms] = useState<number[]>([]);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showResponsesModal, setShowResponsesModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [selectedForm, setSelectedForm] = useState<number | null>(null);
+
+  const handleViewForm = (id: number) => {
+    setSelectedForm(id);
+    setShowViewModal(true);
+  };
+
+  const handleEditForm = (id: number) => {
+    setSelectedForm(id);
+    setShowViewModal(false);
+    setShowEditModal(true);
+  };
+
+  const handleViewResponses = (id: number) => {
+    setSelectedForm(id);
+    setShowResponsesModal(true);
+  };
+
+  const handleShare = (id: number) => {
+    setSelectedForm(id);
+    setShowShareModal(true);
+  };
+
+  const handleDeleteSelected = () => {
+    if (confirm(`Delete ${selectedForms.length} selected forms?`)) {
+      console.log('Deleting forms:', selectedForms);
+      setSelectedForms([]);
+    }
+  };
+
+  const handleExportData = () => {
+    console.log('Exporting data for forms:', selectedForms);
+    alert('Export functionality would download CSV/Excel file');
+  };
 
   const filteredForms = forms.filter(form => {
     if (filterStatus === 'all') return true;
@@ -133,10 +175,16 @@ export default function FormsList({ filterStatus }: FormsListProps) {
           </div>
           {selectedForms.length > 0 && (
             <div className="flex items-center space-x-2">
-              <button className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 cursor-pointer whitespace-nowrap">
+              <button 
+                onClick={handleDeleteSelected}
+                className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 cursor-pointer whitespace-nowrap"
+              >
                 Delete Selected
               </button>
-              <button className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 cursor-pointer whitespace-nowrap">
+              <button 
+                onClick={handleExportData}
+                className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 cursor-pointer whitespace-nowrap"
+              >
                 Export Data
               </button>
             </div>
@@ -172,19 +220,22 @@ export default function FormsList({ filterStatus }: FormsListProps) {
                     )}
                   </div>
                   <div className="flex items-center space-x-2">
-                    <button className="p-2 text-gray-400 hover:text-blue-600 cursor-pointer">
+                    <button 
+                      onClick={() => handleViewForm(form.id)}
+                      className="p-2 text-gray-400 hover:text-blue-600 cursor-pointer"
+                      title="View"
+                    >
                       <div className="w-4 h-4 flex items-center justify-center">
                         <i className="ri-eye-line"></i>
                       </div>
                     </button>
-                    <button className="p-2 text-gray-400 hover:text-green-600 cursor-pointer">
+                    <button 
+                      onClick={() => handleEditForm(form.id)}
+                      className="p-2 text-gray-400 hover:text-green-600 cursor-pointer"
+                      title="Edit"
+                    >
                       <div className="w-4 h-4 flex items-center justify-center">
                         <i className="ri-edit-line"></i>
-                      </div>
-                    </button>
-                    <button className="p-2 text-gray-400 hover:text-gray-600 cursor-pointer">
-                      <div className="w-4 h-4 flex items-center justify-center">
-                        <i className="ri-more-2-line"></i>
                       </div>
                     </button>
                   </div>
@@ -215,15 +266,24 @@ export default function FormsList({ filterStatus }: FormsListProps) {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <button className="flex items-center px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 cursor-pointer whitespace-nowrap">
+                    <button 
+                      onClick={() => handleViewForm(form.id)}
+                      className="flex items-center px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 cursor-pointer whitespace-nowrap"
+                    >
                       <i className="ri-eye-line mr-1"></i>
                       View Form
                     </button>
-                    <button className="flex items-center px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 cursor-pointer whitespace-nowrap">
+                    <button 
+                      onClick={() => handleViewResponses(form.id)}
+                      className="flex items-center px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 cursor-pointer whitespace-nowrap"
+                    >
                       <i className="ri-bar-chart-line mr-1"></i>
                       View Responses
                     </button>
-                    <button className="flex items-center px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 cursor-pointer whitespace-nowrap">
+                    <button 
+                      onClick={() => handleShare(form.id)}
+                      className="flex items-center px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 cursor-pointer whitespace-nowrap"
+                    >
                       <i className="ri-share-line mr-1"></i>
                       Share
                     </button>
@@ -253,6 +313,32 @@ export default function FormsList({ filterStatus }: FormsListProps) {
             }
           </p>
         </div>
+      )}
+
+      {selectedForm && (
+        <>
+          <ViewFormModal
+            isOpen={showViewModal}
+            onClose={() => setShowViewModal(false)}
+            onEdit={() => handleEditForm(selectedForm)}
+            formId={selectedForm}
+          />
+          <EditFormModal
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            formId={selectedForm}
+          />
+          <ViewResponsesModal
+            isOpen={showResponsesModal}
+            onClose={() => setShowResponsesModal(false)}
+            formId={selectedForm}
+          />
+          <ShareFormModal
+            isOpen={showShareModal}
+            onClose={() => setShowShareModal(false)}
+            formId={selectedForm}
+          />
+        </>
       )}
     </div>
   );
