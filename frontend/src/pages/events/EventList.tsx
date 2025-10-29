@@ -1,5 +1,4 @@
-
-
+import { useState } from 'react';
 
 const events = [
   {
@@ -62,6 +61,26 @@ const events = [
 ];
 
 export default function EventList() {
+  const [selectedEvent, setSelectedEvent] = useState<number | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAttendeesModal, setShowAttendeesModal] = useState(false);
+
+  const handleViewDetails = (eventId: number) => {
+    setSelectedEvent(eventId);
+    setShowDetailsModal(true);
+  };
+
+  const handleEdit = (eventId: number) => {
+    setSelectedEvent(eventId);
+    setShowEditModal(true);
+  };
+
+  const handleManageAttendees = (eventId: number) => {
+    setSelectedEvent(eventId);
+    setShowAttendeesModal(true);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed': return 'bg-green-100 text-green-800';
@@ -157,15 +176,24 @@ export default function EventList() {
 
             <div className="mt-6 flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <button className="flex items-center px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 cursor-pointer whitespace-nowrap">
+                <button 
+                  onClick={() => handleViewDetails(event.id)}
+                  className="flex items-center px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 cursor-pointer whitespace-nowrap"
+                >
                   <i className="ri-eye-line mr-1"></i>
                   View Details
                 </button>
-                <button className="flex items-center px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 cursor-pointer whitespace-nowrap">
+                <button 
+                  onClick={() => handleEdit(event.id)}
+                  className="flex items-center px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 cursor-pointer whitespace-nowrap"
+                >
                   <i className="ri-edit-line mr-1"></i>
                   Edit
                 </button>
-                <button className="flex items-center px-3 py-1 text-sm bg-orange-100 text-orange-700 rounded hover:bg-orange-200 cursor-pointer whitespace-nowrap">
+                <button 
+                  onClick={() => handleManageAttendees(event.id)}
+                  className="flex items-center px-3 py-1 text-sm bg-orange-100 text-orange-700 rounded hover:bg-orange-200 cursor-pointer whitespace-nowrap"
+                >
                   <i className="ri-group-line mr-1"></i>
                   Manage Attendees
                 </button>
@@ -187,6 +215,92 @@ export default function EventList() {
           </div>
         </div>
       ))}
+
+      {/* View Details Modal */}
+      {showDetailsModal && selectedEvent && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 transition-opacity" onClick={() => setShowDetailsModal(false)}>
+              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Event Details</h3>
+                <button onClick={() => setShowDetailsModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <i className="ri-close-line text-xl"></i>
+                </button>
+              </div>
+              <div className="space-y-4">
+                {events.find(e => e.id === selectedEvent) && (
+                  <>
+                    <h2 className="text-2xl font-bold">{events.find(e => e.id === selectedEvent)?.title}</h2>
+                    <p className="text-gray-600">{events.find(e => e.id === selectedEvent)?.description}</p>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div><strong>Date:</strong> {new Date(events.find(e => e.id === selectedEvent)?.date || '').toLocaleDateString()}</div>
+                      <div><strong>Time:</strong> {events.find(e => e.id === selectedEvent)?.time}</div>
+                      <div><strong>Location:</strong> {events.find(e => e.id === selectedEvent)?.location}</div>
+                      <div><strong>Organizer:</strong> {events.find(e => e.id === selectedEvent)?.organizer}</div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && selectedEvent && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 transition-opacity" onClick={() => setShowEditModal(false)}>
+              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Edit Event</h3>
+                <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <i className="ri-close-line text-xl"></i>
+                </button>
+              </div>
+              <p className="text-gray-600">Edit form for event ID: {selectedEvent}</p>
+              <div className="mt-6 flex justify-end space-x-3">
+                <button onClick={() => setShowEditModal(false)} className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                  Cancel
+                </button>
+                <button className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manage Attendees Modal */}
+      {showAttendeesModal && selectedEvent && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 transition-opacity" onClick={() => setShowAttendeesModal(false)}>
+              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full sm:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Manage Attendees</h3>
+                <button onClick={() => setShowAttendeesModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <i className="ri-close-line text-xl"></i>
+                </button>
+              </div>
+              <div className="space-y-4">
+                <p className="text-gray-600">Attendee list for event ID: {selectedEvent}</p>
+                <div className="border rounded-lg p-4">
+                  <p className="text-sm text-gray-500">Attendee management interface would go here</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
