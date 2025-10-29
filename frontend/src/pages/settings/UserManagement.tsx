@@ -6,6 +6,8 @@ export default function UserManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
   const [showAddUser, setShowAddUser] = useState(false);
+  const [showAddRole, setShowAddRole] = useState(false);
+  const [showPermissions, setShowPermissions] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const [newUser, setNewUser] = useState({
@@ -14,6 +16,10 @@ export default function UserManagement() {
     role: 'member',
     department: '',
     permissions: []
+  });
+  const [newRole, setNewRole] = useState({
+    name: '',
+    permissions: [] as string[]
   });
 
   const [users] = useState([
@@ -84,6 +90,22 @@ export default function UserManagement() {
     setNewUser({ name: '', email: '', role: 'member', department: '', permissions: [] });
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
+  };
+
+  const handleAddRole = () => {
+    setShowAddRole(false);
+    setNewRole({ name: '', permissions: [] });
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+  };
+
+  const togglePermission = (permission: string) => {
+    setNewRole(prev => ({
+      ...prev,
+      permissions: prev.permissions.includes(permission)
+        ? prev.permissions.filter(p => p !== permission)
+        : [...prev.permissions, permission]
+    }));
   };
 
   const filteredUsers = users.filter(user => {
@@ -231,13 +253,21 @@ export default function UserManagement() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900 cursor-pointer">
+                        <button className="text-blue-600 hover:text-blue-900 cursor-pointer" title="Edit">
                           <i className="ri-edit-line"></i>
                         </button>
-                        <button className="text-green-600 hover:text-green-900 cursor-pointer">
+                        <button className="text-green-600 hover:text-green-900 cursor-pointer" title="Reset Password">
                           <i className="ri-key-line"></i>
                         </button>
-                        <button className="text-red-600 hover:text-red-900 cursor-pointer">
+                        <button 
+                          onClick={() => {
+                            if (confirm(`Delete user ${user.name}?`)) {
+                              console.log('Deleting user:', user.id);
+                            }
+                          }}
+                          className="text-red-600 hover:text-red-900 cursor-pointer" 
+                          title="Delete"
+                        >
                           <i className="ri-delete-bin-line"></i>
                         </button>
                       </div>
@@ -256,7 +286,7 @@ export default function UserManagement() {
               <h3 className="text-lg font-semibold text-gray-900">Role Management</h3>
               <p className="text-sm text-gray-600">Manage user roles and their permissions</p>
             </div>
-            <button className="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700 cursor-pointer whitespace-nowrap">
+            <button onClick={() => setShowAddRole(true)} className="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700 cursor-pointer whitespace-nowrap">
               <i className="ri-add-line mr-2"></i>
               Create Role
             </button>
@@ -280,7 +310,7 @@ export default function UserManagement() {
                       {permission}
                     </div>
                   ))}
-                  <button className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer">
+                  <button onClick={() => setShowPermissions(role.value)} className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer">
                     View all permissions
                   </button>
                 </div>
@@ -364,6 +394,91 @@ export default function UserManagement() {
                   Cancel
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Role Modal */}
+      {showAddRole && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Create New Role</h3>
+              <button onClick={() => setShowAddRole(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+                <i className="ri-close-line text-xl"></i>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Role Name</label>
+                <input
+                  type="text"
+                  value={newRole.name}
+                  onChange={(e) => setNewRole({ ...newRole, name: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., Youth Leader"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
+                <div className="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                  {permissions.map((permission) => (
+                    <div key={permission} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={permission}
+                        checked={newRole.permissions.includes(permission)}
+                        onChange={() => togglePermission(permission)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <label htmlFor={permission} className="ml-2 text-sm text-gray-700">{permission}</label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <button onClick={handleAddRole} className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 cursor-pointer whitespace-nowrap">
+                  Create Role
+                </button>
+                <button onClick={() => setShowAddRole(false)} className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-300 cursor-pointer whitespace-nowrap">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Permissions Modal */}
+      {showPermissions && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {roles.find(r => r.value === showPermissions)?.label} Permissions
+              </h3>
+              <button onClick={() => setShowPermissions(null)} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+                <i className="ri-close-line text-xl"></i>
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {permissions.map((permission, index) => (
+                <div key={index} className="flex items-center text-sm text-gray-700 p-2 bg-gray-50 rounded">
+                  <i className="ri-check-line text-green-500 mr-2"></i>
+                  {permission}
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end pt-4 mt-4 border-t">
+              <button onClick={() => setShowPermissions(null)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 cursor-pointer whitespace-nowrap">
+                Close
+              </button>
             </div>
           </div>
         </div>

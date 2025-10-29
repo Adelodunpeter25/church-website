@@ -9,6 +9,8 @@ import LiveStreamPage from './pages/live/LiveStreamPage'
 import AnnouncementsPage from './pages/announcements/AnnouncementsPage'
 import FormsPage from './pages/forms/FormsPage'
 import PlaylistsPage from './pages/playlists/PlaylistsPage'
+import UserManagementPage from './pages/users/UserManagementPage'
+import ContentManagementPage from './pages/content/ContentManagementPage'
 import SettingsPage from './pages/settings/SettingsPage'
 import ProfilePage from './pages/profile/ProfilePage'
 
@@ -27,6 +29,8 @@ function App() {
         <Route path="/announcements" element={<AnnouncementsPage />} />
         <Route path="/forms" element={<FormsPage />} />
         <Route path="/playlists" element={<PlaylistsPage />} />
+        <Route path="/users" element={<UserManagementPage />} />
+        <Route path="/content" element={<ContentManagementPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Routes>

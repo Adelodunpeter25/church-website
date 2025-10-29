@@ -15,6 +15,8 @@ const navigation = [
   { name: 'Forms', href: '/forms', icon: 'ri-file-list-3-line' },
   { name: 'Playlists', href: '/playlists', icon: 'ri-play-list-line' },
   { name: 'Live Stream', href: '/live', icon: 'ri-live-line' },
+  { name: 'User Management', href: '/users', icon: 'ri-user-settings-line' },
+  { name: 'Content Management', href: '/content', icon: 'ri-file-text-line' },
   { name: 'Settings', href: '/settings', icon: 'ri-settings-3-line' },
   { name: 'Profile', href: '/profile', icon: 'ri-user-line' },
 ];

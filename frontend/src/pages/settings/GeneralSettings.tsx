@@ -13,9 +13,7 @@ export default function GeneralSettings() {
     dateFormat: 'MM/DD/YYYY',
     timeFormat: '12h',
     currency: 'USD',
-    language: 'English',
-    welcomeMessage: 'Welcome to Grace Community Church! We are glad you are here.',
-    aboutUs: 'Grace Community Church has been serving the Springfield community for over 50 years. We are committed to loving God, loving people, and making disciples.'
+    language: 'English'
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
@@ -173,80 +171,6 @@ export default function GeneralSettings() {
                 <option value="GBP">GBP (£)</option>
               </select>
             </div>
-          </div>
-        </div>
-
-        {/* Content Settings */}
-        <div className="border-t border-gray-200 pt-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Content Settings</h3>
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Welcome Message
-              </label>
-              <textarea
-                rows={3}
-                value={settings.welcomeMessage}
-                onChange={(e) => handleChange('welcomeMessage', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                maxLength={500}
-              />
-              <p className="mt-1 text-sm text-gray-500">
-                This message will be displayed on the landing page
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                About Us Description
-              </label>
-              <textarea
-                rows={4}
-                value={settings.aboutUs}
-                onChange={(e) => handleChange('aboutUs', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                maxLength={1000}
-              />
-              <p className="mt-1 text-sm text-gray-500">
-                Brief description about your church for the about section
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Service Times */}
-        <div className="border-t border-gray-200 pt-8">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Service Times</h3>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 cursor-pointer whitespace-nowrap">
-              <i className="ri-add-line mr-2"></i>
-              Add Service
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            {[
-              { day: 'Sunday', time: '09:00 AM', service: 'Morning Worship' },
-              { day: 'Sunday', time: '11:00 AM', service: 'Main Service' },
-              { day: 'Wednesday', time: '07:00 PM', service: 'Bible Study' }
-            ].map((service, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div>
-                    <p className="font-medium text-gray-900">{service.service}</p>
-                    <p className="text-sm text-gray-600">{service.day} at {service.time}</p>
-                  </div>
-                </div>
-                <div className="flex space-x-2">
-                  <button className="text-blue-600 hover:text-blue-800 cursor-pointer">
-                    <i className="ri-edit-line"></i>
-                  </button>
-                  <button className="text-red-600 hover:text-red-800 cursor-pointer">
-                    <i className="ri-delete-bin-line"></i>
-                  </button>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
 

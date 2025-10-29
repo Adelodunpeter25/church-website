@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import GeneralSettings from './GeneralSettings';
-import UserManagement from './UserManagement';
 import SystemSettings from './SystemSettings';
 import SecuritySettings from './SecuritySettings';
 import NotificationSettings from './NotificationSettings';
@@ -16,7 +15,6 @@ export default function SettingsPage() {
 
   const tabs = [
     { id: 'general', name: 'General', icon: 'ri-settings-3-line' },
-    { id: 'users', name: 'User Management', icon: 'ri-team-line' },
     { id: 'system', name: 'System', icon: 'ri-server-line' },
     { id: 'security', name: 'Security', icon: 'ri-shield-check-line' },
     { id: 'notifications', name: 'Notifications', icon: 'ri-notification-3-line' },
@@ -61,7 +59,6 @@ export default function SettingsPage() {
 
               <div className="p-6">
                 {activeTab === 'general' && <GeneralSettings />}
-                {activeTab === 'users' && <UserManagement />}
                 {activeTab === 'system' && <SystemSettings />}
                 {activeTab === 'security' && <SecuritySettings />}
                 {activeTab === 'notifications' && <NotificationSettings />}
