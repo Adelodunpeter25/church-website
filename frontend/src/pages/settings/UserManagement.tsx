@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import EditUserModal from '@/components/EditUserModal';
 import ResetPasswordModal from '@/components/ResetPasswordModal';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 export default function UserManagement() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,6 +14,8 @@ export default function UserManagement() {
   const [showAddRole, setShowAddRole] = useState(false);
   const [showPermissions, setShowPermissions] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<{ id: number; name: string } | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const [newUser, setNewUser] = useState({
@@ -280,9 +283,8 @@ export default function UserManagement() {
                         </button>
                         <button 
                           onClick={() => {
-                            if (confirm(`Delete user ${user.name}?`)) {
-                              console.log('Deleting user:', user.id);
-                            }
+                            setUserToDelete({ id: user.id, name: user.name });
+                            setShowDeleteConfirm(true);
                           }}
                           className="text-red-600 hover:text-red-900 cursor-pointer" 
                           title="Delete"
@@ -471,6 +473,18 @@ export default function UserManagement() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={() => {
+          console.log('Deleting user:', userToDelete?.id);
+        }}
+        title="Delete User"
+        message={`Are you sure you want to delete ${userToDelete?.name}? This action cannot be undone.`}
+        confirmText="Delete"
+        type="danger"
+      />
 
       {selectedUser && (
         <>

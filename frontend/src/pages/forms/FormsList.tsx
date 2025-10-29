@@ -6,6 +6,7 @@ import ViewFormModal from '../../components/ViewFormModal';
 import ViewResponsesModal from '../../components/ViewResponsesModal';
 import ShareFormModal from '../../components/ShareFormModal';
 import EditFormModal from '../../components/EditFormModal';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 interface FormsListProps {
   filterStatus: string;
@@ -85,7 +86,10 @@ export default function FormsList({ filterStatus }: FormsListProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showResponsesModal, setShowResponsesModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteSelectedConfirm, setShowDeleteSelectedConfirm] = useState(false);
   const [selectedForm, setSelectedForm] = useState<number | null>(null);
+  const [formToDelete, setFormToDelete] = useState<number | null>(null);
 
   const handleViewForm = (id: number) => {
     setSelectedForm(id);
@@ -109,10 +113,7 @@ export default function FormsList({ filterStatus }: FormsListProps) {
   };
 
   const handleDeleteSelected = () => {
-    if (confirm(`Delete ${selectedForms.length} selected forms?`)) {
-      console.log('Deleting forms:', selectedForms);
-      setSelectedForms([]);
-    }
+    setShowDeleteSelectedConfirm(true);
   };
 
   const handleExportData = () => {
@@ -240,9 +241,8 @@ export default function FormsList({ filterStatus }: FormsListProps) {
                     </button>
                     <button 
                       onClick={() => {
-                        if (confirm('Delete this form?')) {
-                          console.log('Deleting form:', form.id);
-                        }
+                        setFormToDelete(form.id);
+                        setShowDeleteConfirm(true);
                       }}
                       className="p-2 text-gray-400 hover:text-red-600 cursor-pointer"
                       title="Delete"
@@ -327,6 +327,31 @@ export default function FormsList({ filterStatus }: FormsListProps) {
           </p>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={() => {
+          console.log('Deleting form:', formToDelete);
+        }}
+        title="Delete Form"
+        message="Are you sure you want to delete this form? This action cannot be undone."
+        confirmText="Delete"
+        type="danger"
+      />
+
+      <ConfirmDialog
+        isOpen={showDeleteSelectedConfirm}
+        onClose={() => setShowDeleteSelectedConfirm(false)}
+        onConfirm={() => {
+          console.log('Deleting forms:', selectedForms);
+          setSelectedForms([]);
+        }}
+        title="Delete Forms"
+        message={`Are you sure you want to delete ${selectedForms.length} selected forms? This action cannot be undone.`}
+        confirmText="Delete"
+        type="danger"
+      />
 
       {selectedForm && (
         <>

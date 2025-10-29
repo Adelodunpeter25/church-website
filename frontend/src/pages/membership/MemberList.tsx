@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import EditMemberModal from '@/components/EditMemberModal';
 import ViewMemberModal from '@/components/ViewMemberModal';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface MemberListProps {
   searchTerm: string;
@@ -72,7 +73,9 @@ export default function MemberList({ searchTerm, filterRole }: MemberListProps) 
   const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedMember, setSelectedMember] = useState<number | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<{ id: number; name: string } | null>(null);
 
   const filteredMembers = members.filter(member => {
     const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -203,9 +206,8 @@ export default function MemberList({ searchTerm, filterRole }: MemberListProps) 
                     </button>
                     <button 
                       onClick={() => {
-                        if (confirm(`Delete member ${member.name}?`)) {
-                          console.log('Deleting member:', member.id);
-                        }
+                        setMemberToDelete({ id: member.id, name: member.name });
+                        setShowDeleteConfirm(true);
                       }}
                       className="text-red-600 hover:text-red-900 cursor-pointer"
                       title="Delete"
@@ -222,6 +224,18 @@ export default function MemberList({ searchTerm, filterRole }: MemberListProps) 
         </table>
       </div>
       
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={() => {
+          console.log('Deleting member:', memberToDelete?.id);
+        }}
+        title="Delete Member"
+        message={`Are you sure you want to delete ${memberToDelete?.name}? This action cannot be undone.`}
+        confirmText="Delete"
+        type="danger"
+      />
+
       {selectedMember && (
         <>
           <EditMemberModal

@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import EditPlaylistModal from '@/components/EditPlaylistModal';
 import SharePlaylistModal from '@/components/SharePlaylistModal';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 interface PlaylistGridProps {
   viewMode: 'grid' | 'list';
@@ -84,6 +85,7 @@ export default function PlaylistGrid({ viewMode }: PlaylistGridProps) {
   const [playingPlaylist, setPlayingPlaylist] = useState<number | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState<number | null>(null);
 
   const togglePlay = (playlistId: number) => {
@@ -105,9 +107,8 @@ export default function PlaylistGrid({ viewMode }: PlaylistGridProps) {
   };
 
   const handleDelete = (id: number) => {
-    if (confirm('Delete this playlist?')) {
-      console.log('Deleting playlist:', id);
-    }
+    setSelectedPlaylist(id);
+    setShowDeleteConfirm(true);
   };
 
   if (viewMode === 'list') {
@@ -261,6 +262,18 @@ export default function PlaylistGrid({ viewMode }: PlaylistGridProps) {
         </div>
       ))}
       
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={() => {
+          console.log('Deleting playlist:', selectedPlaylist);
+        }}
+        title="Delete Playlist"
+        message="Are you sure you want to delete this playlist? This action cannot be undone."
+        confirmText="Delete"
+        type="danger"
+      />
+
       {selectedPlaylist && (
         <>
           <EditPlaylistModal
