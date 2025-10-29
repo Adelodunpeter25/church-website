@@ -58,8 +58,8 @@ export default function MemberDashboard() {
 
         {/* Navigation Tabs */}
         <div className="bg-white rounded-lg shadow-sm mb-6 sm:mb-8">
-          <div className="border-b border-gray-200 overflow-x-auto">
-            <nav className="flex space-x-4 sm:space-x-8 px-4 sm:px-6">
+          <div className="sm:border-b border-gray-200">
+            <nav className="grid grid-cols-3 gap-2 sm:gap-0 sm:flex sm:space-x-8 p-4 sm:px-6 sm:py-0">
               {[
                 { id: 'overview', label: 'Overview', icon: 'ri-dashboard-line' },
                 { id: 'livestream', label: 'Live Stream', icon: 'ri-live-line' },
@@ -71,15 +71,14 @@ export default function MemberDashboard() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm cursor-pointer whitespace-nowrap ${
+                  className={`flex flex-col sm:flex-row items-center justify-center sm:justify-start py-3 sm:py-4 px-1 border sm:border-0 border-b-2 rounded-lg sm:rounded-none font-semibold text-xs sm:text-sm cursor-pointer transition-colors ${
                     activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-blue-600 text-blue-600 bg-blue-50'
+                      : 'border-gray-300 sm:border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 hover:border-gray-300'
                   }`}
                 >
-                  <i className={`${tab.icon} mr-1 sm:mr-2`}></i>
-                  <span className="hidden sm:inline">{tab.label}</span>
-                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                  <i className={`${tab.icon} sm:mr-2 text-lg sm:text-base`}></i>
+                  <span className="mt-1 sm:mt-0 text-center">{tab.label.split(' ')[0]}</span>
                 </button>
               ))}
             </nav>
