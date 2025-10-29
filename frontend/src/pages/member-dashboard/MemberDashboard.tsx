@@ -1,8 +1,8 @@
 
-'use client';
+
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 
 export default function MemberDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -26,7 +26,7 @@ export default function MemberDashboard() {
                   <i className="ri-notification-2-line"></i>
                 </div>
               </button>
-              <Link href="/landing" className="text-sm text-gray-600 hover:text-gray-900 cursor-pointer">
+              <Link to="/landing" className="text-sm text-gray-600 hover:text-gray-900 cursor-pointer">
                 Sign Out
               </Link>
             </div>

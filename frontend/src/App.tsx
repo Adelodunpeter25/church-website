@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './pages/landing/LandingPage'
 import Dashboard from './pages/dashboard/Dashboard'
+import MemberDashboard from './pages/member-dashboard/MemberDashboard'
 import MembershipPage from './pages/membership/MembershipPage'
 import SermonsPage from './pages/sermons/SermonsPage'
 import EventsPage from './pages/events/EventsPage'
@@ -18,6 +19,7 @@ function App() {
         <Route path="/" element={<Navigate to="/landing" replace />} />
         <Route path="/landing" element={<LandingPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/member-dashboard" element={<MemberDashboard />} />
         <Route path="/membership" element={<MembershipPage />} />
         <Route path="/sermons" element={<SermonsPage />} />
         <Route path="/events" element={<EventsPage />} />

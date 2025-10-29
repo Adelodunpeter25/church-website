@@ -1,4 +1,4 @@
-# Church Management Website - React
+# Church Management Website
 
 A modern, full-featured church administration platform built with React, TypeScript, and Vite.
 
@@ -37,7 +37,7 @@ A modern, full-featured church administration platform built with React, TypeScr
 1. Clone the repository
 ```bash
 git clone <repository-url>
-cd church-website/react-app
+cd church-website/frontend
 ```
 
 2. Install dependencies

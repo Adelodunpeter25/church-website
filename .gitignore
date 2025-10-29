@@ -1,20 +1,13 @@
 # Dependencies
 node_modules/
 frontend/node_modules/
-react-app/node_modules/
-
-# Next.js
-frontend/.next/
-frontend/out/
 
 # React/Vite
-react-app/dist/
-react-app/dist-ssr/
+frontend/dist/
+frontend/dist-ssr/
 
 # Production
 frontend/build/
-frontend/dist/
-react-app/build/
 
 # Environment variables
 .env

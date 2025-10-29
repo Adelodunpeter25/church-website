@@ -1,9 +1,15 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: ["./{app,components,libs,pages,hooks}/**/*.{html,js,ts,jsx,tsx}"],
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        pacifico: ['Pacifico', 'cursive'],
+      },
+    },
   },
   plugins: [],
 }
-
