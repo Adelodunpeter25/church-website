@@ -24,19 +24,19 @@ export default function MemberDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <div className="text-2xl font-bold text-blue-600" style={{ fontFamily: "Pacifico, serif" }}>
+              <div className="text-xl sm:text-2xl font-bold text-blue-600" style={{ fontFamily: "Pacifico, serif" }}>
                 Bibleway
               </div>
-              <span className="ml-4 text-gray-600">Member Portal</span>
+              <span className="ml-2 sm:ml-4 text-sm sm:text-base text-gray-600 hidden sm:inline">Member Portal</span>
             </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <button className="p-2 text-gray-400 hover:text-gray-600 cursor-pointer">
                 <div className="w-5 h-5 flex items-center justify-center">
                   <i className="ri-notification-2-line"></i>
                 </div>
               </button>
-              <Link to="/landing" className="text-sm text-gray-600 hover:text-gray-900 cursor-pointer">
+              <Link to="/landing" className="text-xs sm:text-sm text-gray-600 hover:text-gray-900 cursor-pointer">
                 Sign Out
               </Link>
             </div>
@@ -46,15 +46,15 @@ export default function MemberDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Welcome back, John!</h1>
-          <p className="mt-2 text-gray-600">Stay connected with your church community</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Welcome back, John!</h1>
+          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">Stay connected with your church community</p>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="bg-white rounded-lg shadow-sm mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6">
+        <div className="bg-white rounded-lg shadow-sm mb-6 sm:mb-8">
+          <div className="border-b border-gray-200 overflow-x-auto">
+            <nav className="flex space-x-4 sm:space-x-8 px-4 sm:px-6">
               {[
                 { id: 'overview', label: 'Overview', icon: 'ri-dashboard-line' },
                 { id: 'livestream', label: 'Live Stream', icon: 'ri-live-line' },
@@ -66,25 +66,26 @@ export default function MemberDashboard() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm cursor-pointer whitespace-nowrap ${
+                  className={`flex items-center py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm cursor-pointer whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  <i className={`${tab.icon} mr-2`}></i>
-                  {tab.label}
+                  <i className={`${tab.icon} mr-1 sm:mr-2`}></i>
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
                 </button>
               ))}
             </nav>
           </div>
 
           {/* Tab Content */}
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 {/* Quick Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                   <div className="bg-blue-50 rounded-lg p-6">
                     <div className="flex items-center">
                       <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -123,7 +124,7 @@ export default function MemberDashboard() {
                 </div>
 
                 {/* Recent Activity */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Sermons</h3>
                     <div className="space-y-4">
@@ -175,8 +176,8 @@ export default function MemberDashboard() {
             )}
 
             {activeTab === 'livestream' && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div className="lg:col-span-2 space-y-4 sm:space-y-6">
                   <LiveStreamPlayer isLive={true} />
                   <LiveStreamInfo isLive={true} viewers={245} />
                 </div>
@@ -200,7 +201,7 @@ export default function MemberDashboard() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   {[
                     { title: 'Walking in Faith - Part 3', speaker: 'Pastor John', date: 'Jan 14, 2025', duration: '42 min', plays: 156 },
                     { title: 'The Power of Prayer', speaker: 'Pastor Sarah', date: 'Jan 7, 2025', duration: '38 min', plays: 203 },
@@ -336,7 +337,7 @@ export default function MemberDashboard() {
 
             {activeTab === 'giving' && (
               <div>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
                   <div className="lg:col-span-2">
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">Giving History</h3>
                     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -421,7 +422,7 @@ export default function MemberDashboard() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   <div>
                     <h4 className="font-medium text-gray-900 mb-4">My Prayer Requests</h4>
                     <div className="space-y-4">
