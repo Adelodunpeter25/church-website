@@ -2,6 +2,8 @@
 
 
 import { useState } from 'react';
+import EditMemberModal from '@/components/EditMemberModal';
+import ViewMemberModal from '@/components/ViewMemberModal';
 
 interface MemberListProps {
   searchTerm: string;
@@ -68,6 +70,9 @@ const members = [
 
 export default function MemberList({ searchTerm, filterRole }: MemberListProps) {
   const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<number | null>(null);
 
   const filteredMembers = members.filter(member => {
     const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -91,8 +96,8 @@ export default function MemberList({ searchTerm, filterRole }: MemberListProps) 
   };
 
   return (
-    <div className="overflow-hidden">
-      <div className="overflow-x-auto">
+    <div>
+      <div>
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -119,7 +124,7 @@ export default function MemberList({ searchTerm, filterRole }: MemberListProps) 
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Last Attendance
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
                 Actions
               </th>
             </tr>
@@ -172,14 +177,41 @@ export default function MemberList({ searchTerm, filterRole }: MemberListProps) 
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center justify-end space-x-2">
-                    <button className="text-blue-600 hover:text-blue-900 cursor-pointer">
+                    <button 
+                      onClick={() => {
+                        setSelectedMember(member.id);
+                        setShowEditModal(true);
+                      }}
+                      className="text-blue-600 hover:text-blue-900 cursor-pointer"
+                      title="Edit"
+                    >
                       <div className="w-4 h-4 flex items-center justify-center">
                         <i className="ri-edit-line"></i>
                       </div>
                     </button>
-                    <button className="text-gray-400 hover:text-gray-600 cursor-pointer">
+                    <button 
+                      onClick={() => {
+                        setSelectedMember(member.id);
+                        setShowViewModal(true);
+                      }}
+                      className="text-green-600 hover:text-green-900 cursor-pointer"
+                      title="View Details"
+                    >
                       <div className="w-4 h-4 flex items-center justify-center">
-                        <i className="ri-more-2-line"></i>
+                        <i className="ri-eye-line"></i>
+                      </div>
+                    </button>
+                    <button 
+                      onClick={() => {
+                        if (confirm(`Delete member ${member.name}?`)) {
+                          console.log('Deleting member:', member.id);
+                        }
+                      }}
+                      className="text-red-600 hover:text-red-900 cursor-pointer"
+                      title="Delete"
+                    >
+                      <div className="w-4 h-4 flex items-center justify-center">
+                        <i className="ri-delete-bin-line"></i>
                       </div>
                     </button>
                   </div>
@@ -190,6 +222,21 @@ export default function MemberList({ searchTerm, filterRole }: MemberListProps) 
         </table>
       </div>
       
+      {selectedMember && (
+        <>
+          <EditMemberModal
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            memberId={selectedMember}
+          />
+          <ViewMemberModal
+            isOpen={showViewModal}
+            onClose={() => setShowViewModal(false)}
+            memberId={selectedMember}
+          />
+        </>
+      )}
+
       {filteredMembers.length === 0 && (
         <div className="text-center py-12">
           <i className="ri-user-search-line text-gray-400 text-4xl mb-4"></i>

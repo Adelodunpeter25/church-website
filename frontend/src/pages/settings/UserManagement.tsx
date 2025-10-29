@@ -1,13 +1,18 @@
 
 
 import { useState } from 'react';
+import EditUserModal from '@/components/EditUserModal';
+import ResetPasswordModal from '@/components/ResetPasswordModal';
 
 export default function UserManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
   const [showAddUser, setShowAddUser] = useState(false);
+  const [showEditUser, setShowEditUser] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const [showAddRole, setShowAddRole] = useState(false);
   const [showPermissions, setShowPermissions] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<number | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const [newUser, setNewUser] = useState({
@@ -208,7 +213,7 @@ export default function UserManagement() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">
                   Actions
                 </th>
               </tr>
@@ -253,10 +258,24 @@ export default function UserManagement() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900 cursor-pointer" title="Edit">
+                        <button 
+                          onClick={() => {
+                            setSelectedUser(user.id);
+                            setShowEditUser(true);
+                          }}
+                          className="text-blue-600 hover:text-blue-900 cursor-pointer" 
+                          title="Edit"
+                        >
                           <i className="ri-edit-line"></i>
                         </button>
-                        <button className="text-green-600 hover:text-green-900 cursor-pointer" title="Reset Password">
+                        <button 
+                          onClick={() => {
+                            setSelectedUser(user.id);
+                            setShowResetPassword(true);
+                          }}
+                          className="text-green-600 hover:text-green-900 cursor-pointer" 
+                          title="Reset Password"
+                        >
                           <i className="ri-key-line"></i>
                         </button>
                         <button 
@@ -451,6 +470,21 @@ export default function UserManagement() {
             </div>
           </div>
         </div>
+      )}
+
+      {selectedUser && (
+        <>
+          <EditUserModal
+            isOpen={showEditUser}
+            onClose={() => setShowEditUser(false)}
+            userId={selectedUser}
+          />
+          <ResetPasswordModal
+            isOpen={showResetPassword}
+            onClose={() => setShowResetPassword(false)}
+            userId={selectedUser}
+          />
+        </>
       )}
 
       {/* View Permissions Modal */}

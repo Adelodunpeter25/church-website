@@ -65,7 +65,14 @@ export default function MembershipPage() {
                       <option value="leader">Leader</option>
                       <option value="volunteer">Volunteer</option>
                     </select>
-                    <button className="p-2 text-gray-400 hover:text-gray-600 cursor-pointer">
+                    <button 
+                      onClick={() => {
+                        console.log('Exporting members data');
+                        alert('Export functionality would download CSV/Excel file');
+                      }}
+                      className="p-2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                      title="Export"
+                    >
                       <div className="w-5 h-5 flex items-center justify-center">
                         <i className="ri-download-line"></i>
                       </div>
