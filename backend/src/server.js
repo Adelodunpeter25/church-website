@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import pool from './config/database.js';
 import { initializeSocket } from './config/socket.js';
 import healthRoutes from './routes/healthRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import memberRoutes from './routes/memberRoutes.js';
 import sermonRoutes from './routes/sermonRoutes.js';
@@ -17,6 +18,7 @@ import userRoutes from './routes/userRoutes.js';
 import contentRoutes from './routes/contentRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
+import permissionRoutes from './routes/permissionRoutes.js';
 
 dotenv.config();
 
@@ -38,6 +40,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/health', healthRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/sermons', sermonRoutes);
@@ -50,6 +53,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/content', contentRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/permissions', permissionRoutes);
 
 initializeSocket(httpServer);
 
