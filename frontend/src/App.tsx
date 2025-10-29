@@ -1,5 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './pages/landing/LandingPage'
+import LoginPage from './pages/auth/LoginPage'
+import SignupPage from './pages/auth/SignupPage'
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import Dashboard from './pages/dashboard/Dashboard'
 import MemberDashboard from './pages/member-dashboard/MemberDashboard'
 import MembershipPage from './pages/membership/MembershipPage'
@@ -20,6 +23,9 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/landing" replace />} />
         <Route path="/landing" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/member-dashboard" element={<MemberDashboard />} />
         <Route path="/membership" element={<MembershipPage />} />

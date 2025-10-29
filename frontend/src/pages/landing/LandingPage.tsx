@@ -30,8 +30,11 @@ export default function LandingPage() {
             </div>
 
             <div className="hidden md:flex items-center space-x-4">
-              <Link to="/dashboard" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium cursor-pointer whitespace-nowrap">
-                Member Login
+              <Link to="/login" className="text-gray-700 hover:text-blue-600 px-4 py-2 text-sm font-medium cursor-pointer whitespace-nowrap">
+                Login
+              </Link>
+              <Link to="/signup" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium cursor-pointer whitespace-nowrap">
+                Sign Up
               </Link>
             </div>
 
@@ -56,8 +59,11 @@ export default function LandingPage() {
               <a to="#services" className="block px-3 py-2 text-gray-700 hover:text-blue-600 cursor-pointer">Services</a>
               <a to="#events" className="block px-3 py-2 text-gray-700 hover:text-blue-600 cursor-pointer">Events</a>
               <a to="#contact" className="block px-3 py-2 text-gray-700 hover:text-blue-600 cursor-pointer">Contact</a>
-              <Link to="/dashboard" className="block px-3 py-2 bg-blue-600 text-white rounded-lg cursor-pointer whitespace-nowrap">
-                Member Login
+              <Link to="/login" className="block px-3 py-2 text-gray-700 hover:text-blue-600 cursor-pointer">
+                Login
+              </Link>
+              <Link to="/signup" className="block px-3 py-2 bg-blue-600 text-white rounded-lg cursor-pointer whitespace-nowrap">
+                Sign Up
               </Link>
             </div>
           </div>
