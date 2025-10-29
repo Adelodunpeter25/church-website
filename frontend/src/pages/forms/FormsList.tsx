@@ -238,6 +238,19 @@ export default function FormsList({ filterStatus }: FormsListProps) {
                         <i className="ri-edit-line"></i>
                       </div>
                     </button>
+                    <button 
+                      onClick={() => {
+                        if (confirm('Delete this form?')) {
+                          console.log('Deleting form:', form.id);
+                        }
+                      }}
+                      className="p-2 text-gray-400 hover:text-red-600 cursor-pointer"
+                      title="Delete"
+                    >
+                      <div className="w-4 h-4 flex items-center justify-center">
+                        <i className="ri-delete-bin-line"></i>
+                      </div>
+                    </button>
                   </div>
                 </div>
 

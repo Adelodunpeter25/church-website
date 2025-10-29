@@ -2,6 +2,8 @@
 
 
 import { useState } from 'react';
+import EditPlaylistModal from '@/components/EditPlaylistModal';
+import SharePlaylistModal from '@/components/SharePlaylistModal';
 
 interface PlaylistGridProps {
   viewMode: 'grid' | 'list';
@@ -80,12 +82,31 @@ const playlists = [
 
 export default function PlaylistGrid({ viewMode }: PlaylistGridProps) {
   const [playingPlaylist, setPlayingPlaylist] = useState<number | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<number | null>(null);
 
   const togglePlay = (playlistId: number) => {
     if (playingPlaylist === playlistId) {
       setPlayingPlaylist(null);
     } else {
       setPlayingPlaylist(playlistId);
+    }
+  };
+
+  const handleEdit = (id: number) => {
+    setSelectedPlaylist(id);
+    setShowEditModal(true);
+  };
+
+  const handleShare = (id: number) => {
+    setSelectedPlaylist(id);
+    setShowShareModal(true);
+  };
+
+  const handleDelete = (id: number) => {
+    if (confirm('Delete this playlist?')) {
+      console.log('Deleting playlist:', id);
     }
   };
 
@@ -140,9 +161,9 @@ export default function PlaylistGrid({ viewMode }: PlaylistGridProps) {
                     <i className={`${playingPlaylist === playlist.id ? 'ri-pause-line' : 'ri-play-line'} mr-1`}></i>
                     {playingPlaylist === playlist.id ? 'Playing' : 'Play'}
                   </button>
-                  <button className="p-2 text-gray-400 hover:text-gray-600 cursor-pointer">
+                  <button onClick={() => handleDelete(playlist.id)} className="p-2 text-gray-400 hover:text-red-600 cursor-pointer">
                     <div className="w-4 h-4 flex items-center justify-center">
-                      <i className="ri-more-2-line"></i>
+                      <i className="ri-delete-bin-line"></i>
                     </div>
                   </button>
                 </div>
@@ -219,19 +240,19 @@ export default function PlaylistGrid({ viewMode }: PlaylistGridProps) {
               </button>
               
               <div className="flex items-center space-x-1">
-                <button className="p-2 text-gray-400 hover:text-blue-600 cursor-pointer">
+                <button onClick={() => handleEdit(playlist.id)} className="p-2 text-gray-400 hover:text-blue-600 cursor-pointer">
                   <div className="w-4 h-4 flex items-center justify-center">
                     <i className="ri-edit-line"></i>
                   </div>
                 </button>
-                <button className="p-2 text-gray-400 hover:text-green-600 cursor-pointer">
+                <button onClick={() => handleShare(playlist.id)} className="p-2 text-gray-400 hover:text-green-600 cursor-pointer">
                   <div className="w-4 h-4 flex items-center justify-center">
                     <i className="ri-share-line"></i>
                   </div>
                 </button>
-                <button className="p-2 text-gray-400 hover:text-gray-600 cursor-pointer">
+                <button onClick={() => handleDelete(playlist.id)} className="p-2 text-gray-400 hover:text-red-600 cursor-pointer">
                   <div className="w-4 h-4 flex items-center justify-center">
-                    <i className="ri-more-2-line"></i>
+                    <i className="ri-delete-bin-line"></i>
                   </div>
                 </button>
               </div>
@@ -240,6 +261,21 @@ export default function PlaylistGrid({ viewMode }: PlaylistGridProps) {
         </div>
       ))}
       
+      {selectedPlaylist && (
+        <>
+          <EditPlaylistModal
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            playlistId={selectedPlaylist}
+          />
+          <SharePlaylistModal
+            isOpen={showShareModal}
+            onClose={() => setShowShareModal(false)}
+            playlistId={selectedPlaylist}
+          />
+        </>
+      )}
+
       {playlists.length === 0 && (
         <div className="col-span-full text-center py-12">
           <i className="ri-playlist-line text-gray-400 text-4xl mb-4"></i>
