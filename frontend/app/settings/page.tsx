@@ -1,0 +1,76 @@
+'use client';
+
+import { useState } from 'react';
+import Sidebar from '../../components/Sidebar';
+import DashboardHeader from '../../components/DashboardHeader';
+import GeneralSettings from './GeneralSettings';
+import UserManagement from './UserManagement';
+import SystemSettings from './SystemSettings';
+import SecuritySettings from './SecuritySettings';
+import NotificationSettings from './NotificationSettings';
+import IntegrationSettings from './IntegrationSettings';
+
+export default function SettingsPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('general');
+
+  const tabs = [
+    { id: 'general', name: 'General', icon: 'ri-settings-3-line' },
+    { id: 'users', name: 'User Management', icon: 'ri-team-line' },
+    { id: 'system', name: 'System', icon: 'ri-server-line' },
+    { id: 'security', name: 'Security', icon: 'ri-shield-check-line' },
+    { id: 'notifications', name: 'Notifications', icon: 'ri-notification-3-line' },
+    { id: 'integrations', name: 'Integrations', icon: 'ri-plug-line' }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      
+      <div className="lg:pl-72">
+        <DashboardHeader onMenuClick={() => setSidebarOpen(true)} />
+        
+        <main className="py-6">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900">Administrator Settings</h1>
+              <p className="mt-2 text-gray-600">
+                Manage your church's system settings, users, and preferences.
+              </p>
+            </div>
+
+            <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+              <div className="border-b border-gray-200">
+                <nav className="flex space-x-8 px-6" aria-label="Tabs">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm cursor-pointer ${
+                        activeTab === tab.id
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      <i className={`${tab.icon} mr-2`}></i>
+                      {tab.name}
+                    </button>
+                  ))}
+                </nav>
+              </div>
+
+              <div className="p-6">
+                {activeTab === 'general' && <GeneralSettings />}
+                {activeTab === 'users' && <UserManagement />}
+                {activeTab === 'system' && <SystemSettings />}
+                {activeTab === 'security' && <SecuritySettings />}
+                {activeTab === 'notifications' && <NotificationSettings />}
+                {activeTab === 'integrations' && <IntegrationSettings />}
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
