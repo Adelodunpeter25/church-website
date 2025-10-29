@@ -6,6 +6,9 @@ import { Link } from 'react-router-dom';
 import EventRegistrationModal from '@/components/modals/EventRegistrationModal';
 import EventDetailsModal from '@/components/modals/EventDetailsModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
+import LiveStreamPlayer from '@/components/livestream/LiveStreamPlayer';
+import LiveStreamInfo from '@/components/livestream/LiveStreamInfo';
+import LiveStreamChat from '@/components/livestream/LiveStreamChat';
 
 export default function MemberDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -54,6 +57,7 @@ export default function MemberDashboard() {
             <nav className="flex space-x-8 px-6">
               {[
                 { id: 'overview', label: 'Overview', icon: 'ri-dashboard-line' },
+                { id: 'livestream', label: 'Live Stream', icon: 'ri-live-line' },
                 { id: 'sermons', label: 'Sermons', icon: 'ri-book-open-line' },
                 { id: 'events', label: 'My Events', icon: 'ri-calendar-line' },
                 { id: 'giving', label: 'Giving', icon: 'ri-hand-heart-line' },
@@ -166,6 +170,18 @@ export default function MemberDashboard() {
                       ))}
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'livestream' && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                  <LiveStreamPlayer isLive={true} />
+                  <LiveStreamInfo isLive={true} viewers={245} />
+                </div>
+                <div>
+                  <LiveStreamChat />
                 </div>
               </div>
             )}
