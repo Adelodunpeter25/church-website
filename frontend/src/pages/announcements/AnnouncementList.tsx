@@ -1,8 +1,5 @@
-
-
-
 import { useState } from 'react';
-import EditAnnouncementModal from '../../components/EditAnnouncementModal';
+import EditAnnouncementModal from '@/components/modals/EditAnnouncementModal';
 
 interface AnnouncementListProps {
   filterStatus: string;

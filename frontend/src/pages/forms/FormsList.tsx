@@ -2,11 +2,11 @@
 
 
 import { useState } from 'react';
-import ViewFormModal from '../../components/ViewFormModal';
-import ViewResponsesModal from '../../components/ViewResponsesModal';
-import ShareFormModal from '../../components/ShareFormModal';
-import EditFormModal from '../../components/EditFormModal';
-import ConfirmDialog from '../../components/ConfirmDialog';
+import ViewFormModal from '@/components/modals/ViewFormModal';
+import ViewResponsesModal from '@/components/modals/ViewResponsesModal';
+import ShareFormModal from '@/components/modals/ShareFormModal';
+import EditFormModal from '@/components/modals/EditFormModal';
+import ConfirmDialog from '@/components/modals/ConfirmDialog';
 
 interface FormsListProps {
   filterStatus: string;

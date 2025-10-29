@@ -4,13 +4,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import EventRegistrationModal from '@/components/modals/EventRegistrationModal';
+import EventDetailsModal from '@/components/modals/EventDetailsModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
 
 export default function MemberDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<string>('');
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -268,12 +270,18 @@ export default function MemberDashboard() {
                       <div className="flex space-x-3">
                         {event.status === 'Registered' ? (
                           <>
-                            <button className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer whitespace-nowrap">
+                            <button 
+                              onClick={() => {
+                                setSelectedEvent(event);
+                                setShowDetailsModal(true);
+                              }}
+                              className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer whitespace-nowrap"
+                            >
                               View Details
                             </button>
                             <button 
                               onClick={() => {
-                                setSelectedEvent(event.title);
+                                setSelectedEvent(event);
                                 setShowCancelConfirm(true);
                               }}
                               className="text-red-600 hover:text-red-800 text-sm cursor-pointer whitespace-nowrap"
@@ -285,14 +293,20 @@ export default function MemberDashboard() {
                           <>
                             <button 
                               onClick={() => {
-                                setSelectedEvent(event.title);
+                                setSelectedEvent(event);
                                 setShowRegistrationModal(true);
                               }}
                               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm cursor-pointer whitespace-nowrap"
                             >
                               Register
                             </button>
-                            <button className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer whitespace-nowrap">
+                            <button 
+                              onClick={() => {
+                                setSelectedEvent(event);
+                                setShowDetailsModal(true);
+                              }}
+                              className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer whitespace-nowrap"
+                            >
                               Learn More
                             </button>
                           </>
@@ -456,23 +470,33 @@ export default function MemberDashboard() {
         </div>
       </div>
 
-      <EventRegistrationModal
-        isOpen={showRegistrationModal}
-        onClose={() => setShowRegistrationModal(false)}
-        eventTitle={selectedEvent}
-      />
+      {selectedEvent && (
+        <>
+          <EventRegistrationModal
+            isOpen={showRegistrationModal}
+            onClose={() => setShowRegistrationModal(false)}
+            eventTitle={selectedEvent.title}
+          />
+          
+          <EventDetailsModal
+            isOpen={showDetailsModal}
+            onClose={() => setShowDetailsModal(false)}
+            event={selectedEvent}
+          />
 
-      <ConfirmDialog
-        isOpen={showCancelConfirm}
-        onClose={() => setShowCancelConfirm(false)}
-        onConfirm={() => {
-          console.log('Cancelling registration for:', selectedEvent);
-        }}
-        title="Cancel Registration"
-        message={`Are you sure you want to cancel your registration for "${selectedEvent}"?`}
-        confirmText="Cancel Registration"
-        type="warning"
-      />
+          <ConfirmDialog
+            isOpen={showCancelConfirm}
+            onClose={() => setShowCancelConfirm(false)}
+            onConfirm={() => {
+              console.log('Cancelling registration for:', selectedEvent.title);
+            }}
+            title="Cancel Registration"
+            message={`Are you sure you want to cancel your registration for "${selectedEvent.title}"?`}
+            confirmText="Cancel Registration"
+            type="warning"
+          />
+        </>
+      )}
     </div>
   );
 }
