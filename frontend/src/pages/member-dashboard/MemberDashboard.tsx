@@ -6,6 +6,8 @@ import { Link } from 'react-router-dom';
 import EventRegistrationModal from '@/components/modals/EventRegistrationModal';
 import EventDetailsModal from '@/components/modals/EventDetailsModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
+import AddPrayerRequestModal from '@/components/modals/AddPrayerRequestModal';
+import PrayerRequestDetailsModal from '@/components/modals/PrayerRequestDetailsModal';
 import LiveStreamPlayer from '@/components/livestream/LiveStreamPlayer';
 import LiveStreamInfo from '@/components/livestream/LiveStreamInfo';
 import LiveStreamChat from '@/components/livestream/LiveStreamChat';
@@ -15,7 +17,10 @@ export default function MemberDashboard() {
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showPrayerModal, setShowPrayerModal] = useState(false);
+  const [showPrayerDetailsModal, setShowPrayerDetailsModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [selectedPrayerRequest, setSelectedPrayerRequest] = useState<any>(null);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -417,7 +422,10 @@ export default function MemberDashboard() {
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-semibold text-gray-900">Prayer Requests</h3>
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm cursor-pointer whitespace-nowrap">
+                  <button 
+                    onClick={() => setShowPrayerModal(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm cursor-pointer whitespace-nowrap"
+                  >
                     Add Prayer Request
                   </button>
                 </div>
@@ -447,7 +455,13 @@ export default function MemberDashboard() {
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600">{request.prayers} people praying</span>
-                            <button className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer">
+                            <button 
+                              onClick={() => {
+                                setSelectedPrayerRequest(request);
+                                setShowPrayerDetailsModal(true);
+                              }}
+                              className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer"
+                            >
                               View Details
                             </button>
                           </div>
@@ -514,6 +528,17 @@ export default function MemberDashboard() {
           />
         </>
       )}
+
+      <AddPrayerRequestModal
+        isOpen={showPrayerModal}
+        onClose={() => setShowPrayerModal(false)}
+      />
+
+      <PrayerRequestDetailsModal
+        isOpen={showPrayerDetailsModal}
+        onClose={() => setShowPrayerDetailsModal(false)}
+        request={selectedPrayerRequest}
+      />
     </div>
   );
 }
