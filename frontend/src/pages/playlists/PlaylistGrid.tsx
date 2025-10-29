@@ -14,8 +14,8 @@ const playlists = [
     description: 'Collection of my favorite Sunday morning sermons that inspire and uplift',
     sermonCount: 12,
     totalDuration: '8h 45m',
-    createdDate: '2024-01-01',
-    lastUpdated: '2024-01-14',
+    createdDate: '2025-01-01',
+    lastUpdated: '2025-01-14',
     isPublic: false,
     plays: 45,
     sermons: [
@@ -32,7 +32,7 @@ const playlists = [
     sermonCount: 8,
     totalDuration: '6h 20m',
     createdDate: '2023-12-15',
-    lastUpdated: '2024-01-10',
+    lastUpdated: '2025-01-10',
     isPublic: true,
     plays: 23,
     sermons: [
@@ -49,7 +49,7 @@ const playlists = [
     sermonCount: 6,
     totalDuration: '4h 15m',
     createdDate: '2023-11-20',
-    lastUpdated: '2024-01-05',
+    lastUpdated: '2025-01-05',
     isPublic: false,
     plays: 18,
     sermons: [
@@ -66,7 +66,7 @@ const playlists = [
     sermonCount: 15,
     totalDuration: '10h 30m',
     createdDate: '2023-10-01',
-    lastUpdated: '2024-01-12',
+    lastUpdated: '2025-01-12',
     isPublic: true,
     plays: 67,
     sermons: [

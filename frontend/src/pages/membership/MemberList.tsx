@@ -16,7 +16,7 @@ const members = [
     phone: '(555) 123-4567',
     role: 'Leader',
     joinDate: '2020-03-15',
-    lastAttendance: '2024-01-14',
+    lastAttendance: '2025-01-14',
     status: 'Active',
     ministry: 'Youth Ministry'
   },
@@ -27,7 +27,7 @@ const members = [
     phone: '(555) 234-5678',
     role: 'Volunteer',
     joinDate: '2021-07-22',
-    lastAttendance: '2024-01-14',
+    lastAttendance: '2025-01-14',
     status: 'Active',
     ministry: 'Music Team'
   },
@@ -38,7 +38,7 @@ const members = [
     phone: '(555) 345-6789',
     role: 'Member',
     joinDate: '2019-11-08',
-    lastAttendance: '2024-01-07',
+    lastAttendance: '2025-01-07',
     status: 'Active',
     ministry: 'Children Ministry'
   },
@@ -49,7 +49,7 @@ const members = [
     phone: '(555) 456-7890',
     role: 'Leader',
     joinDate: '2018-05-12',
-    lastAttendance: '2024-01-14',
+    lastAttendance: '2025-01-14',
     status: 'Active',
     ministry: 'Outreach Team'
   },
@@ -60,7 +60,7 @@ const members = [
     phone: '(555) 567-8901',
     role: 'Member',
     joinDate: '2022-01-30',
-    lastAttendance: '2024-01-14',
+    lastAttendance: '2025-01-14',
     status: 'Active',
     ministry: 'Welcome Team'
   }

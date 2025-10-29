@@ -15,7 +15,7 @@ export default function LandingPage() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <div className="text-2xl font-bold text-blue-600" style={{ fontFamily: "Pacifico, serif" }}>
-                logo
+                Bibleway
               </div>
             </div>
             
@@ -100,34 +100,43 @@ export default function LandingPage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i className="ri-heart-line text-blue-600 text-3xl"></i>
+            <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow border border-gray-100">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
+                <i className="ri-heart-line text-white text-3xl"></i>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Love & Compassion</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Love & Compassion</h3>
+              <p className="text-gray-600 text-center leading-relaxed">
                 We believe in showing Christ's love through our actions, caring for one another and our community with open hearts.
               </p>
+              <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+                <span className="text-blue-600 font-semibold text-sm">Our Foundation</span>
+              </div>
             </div>
             
-            <div className="text-center">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i className="ri-group-line text-green-600 text-3xl"></i>
+            <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow border border-gray-100">
+              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
+                <i className="ri-group-line text-white text-3xl"></i>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Community</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Community</h3>
+              <p className="text-gray-600 text-center leading-relaxed">
                 Our church family welcomes everyone. We grow together through fellowship, support, and shared experiences in faith.
               </p>
+              <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+                <span className="text-green-600 font-semibold text-sm">Our Family</span>
+              </div>
             </div>
             
-            <div className="text-center">
-              <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <i className="ri-hand-heart-line text-purple-600 text-3xl"></i>
+            <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow border border-gray-100">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
+                <i className="ri-hand-heart-line text-white text-3xl"></i>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Service</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Service</h3>
+              <p className="text-gray-600 text-center leading-relaxed">
                 We serve our local and global communities, reaching out to help those in need and spread God's love everywhere.
               </p>
+              <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+                <span className="text-purple-600 font-semibold text-sm">Our Mission</span>
+              </div>
             </div>
           </div>
         </div>
@@ -212,7 +221,7 @@ export default function LandingPage() {
               <div className="p-6">
                 <div className="flex items-center text-blue-600 text-sm font-medium mb-2">
                   <i className="ri-calendar-line mr-2"></i>
-                  March 15-17, 2024
+                  March 15-17, 2025
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">Youth Spring Retreat</h3>
                 <p className="text-gray-600 mb-4">A weekend getaway for teenagers to grow in faith, build friendships, and have fun.</p>
@@ -231,7 +240,7 @@ export default function LandingPage() {
               <div className="p-6">
                 <div className="flex items-center text-green-600 text-sm font-medium mb-2">
                   <i className="ri-calendar-line mr-2"></i>
-                  March 22, 2024
+                  March 22, 2025
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">Community Food Drive</h3>
                 <p className="text-gray-600 mb-4">Help us serve our local community by collecting and distributing food to families in need.</p>
@@ -250,7 +259,7 @@ export default function LandingPage() {
               <div className="p-6">
                 <div className="flex items-center text-purple-600 text-sm font-medium mb-2">
                   <i className="ri-calendar-line mr-2"></i>
-                  March 31, 2024
+                  March 31, 2025
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">Easter Celebration</h3>
                 <p className="text-gray-600 mb-4">Celebrate the resurrection of Jesus Christ with special worship and community breakfast.</p>
@@ -362,7 +371,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
               <div className="text-2xl font-bold text-blue-400 mb-4" style={{ fontFamily: "Pacifico, serif" }}>
-                logo
+                Bibleway
               </div>
               <p className="text-gray-300 mb-4 max-w-md">
                 Building a community of faith, hope, and love. Join us as we grow together in our relationship with God and serve others.
@@ -421,7 +430,7 @@ export default function LandingPage() {
           </div>
           
           <div className="border-t border-gray-700 pt-8 mt-8 text-center text-gray-400">
-            <p>&copy; 2024 Our Church Community. All rights reserved.</p>
+            <p>&copy; 2025 Our Church Community. All rights reserved.</p>
           </div>
         </div>
       </footer>

@@ -1,5 +1,5 @@
 
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -7,16 +7,16 @@ interface SidebarProps {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: 'ri-dashboard-line', current: false },
-  { name: 'Members', href: '/membership', icon: 'ri-team-line', current: false },
-  { name: 'Sermons', href: '/sermons', icon: 'ri-book-open-line', current: false },
-  { name: 'Events', href: '/events', icon: 'ri-calendar-line', current: false },
-  { name: 'Announcements', href: '/announcements', icon: 'ri-megaphone-line', current: false },
-  { name: 'Forms', href: '/forms', icon: 'ri-file-list-3-line', current: false },
-  { name: 'Playlists', href: '/playlists', icon: 'ri-play-list-line', current: false },
-  { name: 'Live Stream', href: '/live', icon: 'ri-live-line', current: false },
-  { name: 'Settings', href: '/settings', icon: 'ri-settings-3-line', current: false },
-  { name: 'Profile', href: '/profile', icon: 'ri-user-line', current: false },
+  { name: 'Dashboard', href: '/dashboard', icon: 'ri-dashboard-line' },
+  { name: 'Members', href: '/membership', icon: 'ri-team-line' },
+  { name: 'Sermons', href: '/sermons', icon: 'ri-book-open-line' },
+  { name: 'Events', href: '/events', icon: 'ri-calendar-line' },
+  { name: 'Announcements', href: '/announcements', icon: 'ri-megaphone-line' },
+  { name: 'Forms', href: '/forms', icon: 'ri-file-list-3-line' },
+  { name: 'Playlists', href: '/playlists', icon: 'ri-play-list-line' },
+  { name: 'Live Stream', href: '/live', icon: 'ri-live-line' },
+  { name: 'Settings', href: '/settings', icon: 'ri-settings-3-line' },
+  { name: 'Profile', href: '/profile', icon: 'ri-user-line' },
 ];
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
@@ -28,7 +28,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="flex h-16 shrink-0 items-center justify-between">
             <div className="flex items-center">
               <div className="text-2xl font-bold text-blue-600" style={{ fontFamily: "Pacifico, serif" }}>
-                logo
+                Bibleway
               </div>
             </div>
             <button
@@ -47,7 +47,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4 border-r border-gray-200">
           <div className="flex h-16 shrink-0 items-center">
             <div className="text-2xl font-bold text-blue-600" style={{ fontFamily: "Pacifico, serif" }}>
-              logo
+              Bibleway
             </div>
           </div>
           <SidebarContent />
@@ -58,25 +58,30 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 }
 
 function SidebarContent() {
+  const location = useLocation();
+  
   return (
     <nav className="flex flex-1 flex-col">
       <ul className="flex flex-1 flex-col gap-y-7">
         <li>
           <ul className="-mx-2 space-y-1">
-            {navigation.map((item) => (
-              <li key={item.name}>
-                <Link
-                  to={item.href}
-                  className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-medium cursor-pointer whitespace-nowrap 
-                  ${item.current ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'}`}
-                >
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <i className={`${item.icon} text-lg`}></i>
-                  </div>
-                  {item.name}
-                </Link>
-              </li>
-            ))}
+            {navigation.map((item) => {
+              const isActive = location.pathname === item.href;
+              return (
+                <li key={item.name}>
+                  <Link
+                    to={item.href}
+                    className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-medium cursor-pointer whitespace-nowrap transition-colors 
+                    ${isActive ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'}`}
+                  >
+                    <div className="w-5 h-5 flex items-center justify-center">
+                      <i className={`${item.icon} text-lg`}></i>
+                    </div>
+                    {item.name}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </li>
       </ul>

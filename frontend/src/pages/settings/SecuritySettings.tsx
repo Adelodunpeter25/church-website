@@ -25,7 +25,7 @@ export default function SecuritySettings() {
       event: 'Failed Login Attempt',
       user: 'unknown@example.com',
       ip: '192.168.1.100',
-      timestamp: '2024-01-15 14:30:25',
+      timestamp: '2025-01-15 14:30:25',
       severity: 'high'
     },
     {
@@ -33,7 +33,7 @@ export default function SecuritySettings() {
       event: 'Password Changed',
       user: 'john@gracechurch.org',
       ip: '192.168.1.101',
-      timestamp: '2024-01-15 10:15:42',
+      timestamp: '2025-01-15 10:15:42',
       severity: 'medium'
     },
     {
@@ -41,7 +41,7 @@ export default function SecuritySettings() {
       event: 'Admin Access',
       user: 'admin@gracechurch.org',
       ip: '192.168.1.102',
-      timestamp: '2024-01-15 09:45:18',
+      timestamp: '2025-01-15 09:45:18',
       severity: 'low'
     },
     {
@@ -49,7 +49,7 @@ export default function SecuritySettings() {
       event: 'Multiple Failed Attempts',
       user: 'test@test.com',
       ip: '10.0.0.45',
-      timestamp: '2024-01-14 23:22:11',
+      timestamp: '2025-01-14 23:22:11',
       severity: 'high'
     }
   ]);

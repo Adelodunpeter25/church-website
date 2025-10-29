@@ -15,7 +15,7 @@ export default function MemberDashboard() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <div className="text-2xl font-bold text-blue-600" style={{ fontFamily: "Pacifico, serif" }}>
-                logo
+                Bibleway
               </div>
               <span className="ml-4 text-gray-600">Member Portal</span>
             </div>
@@ -117,8 +117,8 @@ export default function MemberDashboard() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Sermons</h3>
                     <div className="space-y-4">
                       {[
-                        { title: 'Walking in Faith - Part 3', date: 'Jan 14, 2024', duration: '42 min' },
-                        { title: 'The Power of Prayer', date: 'Jan 7, 2024', duration: '38 min' },
+                        { title: 'Walking in Faith - Part 3', date: 'Jan 14, 2025', duration: '42 min' },
+                        { title: 'The Power of Prayer', date: 'Jan 7, 2025', duration: '38 min' },
                         { title: 'Love Your Neighbor', date: 'Dec 31, 2023', duration: '45 min' }
                       ].map((sermon, index) => (
                         <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -179,8 +179,8 @@ export default function MemberDashboard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {[
-                    { title: 'Walking in Faith - Part 3', speaker: 'Pastor John', date: 'Jan 14, 2024', duration: '42 min', plays: 156 },
-                    { title: 'The Power of Prayer', speaker: 'Pastor Sarah', date: 'Jan 7, 2024', duration: '38 min', plays: 203 },
+                    { title: 'Walking in Faith - Part 3', speaker: 'Pastor John', date: 'Jan 14, 2025', duration: '42 min', plays: 156 },
+                    { title: 'The Power of Prayer', speaker: 'Pastor Sarah', date: 'Jan 7, 2025', duration: '38 min', plays: 203 },
                     { title: 'Love Your Neighbor', speaker: 'Pastor John', date: 'Dec 31, 2023', duration: '45 min', plays: 189 },
                     { title: 'Hope in Difficult Times', speaker: 'Pastor David', date: 'Dec 24, 2023', duration: '35 min', plays: 245 }
                   ].map((sermon, index) => (
@@ -229,10 +229,10 @@ export default function MemberDashboard() {
 
                 <div className="space-y-4">
                   {[
-                    { title: 'Youth Spring Retreat', date: 'March 15-17, 2024', location: 'Mountain View Camp', status: 'Registered', type: 'Retreat' },
-                    { title: 'Community Food Drive', date: 'March 22, 2024', location: 'Church Main Hall', status: 'Registered', type: 'Service' },
-                    { title: 'Easter Celebration Service', date: 'March 31, 2024', location: 'Main Sanctuary', status: 'Available', type: 'Worship' },
-                    { title: 'Marriage Enrichment Seminar', date: 'April 5-6, 2024', location: 'Fellowship Hall', status: 'Available', type: 'Seminar' }
+                    { title: 'Youth Spring Retreat', date: 'March 15-17, 2025', location: 'Mountain View Camp', status: 'Registered', type: 'Retreat' },
+                    { title: 'Community Food Drive', date: 'March 22, 2025', location: 'Church Main Hall', status: 'Registered', type: 'Service' },
+                    { title: 'Easter Celebration Service', date: 'March 31, 2025', location: 'Main Sanctuary', status: 'Available', type: 'Worship' },
+                    { title: 'Marriage Enrichment Seminar', date: 'April 5-6, 2025', location: 'Fellowship Hall', status: 'Available', type: 'Seminar' }
                   ].map((event, index) => (
                     <div key={index} className="bg-white border border-gray-200 rounded-lg p-6">
                       <div className="flex items-start justify-between mb-4">
@@ -304,8 +304,8 @@ export default function MemberDashboard() {
                         </thead>
                         <tbody className="divide-y divide-gray-200">
                           {[
-                            { date: 'Jan 14, 2024', type: 'Tithe', amount: '$250', method: 'Online' },
-                            { date: 'Jan 7, 2024', type: 'Tithe', amount: '$250', method: 'Online' },
+                            { date: 'Jan 14, 2025', type: 'Tithe', amount: '$250', method: 'Online' },
+                            { date: 'Jan 7, 2025', type: 'Tithe', amount: '$250', method: 'Online' },
                             { date: 'Dec 31, 2023', type: 'Special Offering', amount: '$100', method: 'Cash' },
                             { date: 'Dec 24, 2023', type: 'Tithe', amount: '$250', method: 'Online' }
                           ].map((giving, index) => (
@@ -356,7 +356,7 @@ export default function MemberDashboard() {
                     </div>
 
                     <div className="mt-6 bg-blue-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-blue-900 mb-2">2024 Giving Summary</h4>
+                      <h4 className="font-semibold text-blue-900 mb-2">2025 Giving Summary</h4>
                       <p className="text-sm text-blue-700">Total Given: <span className="font-bold">$2,450</span></p>
                       <p className="text-xs text-blue-600 mt-1">Tax statement available in January</p>
                     </div>
@@ -379,7 +379,7 @@ export default function MemberDashboard() {
                     <h4 className="font-medium text-gray-900 mb-4">My Prayer Requests</h4>
                     <div className="space-y-4">
                       {[
-                        { title: 'Health and healing for my mother', date: 'Jan 10, 2024', status: 'Active', prayers: 24 },
+                        { title: 'Health and healing for my mother', date: 'Jan 10, 2025', status: 'Active', prayers: 24 },
                         { title: 'Job interview success', date: 'Dec 15, 2023', status: 'Answered', prayers: 18 },
                         { title: 'Guidance in life decisions', date: 'Nov 28, 2023', status: 'Active', prayers: 31 }
                       ].map((request, index) => (
@@ -412,9 +412,9 @@ export default function MemberDashboard() {
                     <h4 className="font-medium text-gray-900 mb-4">Community Prayer Wall</h4>
                     <div className="space-y-4">
                       {[
-                        { title: 'Prayers for our church building project', author: 'Pastor David', date: 'Jan 12, 2024', prayers: 67 },
-                        { title: 'Healing for the Johnson family', author: 'Mary S.', date: 'Jan 11, 2024', prayers: 43 },
-                        { title: 'Safe travels for missions team', author: 'Youth Ministry', date: 'Jan 9, 2024', prayers: 29 }
+                        { title: 'Prayers for our church building project', author: 'Pastor David', date: 'Jan 12, 2025', prayers: 67 },
+                        { title: 'Healing for the Johnson family', author: 'Mary S.', date: 'Jan 11, 2025', prayers: 43 },
+                        { title: 'Safe travels for missions team', author: 'Youth Ministry', date: 'Jan 9, 2025', prayers: 29 }
                       ].map((request, index) => (
                         <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
                           <div className="mb-3">

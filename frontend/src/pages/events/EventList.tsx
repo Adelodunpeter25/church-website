@@ -4,10 +4,10 @@
 const events = [
   {
     id: 1,
-    title: 'Youth Retreat 2024',
+    title: 'Youth Retreat 2025',
     description: 'A spiritual retreat for young people to grow closer to God and each other through worship, teaching, and fellowship.',
-    date: '2024-03-15',
-    endDate: '2024-03-17',
+    date: '2025-03-15',
+    endDate: '2025-03-17',
     time: '6:00 PM',
     location: 'Mountain View Camp',
     organizer: 'Sarah Johnson',
@@ -15,13 +15,13 @@ const events = [
     maxAttendees: 50,
     status: 'confirmed',
     category: 'Retreat',
-    registrationDeadline: '2024-03-01'
+    registrationDeadline: '2025-03-01'
   },
   {
     id: 2,
     title: 'Community Outreach',
     description: 'Join us as we serve our community by volunteering at the local food bank and sharing God\'s love.',
-    date: '2024-01-20',
+    date: '2025-01-20',
     time: '9:00 AM',
     location: 'Downtown Food Bank',
     organizer: 'Michael Brown',
@@ -29,13 +29,13 @@ const events = [
     maxAttendees: 30,
     status: 'confirmed',
     category: 'Outreach',
-    registrationDeadline: '2024-01-18'
+    registrationDeadline: '2025-01-18'
   },
   {
     id: 3,
     title: 'Bible Study Workshop',
     description: 'Learn effective Bible study methods and deepen your understanding of Scripture through interactive sessions.',
-    date: '2024-01-25',
+    date: '2025-01-25',
     time: '7:00 PM',
     location: 'Fellowship Hall',
     organizer: 'Pastor David Wilson',
@@ -43,13 +43,13 @@ const events = [
     maxAttendees: 25,
     status: 'confirmed',
     category: 'Education',
-    registrationDeadline: '2024-01-23'
+    registrationDeadline: '2025-01-23'
   },
   {
     id: 4,
     title: 'Marriage Enrichment Seminar',
     description: 'Strengthen your marriage with biblical principles and practical tools for building a lasting relationship.',
-    date: '2024-02-10',
+    date: '2025-02-10',
     time: '10:00 AM',
     location: 'Main Sanctuary',
     organizer: 'Pastor John Smith',
@@ -57,7 +57,7 @@ const events = [
     maxAttendees: 40,
     status: 'planning',
     category: 'Seminar',
-    registrationDeadline: '2024-02-05'
+    registrationDeadline: '2025-02-05'
   }
 ];
 

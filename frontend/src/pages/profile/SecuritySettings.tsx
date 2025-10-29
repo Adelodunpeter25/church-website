@@ -18,7 +18,7 @@ export default function SecuritySettings() {
       device: 'Chrome on Windows',
       location: 'Springfield, IL',
       ip: '192.168.1.100',
-      date: '2024-01-15 09:30 AM',
+      date: '2025-01-15 09:30 AM',
       status: 'current'
     },
     {
@@ -26,7 +26,7 @@ export default function SecuritySettings() {
       device: 'Safari on iPhone',
       location: 'Springfield, IL',
       ip: '192.168.1.101',
-      date: '2024-01-14 07:45 PM',
+      date: '2025-01-14 07:45 PM',
       status: 'success'
     },
     {
@@ -34,7 +34,7 @@ export default function SecuritySettings() {
       device: 'Chrome on Android',
       location: 'Chicago, IL',
       ip: '10.0.0.45',
-      date: '2024-01-12 02:15 PM',
+      date: '2025-01-12 02:15 PM',
       status: 'success'
     }
   ]);

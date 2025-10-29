@@ -23,7 +23,7 @@ export default function UserManagement() {
       email: 'john@gracechurch.org',
       role: 'Admin',
       department: 'Leadership',
-      lastLogin: '2024-01-15 09:30 AM',
+      lastLogin: '2025-01-15 09:30 AM',
       status: 'Active',
       permissions: ['Full Access']
     },
@@ -33,7 +33,7 @@ export default function UserManagement() {
       email: 'sarah@gracechurch.org',
       role: 'Pastor',
       department: 'Pastoral',
-      lastLogin: '2024-01-14 07:45 PM',
+      lastLogin: '2025-01-14 07:45 PM',
       status: 'Active',
       permissions: ['Sermons', 'Events', 'Members']
     },
@@ -43,7 +43,7 @@ export default function UserManagement() {
       email: 'mike@gracechurch.org',
       role: 'Staff',
       department: 'Youth Ministry',
-      lastLogin: '2024-01-12 02:15 PM',
+      lastLogin: '2025-01-12 02:15 PM',
       status: 'Active',
       permissions: ['Events', 'Announcements']
     },
@@ -53,7 +53,7 @@ export default function UserManagement() {
       email: 'emily@gracechurch.org',
       role: 'Volunteer',
       department: 'Music Ministry',
-      lastLogin: '2024-01-10 06:20 PM',
+      lastLogin: '2025-01-10 06:20 PM',
       status: 'Inactive',
       permissions: ['Limited Access']
     }

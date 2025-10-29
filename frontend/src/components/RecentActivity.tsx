@@ -14,7 +14,7 @@ const activities = [
     id: 2,
     user: 'Sarah Thompson',
     action: 'registered for',
-    target: 'Youth Retreat 2024',
+    target: 'Youth Retreat 2025',
     time: '4 hours ago',
     icon: 'ri-user-add-line',
     iconColor: 'text-blue-600'

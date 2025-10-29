@@ -175,21 +175,21 @@ export default function LiveStreamPage() {
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
                         <div className="text-sm font-medium">Sunday Service</div>
-                        <div className="text-xs text-gray-500">Jan 14, 2024 • 1:32:45</div>
+                        <div className="text-xs text-gray-500">Jan 14, 2025 • 1:32:45</div>
                       </div>
                       <div className="text-sm text-gray-500">142 viewers</div>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
                         <div className="text-sm font-medium">Prayer Meeting</div>
-                        <div className="text-xs text-gray-500">Jan 10, 2024 • 0:45:30</div>
+                        <div className="text-xs text-gray-500">Jan 10, 2025 • 0:45:30</div>
                       </div>
                       <div className="text-sm text-gray-500">67 viewers</div>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
                         <div className="text-sm font-medium">Bible Study</div>
-                        <div className="text-xs text-gray-500">Jan 7, 2024 • 1:15:20</div>
+                        <div className="text-xs text-gray-500">Jan 7, 2025 • 1:15:20</div>
                       </div>
                       <div className="text-sm text-gray-500">89 viewers</div>
                     </div>

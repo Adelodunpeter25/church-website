@@ -6,9 +6,9 @@ import { useState } from 'react';
 const events = [
   {
     id: 1,
-    title: 'Youth Retreat 2024',
-    date: '2024-03-15',
-    endDate: '2024-03-17',
+    title: 'Youth Retreat 2025',
+    date: '2025-03-15',
+    endDate: '2025-03-17',
     time: '6:00 PM',
     location: 'Mountain View Camp',
     attendees: 45,
@@ -19,7 +19,7 @@ const events = [
   {
     id: 2,
     title: 'Community Outreach',
-    date: '2024-01-20',
+    date: '2025-01-20',
     time: '9:00 AM',
     location: 'Downtown Food Bank',
     attendees: 23,
@@ -30,7 +30,7 @@ const events = [
   {
     id: 3,
     title: 'Bible Study Workshop',
-    date: '2024-01-25',
+    date: '2025-01-25',
     time: '7:00 PM',
     location: 'Fellowship Hall',
     attendees: 18,
@@ -41,7 +41,7 @@ const events = [
   {
     id: 4,
     title: 'Marriage Enrichment Seminar',
-    date: '2024-02-10',
+    date: '2025-02-10',
     time: '10:00 AM',
     location: 'Main Sanctuary',
     attendees: 12,

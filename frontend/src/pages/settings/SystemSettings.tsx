@@ -25,7 +25,7 @@ export default function SystemSettings() {
     memoryUsage: '68%',
     diskSpace: '45%',
     activeUsers: 127,
-    lastBackup: '2024-01-15 02:00 AM'
+    lastBackup: '2025-01-15 02:00 AM'
   });
 
   const handleToggle = (setting: string) => {
@@ -258,9 +258,9 @@ export default function SystemSettings() {
               <h4 className="text-sm font-medium text-gray-700 mb-2">Recent Backups</h4>
               <div className="space-y-2">
                 {[
-                  { name: 'backup_2024_01_15_02_00.zip', size: '234 MB', date: '15 Jan 2024' },
-                  { name: 'backup_2024_01_14_02_00.zip', size: '231 MB', date: '14 Jan 2024' },
-                  { name: 'backup_2024_01_13_02_00.zip', size: '229 MB', date: '13 Jan 2024' }
+                  { name: 'backup_2025_01_15_02_00.zip', size: '234 MB', date: '15 Jan 2025' },
+                  { name: 'backup_2025_01_14_02_00.zip', size: '231 MB', date: '14 Jan 2025' },
+                  { name: 'backup_2025_01_13_02_00.zip', size: '229 MB', date: '13 Jan 2025' }
                 ].map((backup, index) => (
                   <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                     <div>
