@@ -4,6 +4,7 @@ import { Sermon } from '@/types';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import { getMediaUrl } from '@/services/api';
 import AudioPlayer from '@/components/AudioPlayer';
+import EditSermonModal from './EditSermonModal';
 
 interface SermonGridProps {
   searchTerm: string;
@@ -27,6 +28,8 @@ export default function SermonGrid({
   const [playingSermon, setPlayingSermon] = useState<Sermon | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [sermonToDelete, setSermonToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [sermonToEdit, setSermonToEdit] = useState<Sermon | null>(null);
 
   useEffect(() => {
     loadSermons();
@@ -68,8 +71,33 @@ export default function SermonGrid({
     }
   };
 
-  const downloadSermon = (sermon: Sermon) => {
-    alert(`Downloading: ${sermon.title}`);
+  const downloadSermon = async (sermon: Sermon) => {
+    try {
+      const audioUrl = getMediaUrl(sermon.audio_url);
+      if (!audioUrl) {
+        alert('Audio file not available');
+        return;
+      }
+      
+      const response = await fetch(audioUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${sermon.title}.mp3`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/sermons/${sermon.id}/download`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      console.error('Error downloading sermon:', error);
+      alert('Failed to download sermon');
+    }
   };
 
   if (loading) {
@@ -106,7 +134,7 @@ export default function SermonGrid({
                     <h3 className="text-lg font-medium text-gray-900 truncate">{sermon.title}</h3>
                     <p className="text-sm text-gray-500">{sermon.speaker}</p>
                     <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
-                      <span>{new Date(sermon.date).toLocaleDateString()}</span>
+                      <span>{new Date(sermon.date.split('T')[0] + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</span>
                       <span>{sermon.duration}</span>
                       {sermon.series_name && (
                         <span className="inline-flex px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
@@ -131,6 +159,18 @@ export default function SermonGrid({
                     >
                       <div className="w-5 h-5 flex items-center justify-center">
                         <i className="ri-download-line"></i>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSermonToEdit(sermon);
+                        setShowEditModal(true);
+                      }}
+                      className="p-2 text-gray-400 hover:text-green-600 cursor-pointer"
+                      title="Edit"
+                    >
+                      <div className="w-5 h-5 flex items-center justify-center">
+                        <i className="ri-edit-line"></i>
                       </div>
                     </button>
                     <button 
@@ -174,6 +214,17 @@ export default function SermonGrid({
   return (
     <>
       <AudioPlayer sermon={playingSermon} onClose={() => setPlayingSermon(null)} />
+      {sermonToEdit && (
+        <EditSermonModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSermonToEdit(null);
+          }}
+          onSuccess={loadSermons}
+          sermon={sermonToEdit}
+        />
+      )}
     <div className="p-6">
       <div className="mb-4 text-sm text-gray-600">
         Showing {filteredSermons.length} sermons
@@ -219,7 +270,7 @@ export default function SermonGrid({
               </div>
               
               <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-                <span>{new Date(sermon.date).toLocaleDateString()}</span>
+                <span>{new Date(sermon.date.split('T')[0] + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</span>
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center">
                     <i className="ri-play-line mr-1"></i>
@@ -247,6 +298,16 @@ export default function SermonGrid({
                     title="Download"
                   >
                     <i className="ri-download-line"></i>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSermonToEdit(sermon);
+                      setShowEditModal(true);
+                    }}
+                    className="p-2 text-gray-400 hover:text-green-600 cursor-pointer"
+                    title="Edit"
+                  >
+                    <i className="ri-edit-line"></i>
                   </button>
                   <button
                     onClick={() => {

@@ -1,37 +1,49 @@
 import { useState, useEffect } from 'react';
 import { useSermons } from '@/hooks/useSermons';
 import { useSeries } from '@/hooks/useSeries';
-import { SermonSeries } from '@/types';
+import { Sermon, SermonSeries } from '@/types';
 
-interface UploadSermonModalProps {
+interface EditSermonModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  sermon: Sermon;
 }
 
-export default function UploadSermonModal({ isOpen, onClose, onSuccess }: UploadSermonModalProps) {
-  const { createSermon } = useSermons();
+export default function EditSermonModal({ isOpen, onClose, onSuccess, sermon }: EditSermonModalProps) {
+  const { updateSermon } = useSermons();
   const { getSeries } = useSeries();
   const [series, setSeries] = useState<SermonSeries[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingSeries, setLoadingSeries] = useState(false);
-  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    title: '',
-    speaker: '',
-    date: '',
-    series: '',
-    isPartOfSeries: false,
-    description: '',
-    audioFile: null as File | null,
-    thumbnail: null as File | null
+    title: sermon.title,
+    speaker: sermon.speaker,
+    date: sermon.date.split('T')[0],
+    series: sermon.series_name || '',
+    isPartOfSeries: !!sermon.series_name,
+    description: sermon.description || '',
   });
 
   useEffect(() => {
     if (isOpen) {
       fetchSeries();
+      const dateObj = new Date(sermon.date);
+      const year = dateObj.getUTCFullYear();
+      const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getUTCDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+      
+      setFormData({
+        title: sermon.title,
+        speaker: sermon.speaker,
+        date: dateString,
+        series: sermon.series_name || '',
+        isPartOfSeries: !!sermon.series_name,
+        description: sermon.description || '',
+      });
     }
-  }, [isOpen]);
+  }, [isOpen, sermon]);
 
   const fetchSeries = async () => {
     try {
@@ -49,47 +61,34 @@ export default function UploadSermonModal({ isOpen, onClose, onSuccess }: Upload
     e.preventDefault();
     setLoading(true);
     try {
-      const data = new FormData();
-      data.append('title', formData.title);
-      data.append('speaker', formData.speaker);
-      data.append('date', formData.date);
-      data.append('description', formData.description);
+      const updateData: any = {
+        title: formData.title,
+        speaker: formData.speaker,
+        date: formData.date,
+        description: formData.description,
+        audio_url: sermon.audio_url,
+        video_url: sermon.video_url,
+        thumbnail_url: sermon.thumbnail_url,
+        duration: sermon.duration,
+        tags: sermon.tags,
+      };
+
       if (formData.isPartOfSeries && formData.series) {
-        data.append('series_id', formData.series);
-      }
-      data.append('audio', formData.audioFile);
-      if (formData.thumbnail) {
-        data.append('thumbnail', formData.thumbnail);
+        const selectedSeries = series.find(s => s.name === formData.series);
+        updateData.series_id = selectedSeries?.id || null;
+      } else {
+        updateData.series_id = null;
       }
 
-      await createSermon(data);
+      await updateSermon(sermon.id, updateData);
       onSuccess?.();
       onClose();
-      setFormData({
-        title: '',
-        speaker: '',
-        date: '',
-        series: '',
-        isPartOfSeries: false,
-        description: '',
-        audioFile: null,
-        thumbnail: null
-      });
-      setStep(1);
     } catch (error) {
-      console.error('Error uploading sermon:', error);
-      alert('Failed to upload sermon. Please try again.');
+      console.error('Error updating sermon:', error);
+      alert('Failed to update sermon. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'audioFile' | 'thumbnail') => {
-    const file = e.target.files?.[0] || null;
-    setFormData(prev => ({
-      ...prev,
-      [field]: file
-    }));
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -113,8 +112,8 @@ export default function UploadSermonModal({ isOpen, onClose, onSuccess }: Upload
         <div className="inline-block align-middle bg-white rounded-xl px-4 pt-5 pb-4 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-xl font-bold text-gray-900">Upload New Sermon</h3>
-              <p className="text-sm text-gray-500 mt-1">Step {step} of 2: {step === 1 ? 'Sermon Details' : 'File Uploads'}</p>
+              <h3 className="text-xl font-bold text-gray-900">Edit Sermon</h3>
+              <p className="text-sm text-gray-500 mt-1">Update sermon details</p>
             </div>
             <button
               type="button"
@@ -125,20 +124,7 @@ export default function UploadSermonModal({ isOpen, onClose, onSuccess }: Upload
             </button>
           </div>
 
-          <div className="mb-6">
-            <div className="flex items-center">
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
-                {step > 1 ? <i className="ri-check-line"></i> : '1'}
-              </div>
-              <div className={`flex-1 h-1 mx-2 ${step >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
-                2
-              </div>
-            </div>
-          </div>
-
-          <form id="upload-sermon-form" onSubmit={handleSubmit} className="space-y-5">
-            {step === 1 && (<>
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Sermon Title *
@@ -232,7 +218,7 @@ export default function UploadSermonModal({ isOpen, onClose, onSuccess }: Upload
                     <option value="" disabled>No series available</option>
                   ) : (
                     series.map((s) => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
+                      <option key={s.id} value={s.name}>{s.name}</option>
                     ))
                   )}
                 </select>
@@ -254,99 +240,32 @@ export default function UploadSermonModal({ isOpen, onClose, onSuccess }: Upload
               />
               <p className="text-xs text-gray-500 mt-1.5">{formData.description.length}/500 characters</p>
             </div>
-            </>
-            )}
-
-            {step === 2 && (
-            <>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Audio File *
-              </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-400 transition-colors bg-gray-50">
-                <input
-                  type="file"
-                  accept="audio/*"
-                  onChange={(e) => handleFileChange(e, 'audioFile')}
-                  className="hidden"
-                  id="audio-upload"
-                />
-                <label htmlFor="audio-upload" className="cursor-pointer">
-                  <div className="text-center">
-                    <i className="ri-upload-cloud-line text-gray-400 text-3xl mb-2"></i>
-                    <p className="text-sm text-gray-600">
-                      {formData.audioFile ? formData.audioFile.name : 'Click to upload audio file'}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">MP3, WAV files supported (max 500MB)</p>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Thumbnail Image
-              </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-400 transition-colors bg-gray-50">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange(e, 'thumbnail')}
-                  className="hidden"
-                  id="thumbnail-upload"
-                />
-                <label htmlFor="thumbnail-upload" className="cursor-pointer">
-                  <div className="text-center">
-                    <i className="ri-image-line text-gray-400 text-3xl mb-2"></i>
-                    <p className="text-sm text-gray-600">
-                      {formData.thumbnail ? formData.thumbnail.name : 'Click to upload thumbnail'}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">JPG, PNG files supported (recommended: 400x300px)</p>
-                  </div>
-                </label>
-              </div>
-            </div>
-            </>
-            )}
 
             <div className="flex justify-between pt-6 border-t border-gray-200">
               <button
                 type="button"
-                onClick={() => step === 1 ? onClose() : setStep(1)}
+                onClick={onClose}
                 className="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer whitespace-nowrap"
               >
-                {step === 1 ? 'Cancel' : 'Back'}
+                Cancel
               </button>
-              {step === 1 ? (
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-sm cursor-pointer whitespace-nowrap transition-all"
-                >
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-sm cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                {loading ? (
                   <span className="flex items-center">
-                    Next Step
-                    <i className="ri-arrow-right-line ml-2"></i>
+                    <i className="ri-loader-4-line animate-spin mr-2"></i>
+                    Updating...
                   </span>
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-sm cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                  {loading ? (
-                    <span className="flex items-center">
-                      <i className="ri-loader-4-line animate-spin mr-2"></i>
-                      Uploading...
-                    </span>
-                  ) : (
-                    <span className="flex items-center">
-                      <i className="ri-upload-cloud-line mr-2"></i>
-                      Upload Sermon
-                    </span>
-                  )}
-                </button>
-              )}
+                ) : (
+                  <span className="flex items-center">
+                    <i className="ri-save-line mr-2"></i>
+                    Update Sermon
+                  </span>
+                )}
+              </button>
             </div>
           </form>
         </div>

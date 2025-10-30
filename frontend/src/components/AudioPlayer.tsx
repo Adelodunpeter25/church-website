@@ -22,21 +22,53 @@ export default function AudioPlayer({ sermon, onClose }: AudioPlayerProps) {
     if (sermon && audioRef.current) {
       const audio = audioRef.current;
       audio.src = getMediaUrl(sermon.audio_url) || '';
+      
+      const savedPosition = localStorage.getItem(`sermon_${sermon.id}_position`);
+      
+      const handleLoadedMetadata = () => {
+        if (savedPosition) {
+          audio.currentTime = parseFloat(savedPosition);
+        }
+        audio.play();
+        setIsPlaying(true);
+        audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      };
+      
+      audio.addEventListener('loadedmetadata', handleLoadedMetadata);
       audio.load();
-      audio.play();
-      setIsPlaying(true);
+      incrementPlayCount();
     }
   }, [sermon]);
+
+  const incrementPlayCount = async () => {
+    if (!sermon) return;
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/sermons/${sermon.id}/play`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      console.error('Error incrementing play count:', error);
+    }
+  };
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const updateTime = () => setCurrentTime(audio.currentTime);
+    const updateTime = () => {
+      setCurrentTime(audio.currentTime);
+      if (sermon) {
+        localStorage.setItem(`sermon_${sermon.id}_position`, audio.currentTime.toString());
+      }
+    };
     const updateDuration = () => setDuration(audio.duration);
     const handleEnded = () => {
       setIsPlaying(false);
       setHasEnded(true);
+      if (sermon) {
+        localStorage.removeItem(`sermon_${sermon.id}_position`);
+      }
     };
     const handleError = () => {
       setIsPlaying(false);
@@ -69,7 +101,7 @@ export default function AudioPlayer({ sermon, onClose }: AudioPlayerProps) {
         clearTimeout(retryTimeoutRef.current);
       }
     };
-  }, []);
+  }, [sermon]);
 
   const retryWithBackoff = () => {
     if (retryTimeoutRef.current) {
