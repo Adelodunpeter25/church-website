@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { ProtectedRoute } from './components/ProtectedRoute'
 import LandingPage from './pages/landing/LandingPage'
 import LoginPage from './pages/auth/LoginPage'
 import SignupPage from './pages/auth/SignupPage'
@@ -26,19 +27,19 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/member-dashboard" element={<MemberDashboard />} />
-        <Route path="/membership" element={<MembershipPage />} />
-        <Route path="/sermons" element={<SermonsPage />} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route path="/live" element={<LiveStreamPage />} />
-        <Route path="/announcements" element={<AnnouncementsPage />} />
-        <Route path="/forms" element={<FormsPage />} />
-        <Route path="/playlists" element={<PlaylistsPage />} />
-        <Route path="/users" element={<UserManagementPage />} />
-        <Route path="/content" element={<ContentManagementPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['admin', 'pastor', 'minister', 'staff']}><Dashboard /></ProtectedRoute>} />
+        <Route path="/member-dashboard" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>} />
+        <Route path="/membership" element={<ProtectedRoute allowedRoles={['admin', 'pastor', 'minister', 'staff']}><MembershipPage /></ProtectedRoute>} />
+        <Route path="/sermons" element={<ProtectedRoute allowedRoles={['admin', 'pastor', 'minister', 'staff']}><SermonsPage /></ProtectedRoute>} />
+        <Route path="/events" element={<ProtectedRoute allowedRoles={['admin', 'pastor', 'minister', 'staff']}><EventsPage /></ProtectedRoute>} />
+        <Route path="/live" element={<ProtectedRoute allowedRoles={['admin', 'pastor', 'minister', 'staff']}><LiveStreamPage /></ProtectedRoute>} />
+        <Route path="/announcements" element={<ProtectedRoute allowedRoles={['admin', 'pastor', 'minister', 'staff']}><AnnouncementsPage /></ProtectedRoute>} />
+        <Route path="/forms" element={<ProtectedRoute allowedRoles={['admin', 'pastor', 'minister', 'staff']}><FormsPage /></ProtectedRoute>} />
+        <Route path="/playlists" element={<ProtectedRoute><PlaylistsPage /></ProtectedRoute>} />
+        <Route path="/users" element={<ProtectedRoute allowedRoles={['admin']}><UserManagementPage /></ProtectedRoute>} />
+        <Route path="/content" element={<ProtectedRoute allowedRoles={['admin', 'pastor']}><ContentManagementPage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin']}><SettingsPage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   )

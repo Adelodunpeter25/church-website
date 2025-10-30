@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -9,38 +10,28 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const { login, user } = useAuth();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
-
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      if (data.user.role === 'admin' || data.user.role === 'pastor' || data.user.role === 'minister' || data.user.role === 'staff') {
-        navigate('/dashboard');
-      } else {
-        navigate('/member-dashboard');
-      }
+      await login(email, password);
     } catch (err: any) {
-      setError(err.message);
-    } finally {
+      setError(err.message || 'Login failed');
       setLoading(false);
     }
   };
+
+  if (user) {
+    if (['admin', 'pastor', 'minister', 'staff'].includes(user.role)) {
+      navigate('/dashboard');
+    } else {
+      navigate('/member-dashboard');
+    }
+  }
 
   return (
     <div className="min-h-screen flex">

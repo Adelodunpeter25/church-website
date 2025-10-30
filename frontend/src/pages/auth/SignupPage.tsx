@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
@@ -13,6 +14,8 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const { register } = useAuth();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -25,24 +28,10 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone, password })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
-      }
-
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
+      await register(name, email, password, phone || undefined);
       navigate('/member-dashboard');
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
