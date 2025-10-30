@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
 interface DashboardHeaderProps {
   onMenuClick: () => void;
@@ -9,7 +10,32 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [notifications, setNotifications] = useState<any[]>([]);
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/settings/notifications/recent');
+      const data = await response.json();
+      setNotifications(data.slice(0, 3));
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,20 +93,26 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                 <div className="px-4 py-2 text-sm font-medium text-gray-900 border-b">
                   Notifications
                 </div>
-                <div className="px-4 py-3 text-sm text-gray-700">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <i className="ri-user-add-line text-blue-500"></i>
-                    <span>5 new members joined this week</span>
+                {notifications.length > 0 ? (
+                  <div className="divide-y divide-gray-100">
+                    {notifications.map((notification) => (
+                      <div key={notification.id} className="px-4 py-3 hover:bg-gray-50">
+                        <div className="flex items-start space-x-3">
+                          <i className="ri-notification-line text-blue-500 mt-1"></i>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900">{notification.type}</p>
+                            <p className="text-sm text-gray-600">{notification.message}</p>
+                            <p className="text-xs text-gray-400 mt-1">{Math.round(parseFloat(notification.time))} {notification.time.includes('minutes') ? 'min' : notification.time.includes('hours') ? 'hrs' : 'days'} ago</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-center space-x-3 mb-2">
-                    <i className="ri-calendar-line text-green-500"></i>
-                    <span>Youth event scheduled for tomorrow</span>
+                ) : (
+                  <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                    No notifications
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <i className="ri-upload-line text-orange-500"></i>
-                    <span>New sermon uploaded by Pastor John</span>
-                  </div>
-                </div>
+                )}
               </div>
             )}
           </div>
@@ -93,14 +125,12 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
               className="-m-1.5 flex items-center p-1.5 cursor-pointer"
               onClick={() => setShowProfile(!showProfile)}
             >
-              <img
-                className="h-8 w-8 rounded-full bg-gray-50"
-                src="https://readdy.ai/api/search-image?query=professional%20pastor%20headshot%20photo%20with%20warm%20smile%20and%20friendly%20expression%2C%20clean%20church%20office%20background%20with%20soft%20lighting%2C%20wearing%20formal%20attire%20suitable%20for%20church%20leadership&width=100&height=100&seq=profile1&orientation=squarish"
-                alt="Profile"
-              />
+              <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-semibold">
+                {user?.name ? getInitials(user.name) : 'U'}
+              </div>
               <span className="hidden lg:flex lg:items-center">
                 <span className="ml-4 text-sm font-semibold leading-6 text-gray-900">
-                  Pastor David
+                  {user?.name || 'User'}
                 </span>
                 <i className="ml-2 ri-arrow-down-s-line text-gray-400"></i>
               </span>

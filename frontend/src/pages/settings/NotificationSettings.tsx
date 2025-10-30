@@ -17,6 +17,7 @@ export default function NotificationSettings() {
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
   const [recentNotifications, setRecentNotifications] = useState<any[]>([]);
   const [activeSection, setActiveSection] = useState('general');
 
@@ -48,6 +49,8 @@ export default function NotificationSettings() {
       setRecentNotifications(data);
     } catch (error) {
       console.error('Error loading recent notifications:', error);
+    } finally {
+      setLoadingData(false);
     }
   };
 
@@ -91,6 +94,17 @@ export default function NotificationSettings() {
       console.error('Test email error:', error);
     }
   };
+
+  if (loadingData) {
+    return (
+      <div className="max-w-4xl flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl">

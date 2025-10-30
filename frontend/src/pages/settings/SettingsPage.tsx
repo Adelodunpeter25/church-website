@@ -7,7 +7,6 @@ import GeneralSettings from './GeneralSettings';
 import SystemSettings from './SystemSettings';
 import SecuritySettings from './SecuritySettings';
 import NotificationSettings from './NotificationSettings';
-import IntegrationSettings from './IntegrationSettings';
 
 export default function SettingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -17,8 +16,7 @@ export default function SettingsPage() {
     { id: 'general', name: 'General', icon: 'ri-settings-3-line' },
     { id: 'system', name: 'System', icon: 'ri-server-line' },
     { id: 'security', name: 'Security', icon: 'ri-shield-check-line' },
-    { id: 'notifications', name: 'Notifications', icon: 'ri-notification-3-line' },
-    { id: 'integrations', name: 'Integrations', icon: 'ri-plug-line' }
+    { id: 'notifications', name: 'Notifications', icon: 'ri-notification-3-line' }
   ];
 
   return (
@@ -62,7 +60,6 @@ export default function SettingsPage() {
                 {activeTab === 'system' && <SystemSettings />}
                 {activeTab === 'security' && <SecuritySettings />}
                 {activeTab === 'notifications' && <NotificationSettings />}
-                {activeTab === 'integrations' && <IntegrationSettings />}
               </div>
             </div>
           </div>
