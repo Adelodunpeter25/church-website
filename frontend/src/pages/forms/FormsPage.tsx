@@ -94,7 +94,11 @@ export default function FormsPage() {
         </main>
       </div>
 
-      <CreateFormModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
+      <CreateFormModal 
+        isOpen={showCreateModal} 
+        onClose={() => setShowCreateModal(false)} 
+        onSuccess={() => window.location.reload()} 
+      />
     </div>
   );
 }

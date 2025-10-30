@@ -1,7 +1,9 @@
 
 
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useEvents } from '@/hooks/useEvents';
+import { Event } from '@/types';
 import Sidebar from '@/components/layout/Sidebar';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import EventCalendar from './EventCalendar';
@@ -12,48 +14,47 @@ import EditEventModal from '@/components/modals/EditEventModal';
 import ManageAttendeesModal from '@/components/modals/ManageAttendeesModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
 
-const upcomingEvents = [
-  {
-    id: 1,
-    title: 'Sunday Worship Service',
-    date: '2025-01-19',
-    time: '10:00 AM - 12:00 PM',
-    location: 'Main Sanctuary',
-    category: 'Worship',
-    attendees: 250,
-    description: 'Join us for our weekly worship service with praise, worship, and a powerful message.'
-  },
-  {
-    id: 2,
-    title: 'Youth Group Meeting',
-    date: '2025-01-20',
-    time: '6:00 PM - 8:00 PM',
-    location: 'Youth Center',
-    category: 'Youth',
-    attendees: 45,
-    description: 'Weekly youth gathering with games, worship, and Bible study for ages 13-18.'
-  },
-  {
-    id: 3,
-    title: 'Community Outreach',
-    date: '2025-01-22',
-    time: '9:00 AM - 2:00 PM',
-    location: 'Downtown Area',
-    category: 'Outreach',
-    attendees: 30,
-    description: 'Serve our community by distributing food and sharing God\'s love.'
-  }
-];
-
 export default function EventsPage() {
+  const { getEvents, deleteEvent } = useEvents();
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showManageAttendees, setShowManageAttendees] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<number | null>(null);
-  const [eventToDelete, setEventToDelete] = useState<number | null>(null);
+  const [eventToDelete, setEventToDelete] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const data = await getEvents({ status: 'upcoming' });
+      setUpcomingEvents(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      setUpcomingEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!eventToDelete) return;
+    try {
+      await deleteEvent(eventToDelete);
+      setShowDeleteConfirm(false);
+      setEventToDelete(null);
+      fetchEvents();
+    } catch (error) {
+      console.error('Error deleting event:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -100,6 +101,14 @@ export default function EventsPage() {
             <div className="mt-8 space-y-6">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Events</h2>
+                {loading ? (
+                  <div className="text-center py-12">Loading events...</div>
+                ) : upcomingEvents.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <i className="ri-calendar-line text-4xl mb-2"></i>
+                    <p>No upcoming events</p>
+                  </div>
+                ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {upcomingEvents.map((event) => (
                     <EventCard
@@ -120,6 +129,7 @@ export default function EventsPage() {
                     />
                   ))}
                 </div>
+                )}
               </div>
               
               <div>
@@ -130,7 +140,7 @@ export default function EventsPage() {
         </main>
       </div>
 
-      <CreateEventModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
+      <CreateEventModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} onSuccess={fetchEvents} />
       
       {selectedEvent && (
         <>
@@ -150,9 +160,7 @@ export default function EventsPage() {
       <ConfirmDialog
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={() => {
-          console.log('Deleting event:', eventToDelete);
-        }}
+        onConfirm={handleDelete}
         title="Delete Event"
         message="Are you sure you want to delete this event? This action cannot be undone."
         confirmText="Delete"

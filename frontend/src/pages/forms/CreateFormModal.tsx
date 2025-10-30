@@ -2,13 +2,17 @@
 
 
 import { useState } from 'react';
+import { useForms } from '@/hooks/useForms';
 
 interface CreateFormModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export default function CreateFormModal({ isOpen, onClose }: CreateFormModalProps) {
+export default function CreateFormModal({ isOpen, onClose, onSuccess }: CreateFormModalProps) {
+  const { createForm } = useForms();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -29,10 +33,13 @@ export default function CreateFormModal({ isOpen, onClose }: CreateFormModalProp
     { id: 'contact', name: 'Contact Information', description: 'Simple contact information collection form' }
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Creating form:', formData);
-    onClose();
+    setLoading(true);
+    try {
+      await createForm(formData);
+      onSuccess?.();
+      onClose();
     setFormData({
       title: '',
       description: '',
@@ -43,6 +50,12 @@ export default function CreateFormModal({ isOpen, onClose }: CreateFormModalProp
       requireLogin: true,
       template: 'blank'
     });
+    } catch (error) {
+      console.error('Error creating form:', error);
+      alert('Failed to create form');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -234,9 +247,10 @@ export default function CreateFormModal({ isOpen, onClose }: CreateFormModalProp
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 cursor-pointer whitespace-nowrap"
+                disabled={loading}
+                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 cursor-pointer whitespace-nowrap disabled:opacity-50"
               >
-                Create Form
+                {loading ? 'Creating...' : 'Create Form'}
               </button>
             </div>
           </form>

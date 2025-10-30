@@ -80,12 +80,38 @@ export const getEvent = async (req, res) => {
 export const createEvent = async (req, res) => {
   try {
     console.log('Creating event:', req.body.title);
-    const { title, description, date, start_time, end_time, location, type, capacity, status } = req.body;
+    const { 
+      title, 
+      description, 
+      startDate, 
+      endDate, 
+      startTime, 
+      endTime, 
+      location, 
+      category, 
+      maxAttendees, 
+      registrationRequired, 
+      registrationDeadline, 
+      organizer, 
+      cost, 
+      recurring, 
+      recurringType 
+    } = req.body;
 
     const result = await pool.query(
       `INSERT INTO events (title, description, date, start_time, end_time, location, type, capacity, status)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-      [title, description || null, date, start_time, end_time, location, type, capacity || null, status || 'upcoming']
+      [
+        title, 
+        description || null, 
+        startDate, 
+        startTime, 
+        endTime || null, 
+        location, 
+        category || 'general', 
+        maxAttendees ? parseInt(maxAttendees) : null, 
+        'upcoming'
+      ]
     );
 
     console.log('Event created:', result.rows[0].id);
@@ -99,14 +125,35 @@ export const createEvent = async (req, res) => {
 export const updateEvent = async (req, res) => {
   try {
     console.log('Updating event:', req.params.id);
-    const { title, description, date, start_time, end_time, location, type, capacity, status } = req.body;
+    const { 
+      title, 
+      description, 
+      startDate, 
+      startTime, 
+      endTime, 
+      location, 
+      category, 
+      maxAttendees, 
+      status 
+    } = req.body;
 
     const result = await pool.query(
       `UPDATE events 
        SET title = $1, description = $2, date = $3, start_time = $4, end_time = $5, 
            location = $6, type = $7, capacity = $8, status = $9, updated_at = CURRENT_TIMESTAMP
        WHERE id = $10 RETURNING *`,
-      [title, description, date, start_time, end_time, location, type, capacity, status, req.params.id]
+      [
+        title, 
+        description, 
+        startDate, 
+        startTime, 
+        endTime || null, 
+        location, 
+        category || 'general', 
+        maxAttendees ? parseInt(maxAttendees) : null, 
+        status || 'upcoming', 
+        req.params.id
+      ]
     );
 
     if (result.rows.length === 0) {

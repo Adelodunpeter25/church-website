@@ -80,12 +80,12 @@ export const getForm = async (req, res) => {
 export const createForm = async (req, res) => {
   try {
     console.log('Creating form:', req.body.title);
-    const { title, description, type, status, fields } = req.body;
+    const { title, description, type, status, fields, isPublic, deadline, allowMultiple, requireLogin, template } = req.body;
 
     const result = await pool.query(
-      `INSERT INTO forms (title, description, type, status, fields)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [title, description || null, type, status || 'active', JSON.stringify(fields)]
+      `INSERT INTO forms (title, description, type, status, fields, is_public, deadline, allow_multiple, require_login, template)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [title, description || null, type, status || 'active', JSON.stringify(fields || []), isPublic !== undefined ? isPublic : true, deadline || null, allowMultiple || false, requireLogin !== undefined ? requireLogin : true, template || null]
     );
 
     console.log('Form created:', result.rows[0].id);
@@ -99,13 +99,13 @@ export const createForm = async (req, res) => {
 export const updateForm = async (req, res) => {
   try {
     console.log('Updating form:', req.params.id);
-    const { title, description, type, status, fields } = req.body;
+    const { title, description, type, status, fields, isPublic, deadline, allowMultiple, requireLogin, template } = req.body;
 
     const result = await pool.query(
       `UPDATE forms 
-       SET title = $1, description = $2, type = $3, status = $4, fields = $5, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $6 RETURNING *`,
-      [title, description, type, status, JSON.stringify(fields), req.params.id]
+       SET title = $1, description = $2, type = $3, status = $4, fields = $5, is_public = $6, deadline = $7, allow_multiple = $8, require_login = $9, template = $10, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $11 RETURNING *`,
+      [title, description, type, status, JSON.stringify(fields || []), isPublic, deadline, allowMultiple, requireLogin, template, req.params.id]
     );
 
     if (result.rows.length === 0) {

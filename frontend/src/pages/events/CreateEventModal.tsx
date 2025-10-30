@@ -2,13 +2,17 @@
 
 
 import { useState } from 'react';
+import { useEvents } from '@/hooks/useEvents';
 
 interface CreateEventModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export default function CreateEventModal({ isOpen, onClose }: CreateEventModalProps) {
+export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateEventModalProps) {
+  const { createEvent } = useEvents();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -27,10 +31,13 @@ export default function CreateEventModal({ isOpen, onClose }: CreateEventModalPr
     recurringType: 'weekly'
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Creating event:', formData);
-    onClose();
+    setLoading(true);
+    try {
+      await createEvent(formData);
+      onSuccess?.();
+      onClose();
     setFormData({
       title: '',
       description: '',
@@ -48,6 +55,12 @@ export default function CreateEventModal({ isOpen, onClose }: CreateEventModalPr
       recurring: false,
       recurringType: 'weekly'
     });
+    } catch (error) {
+      console.error('Error creating event:', error);
+      alert('Failed to create event');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -340,9 +353,10 @@ export default function CreateEventModal({ isOpen, onClose }: CreateEventModalPr
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 cursor-pointer whitespace-nowrap"
+                disabled={loading}
+                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 cursor-pointer whitespace-nowrap disabled:opacity-50"
               >
-                Create Event
+                {loading ? 'Creating...' : 'Create Event'}
               </button>
             </div>
           </form>

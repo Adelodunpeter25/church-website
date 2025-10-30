@@ -83,12 +83,12 @@ export const getAnnouncement = async (req, res) => {
 export const createAnnouncement = async (req, res) => {
   try {
     console.log('Creating announcement:', req.body.title);
-    const { title, content, priority, publish_date, expiry_date, status, created_by } = req.body;
+    const { title, content, priority, publish_date, expiry_date, status, created_by, send_email, send_sms } = req.body;
 
     const result = await pool.query(
-      `INSERT INTO announcements (title, content, priority, publish_date, expiry_date, status, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [title, content, priority || 'medium', publish_date, expiry_date || null, status || 'draft', created_by || null]
+      `INSERT INTO announcements (title, content, priority, publish_date, expiry_date, status, created_by, send_email, send_sms)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [title, content, priority || 'medium', publish_date, expiry_date || null, status || 'draft', created_by || null, send_email || false, send_sms || false]
     );
 
     console.log('Announcement created:', result.rows[0].id);

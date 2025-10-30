@@ -1,11 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAnnouncements } from '@/hooks/useAnnouncements';
+import { Announcement } from '@/types';
 import EditAnnouncementModal from '@/components/modals/EditAnnouncementModal';
 
 interface AnnouncementListProps {
   filterStatus: string;
 }
 
-const announcements = [
+export default function AnnouncementList({ filterStatus }: AnnouncementListProps) {
+  const { getAnnouncements } = useAnnouncements();
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedAnnouncement, setExpandedAnnouncement] = useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchAnnouncements();
+  }, [filterStatus]);
+
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true);
+      const params: any = {};
+      if (filterStatus !== 'all') params.status = filterStatus;
+      const data = await getAnnouncements(params);
+      setAnnouncements(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching announcements:', error);
+      setAnnouncements([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center py-12">Loading announcements...</div>;
+  }
+
+const oldAnnouncements = [
   {
     id: 1,
     title: 'Christmas Service Schedule',
@@ -56,28 +90,19 @@ const announcements = [
   }
 ];
 
-export default function AnnouncementList({ filterStatus }: AnnouncementListProps) {
-  const [expandedAnnouncement, setExpandedAnnouncement] = useState<number | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState<number | null>(null);
-
-  const handleEdit = (id: number) => {
+  const handleEdit = (id: string) => {
     setSelectedAnnouncement(id);
     setShowEditModal(true);
   };
 
-  const handleShare = (id: number) => {
+  const handleShare = (id: string) => {
     setSelectedAnnouncement(id);
     setShowShareModal(true);
   };
 
-  const filteredAnnouncements = announcements.filter(announcement => {
-    if (filterStatus === 'all') return true;
-    return announcement.status === filterStatus;
-  });
+  const filteredAnnouncements = announcements;
 
-  const toggleExpanded = (id: number) => {
+  const toggleExpanded = (id: string) => {
     setExpandedAnnouncement(expandedAnnouncement === id ? null : id);
   };
 

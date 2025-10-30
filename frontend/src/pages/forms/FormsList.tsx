@@ -1,7 +1,9 @@
 
 
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useForms } from '@/hooks/useForms';
+import { Form } from '@/types';
 import ViewFormModal from '@/components/modals/ViewFormModal';
 import ViewResponsesModal from '@/components/modals/ViewResponsesModal';
 import ShareFormModal from '@/components/modals/ShareFormModal';
@@ -12,7 +14,67 @@ interface FormsListProps {
   filterStatus: string;
 }
 
-const forms = [
+export default function FormsList({ filterStatus }: FormsListProps) {
+  const { getForms, deleteForm, deleteForms } = useForms();
+  const [forms, setForms] = useState<Form[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedForms, setSelectedForms] = useState<string[]>([]);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showResponsesModal, setShowResponsesModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteSelectedConfirm, setShowDeleteSelectedConfirm] = useState(false);
+  const [selectedForm, setSelectedForm] = useState<string | null>(null);
+  const [formToDelete, setFormToDelete] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchForms();
+  }, [filterStatus]);
+
+  const fetchForms = async () => {
+    try {
+      setLoading(true);
+      const params: any = {};
+      if (filterStatus !== 'all') params.status = filterStatus;
+      const data = await getForms(params);
+      setForms(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching forms:', error);
+      setForms([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!formToDelete) return;
+    try {
+      await deleteForm(formToDelete);
+      setShowDeleteConfirm(false);
+      setFormToDelete(null);
+      fetchForms();
+    } catch (error) {
+      console.error('Error deleting form:', error);
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    try {
+      await deleteForms(selectedForms);
+      setShowDeleteSelectedConfirm(false);
+      setSelectedForms([]);
+      fetchForms();
+    } catch (error) {
+      console.error('Error deleting forms:', error);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center py-12">Loading forms...</div>;
+  }
+
+const oldForms = [
   {
     id: 1,
     title: 'Youth Retreat Registration',
@@ -80,39 +142,28 @@ const forms = [
   }
 ];
 
-export default function FormsList({ filterStatus }: FormsListProps) {
-  const [selectedForms, setSelectedForms] = useState<number[]>([]);
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showResponsesModal, setShowResponsesModal] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showDeleteSelectedConfirm, setShowDeleteSelectedConfirm] = useState(false);
-  const [selectedForm, setSelectedForm] = useState<number | null>(null);
-  const [formToDelete, setFormToDelete] = useState<number | null>(null);
-
-  const handleViewForm = (id: number) => {
+  const handleViewForm = (id: string) => {
     setSelectedForm(id);
     setShowViewModal(true);
   };
 
-  const handleEditForm = (id: number) => {
+  const handleEditForm = (id: string) => {
     setSelectedForm(id);
     setShowViewModal(false);
     setShowEditModal(true);
   };
 
-  const handleViewResponses = (id: number) => {
+  const handleViewResponses = (id: string) => {
     setSelectedForm(id);
     setShowResponsesModal(true);
   };
 
-  const handleShare = (id: number) => {
+  const handleShare = (id: string) => {
     setSelectedForm(id);
     setShowShareModal(true);
   };
 
-  const handleDeleteSelected = () => {
+  const confirmDeleteSelected = () => {
     setShowDeleteSelectedConfirm(true);
   };
 
@@ -121,12 +172,9 @@ export default function FormsList({ filterStatus }: FormsListProps) {
     alert('Export functionality would download CSV/Excel file');
   };
 
-  const filteredForms = forms.filter(form => {
-    if (filterStatus === 'all') return true;
-    return form.status === filterStatus;
-  });
+  const filteredForms = forms;
 
-  const toggleForm = (id: number) => {
+  const toggleForm = (id: string) => {
     setSelectedForms(prev => 
       prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]
     );
@@ -177,7 +225,7 @@ export default function FormsList({ filterStatus }: FormsListProps) {
           {selectedForms.length > 0 && (
             <div className="flex items-center space-x-2">
               <button 
-                onClick={handleDeleteSelected}
+                onClick={confirmDeleteSelected}
                 className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 cursor-pointer whitespace-nowrap"
               >
                 Delete Selected
@@ -331,9 +379,7 @@ export default function FormsList({ filterStatus }: FormsListProps) {
       <ConfirmDialog
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={() => {
-          console.log('Deleting form:', formToDelete);
-        }}
+        onConfirm={handleDelete}
         title="Delete Form"
         message="Are you sure you want to delete this form? This action cannot be undone."
         confirmText="Delete"
@@ -343,10 +389,7 @@ export default function FormsList({ filterStatus }: FormsListProps) {
       <ConfirmDialog
         isOpen={showDeleteSelectedConfirm}
         onClose={() => setShowDeleteSelectedConfirm(false)}
-        onConfirm={() => {
-          console.log('Deleting forms:', selectedForms);
-          setSelectedForms([]);
-        }}
+        onConfirm={handleDeleteSelected}
         title="Delete Forms"
         message={`Are you sure you want to delete ${selectedForms.length} selected forms? This action cannot be undone.`}
         confirmText="Delete"

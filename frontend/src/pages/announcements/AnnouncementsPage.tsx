@@ -94,7 +94,11 @@ export default function AnnouncementsPage() {
         </main>
       </div>
 
-      <CreateAnnouncementModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
+      <CreateAnnouncementModal 
+        isOpen={showCreateModal} 
+        onClose={() => setShowCreateModal(false)} 
+        onSuccess={() => window.location.reload()} 
+      />
     </div>
   );
 }

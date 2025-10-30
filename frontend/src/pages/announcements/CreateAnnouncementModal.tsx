@@ -2,13 +2,17 @@
 
 
 import { useState } from 'react';
+import { useAnnouncements } from '@/hooks/useAnnouncements';
 
 interface CreateAnnouncementModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export default function CreateAnnouncementModal({ isOpen, onClose }: CreateAnnouncementModalProps) {
+export default function CreateAnnouncementModal({ isOpen, onClose, onSuccess }: CreateAnnouncementModalProps) {
+  const { createAnnouncement } = useAnnouncements();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -20,10 +24,22 @@ export default function CreateAnnouncementModal({ isOpen, onClose }: CreateAnnou
     sendSms: false
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Creating announcement:', formData);
-    onClose();
+    setLoading(true);
+    try {
+      await createAnnouncement({
+        title: formData.title,
+        content: formData.content,
+        priority: formData.priority,
+        publish_date: formData.publishDate || new Date().toISOString(),
+        expiry_date: formData.expiryDate || null,
+        status: 'published',
+        send_email: formData.sendEmail,
+        send_sms: formData.sendSms
+      });
+      onSuccess?.();
+      onClose();
     setFormData({
       title: '',
       content: '',
@@ -34,6 +50,12 @@ export default function CreateAnnouncementModal({ isOpen, onClose }: CreateAnnou
       sendEmail: false,
       sendSms: false
     });
+    } catch (error) {
+      console.error('Error creating announcement:', error);
+      alert('Failed to create announcement');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -210,9 +232,10 @@ export default function CreateAnnouncementModal({ isOpen, onClose }: CreateAnnou
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 cursor-pointer whitespace-nowrap"
+                disabled={loading}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 cursor-pointer whitespace-nowrap disabled:opacity-50"
               >
-                Publish Announcement
+                {loading ? 'Publishing...' : 'Publish Announcement'}
               </button>
             </div>
           </form>

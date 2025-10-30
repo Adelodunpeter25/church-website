@@ -1,6 +1,44 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useEvents } from '@/hooks/useEvents';
+import { Event } from '@/types';
 
-const events = [
+export default function EventList() {
+  const { getEvents } = useEvents();
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const data = await getEvents({});
+      setEvents(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      setEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center py-12">Loading events...</div>;
+  }
+
+  if (events.length === 0) {
+    return (
+      <div className="text-center py-12 text-gray-500">
+        <i className="ri-calendar-line text-4xl mb-2"></i>
+        <p>No events found</p>
+      </div>
+    );
+  }
+
+const oldEvents = [
   {
     id: 1,
     title: 'Youth Retreat 2025',
@@ -59,24 +97,21 @@ const events = [
     registrationDeadline: '2025-02-05'
   }
 ];
-
-export default function EventList() {
-  const [selectedEvent, setSelectedEvent] = useState<number | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAttendeesModal, setShowAttendeesModal] = useState(false);
 
-  const handleViewDetails = (eventId: number) => {
+  const handleViewDetails = (eventId: string) => {
     setSelectedEvent(eventId);
     setShowDetailsModal(true);
   };
 
-  const handleEdit = (eventId: number) => {
+  const handleEdit = (eventId: string) => {
     setSelectedEvent(eventId);
     setShowEditModal(true);
   };
 
-  const handleManageAttendees = (eventId: number) => {
+  const handleManageAttendees = (eventId: string) => {
     setSelectedEvent(eventId);
     setShowAttendeesModal(true);
   };
