@@ -1,8 +1,13 @@
 import { api } from '@/services/api';
 
 export const useMembers = () => {
-  const getMembers = (params?: { search?: string; role?: string; status?: string; page?: number; limit?: number }) =>
-    api.get(`/members?${new URLSearchParams(params as any).toString()}`);
+  const getMembers = (params?: { search?: string; role?: string; status?: string; page?: number; limit?: number }) => {
+    const cleanParams = Object.fromEntries(
+      Object.entries(params || {}).filter(([_, v]) => v !== undefined && v !== '')
+    );
+    const query = new URLSearchParams(cleanParams as any).toString();
+    return api.get(`/members${query ? `?${query}` : ''}`);
+  };
 
   const getMember = (id: string) =>
     api.get(`/members/${id}`);

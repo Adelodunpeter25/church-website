@@ -1,7 +1,9 @@
 
 
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useMembers } from '@/hooks/useMembers';
+import { Member } from '@/types';
 import EditMemberModal from '@/components/modals/EditMemberModal';
 import ViewMemberModal from '@/components/modals/ViewMemberModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
@@ -11,80 +13,52 @@ interface MemberListProps {
   filterRole: string;
 }
 
-const members = [
-  {
-    id: 1,
-    name: 'Sarah Johnson',
-    email: 'sarah.johnson@email.com',
-    phone: '(555) 123-4567',
-    role: 'Leader',
-    joinDate: '2020-03-15',
-    lastAttendance: '2025-01-14',
-    status: 'Active',
-    ministry: 'Youth Ministry'
-  },
-  {
-    id: 2,
-    name: 'Michael Brown',
-    email: 'michael.brown@email.com',
-    phone: '(555) 234-5678',
-    role: 'Volunteer',
-    joinDate: '2021-07-22',
-    lastAttendance: '2025-01-14',
-    status: 'Active',
-    ministry: 'Music Team'
-  },
-  {
-    id: 3,
-    name: 'Emily Davis',
-    email: 'emily.davis@email.com',
-    phone: '(555) 345-6789',
-    role: 'Member',
-    joinDate: '2019-11-08',
-    lastAttendance: '2025-01-07',
-    status: 'Active',
-    ministry: 'Children Ministry'
-  },
-  {
-    id: 4,
-    name: 'David Wilson',
-    email: 'david.wilson@email.com',
-    phone: '(555) 456-7890',
-    role: 'Leader',
-    joinDate: '2018-05-12',
-    lastAttendance: '2025-01-14',
-    status: 'Active',
-    ministry: 'Outreach Team'
-  },
-  {
-    id: 5,
-    name: 'Jennifer Martinez',
-    email: 'jennifer.martinez@email.com',
-    phone: '(555) 567-8901',
-    role: 'Member',
-    joinDate: '2022-01-30',
-    lastAttendance: '2025-01-14',
-    status: 'Active',
-    ministry: 'Welcome Team'
-  }
-];
-
 export default function MemberList({ searchTerm, filterRole }: MemberListProps) {
-  const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
+  const { getMembers, deleteMember } = useMembers();
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedMember, setSelectedMember] = useState<number | null>(null);
-  const [memberToDelete, setMemberToDelete] = useState<{ id: number; name: string } | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<{ id: string; name: string } | null>(null);
 
-  const filteredMembers = members.filter(member => {
-    const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         member.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === 'all' || member.role.toLowerCase() === filterRole;
-    return matchesSearch && matchesRole;
-  });
+  useEffect(() => {
+    fetchMembers();
+  }, [searchTerm, filterRole]);
 
-  const toggleMember = (id: number) => {
+  const fetchMembers = async () => {
+    try {
+      setLoading(true);
+      const params: any = {};
+      if (searchTerm) params.search = searchTerm;
+      if (filterRole !== 'all') params.role = filterRole;
+      const data = await getMembers(params);
+      setMembers(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching members:', error);
+      setMembers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!memberToDelete) return;
+    try {
+      await deleteMember(memberToDelete.id);
+      setShowDeleteConfirm(false);
+      setMemberToDelete(null);
+      fetchMembers();
+    } catch (error) {
+      console.error('Error deleting member:', error);
+    }
+  };
+
+  const filteredMembers = Array.isArray(members) ? members : [];
+
+  const toggleMember = (id: string) => {
     setSelectedMembers(prev => 
       prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]
     );
@@ -97,6 +71,10 @@ export default function MemberList({ searchTerm, filterRole }: MemberListProps) 
       setSelectedMembers(filteredMembers.map(m => m.id));
     }
   };
+
+  if (loading) {
+    return <div className="text-center py-12">Loading members...</div>;
+  }
 
   return (
     <div>
@@ -152,7 +130,7 @@ export default function MemberList({ searchTerm, filterRole }: MemberListProps) 
                     />
                     <div className="ml-4">
                       <div className="text-sm font-medium text-gray-900">{member.name}</div>
-                      <div className="text-sm text-gray-500">Member since {new Date(member.joinDate).getFullYear()}</div>
+                      <div className="text-sm text-gray-500">Member since {new Date(member.dateJoined).getFullYear()}</div>
                     </div>
                   </div>
                 </td>
@@ -162,21 +140,24 @@ export default function MemberList({ searchTerm, filterRole }: MemberListProps) 
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    member.role === 'Leader' ? 'bg-purple-100 text-purple-800' :
-                    member.role === 'Volunteer' ? 'bg-blue-100 text-blue-800' :
+                    member.role === 'leader' ? 'bg-purple-100 text-purple-800' :
+                    member.role === 'volunteer' ? 'bg-blue-100 text-blue-800' :
                     'bg-green-100 text-green-800'
                   }`}>
                     {member.role}
                   </span>
-                  <div className="text-sm text-gray-500 mt-1">{member.ministry}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                    {member.status}
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                    member.membershipStatus === 'active' ? 'bg-green-100 text-green-800' :
+                    member.membershipStatus === 'inactive' ? 'bg-gray-100 text-gray-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {member.membershipStatus}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {new Date(member.lastAttendance).toLocaleDateString()}
+                  {new Date(member.dateJoined).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center justify-end space-x-2">
@@ -227,9 +208,7 @@ export default function MemberList({ searchTerm, filterRole }: MemberListProps) 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={() => {
-          console.log('Deleting member:', memberToDelete?.id);
-        }}
+        onConfirm={handleDelete}
         title="Delete Member"
         message={`Are you sure you want to delete ${memberToDelete?.name}? This action cannot be undone.`}
         confirmText="Delete"

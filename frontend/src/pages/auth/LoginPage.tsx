@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
@@ -12,6 +12,16 @@ export default function LoginPage() {
 
   const { login, user } = useAuth();
 
+  useEffect(() => {
+    if (user) {
+      if (['admin', 'pastor', 'minister', 'staff'].includes(user.role)) {
+        navigate('/dashboard');
+      } else {
+        navigate('/member-dashboard');
+      }
+    }
+  }, [user, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -24,14 +34,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
-
-  if (user) {
-    if (['admin', 'pastor', 'minister', 'staff'].includes(user.role)) {
-      navigate('/dashboard');
-    } else {
-      navigate('/member-dashboard');
-    }
-  }
 
   return (
     <div className="min-h-screen flex">

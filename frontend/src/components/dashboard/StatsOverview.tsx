@@ -1,40 +1,62 @@
-
-
-const stats = [
-  {
-    name: 'Total Members',
-    value: '248',
-    change: '+12',
-    changeType: 'increase',
-    icon: 'ri-group-line'
-  },
-  {
-    name: 'This Week\'s Attendance',
-    value: '187',
-    change: '+5%',
-    changeType: 'increase',
-    icon: 'ri-user-heart-line'
-  },
-  {
-    name: 'Sermon Downloads',
-    value: '1,234',
-    change: '+23%',
-    changeType: 'increase',
-    icon: 'ri-download-line'
-  },
-  {
-    name: 'Active Live Viewers',
-    value: '89',
-    change: 'Live now',
-    changeType: 'live',
-    icon: 'ri-live-line'
-  }
-];
+import { useEffect, useState } from 'react';
+import { useDashboard } from '@/hooks/useDashboard';
+import { DashboardStats } from '@/types';
 
 export default function StatsOverview() {
+  const { getDashboardStats } = useDashboard();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await getDashboardStats();
+        setStats(data);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  if (loading) return <div className="text-center py-8">Loading...</div>;
+  if (!stats) return null;
+
+  const statItems = [
+    {
+      name: 'Total Members',
+      value: (stats.totalMembers || 0).toString(),
+      change: `+${stats.recentMembers || 0}`,
+      changeType: 'increase',
+      icon: 'ri-group-line'
+    },
+    {
+      name: 'Total Sermons',
+      value: (stats.totalSermons || 0).toString(),
+      change: 'Available',
+      changeType: 'neutral',
+      icon: 'ri-book-line'
+    },
+    {
+      name: 'Upcoming Events',
+      value: (stats.upcomingEvents || 0).toString(),
+      change: 'Scheduled',
+      changeType: 'neutral',
+      icon: 'ri-calendar-line'
+    },
+    {
+      name: 'Active Announcements',
+      value: (stats.activeAnnouncements || 0).toString(),
+      change: 'Published',
+      changeType: 'neutral',
+      icon: 'ri-megaphone-line'
+    }
+  ];
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-      {stats.map((item) => (
+      {statItems.map((item) => (
         <div key={item.name} className="bg-white overflow-hidden shadow-sm rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
@@ -53,17 +75,10 @@ export default function StatsOverview() {
                       {item.value}
                     </div>
                     <div className={`ml-2 flex items-baseline text-sm font-semibold ${
-                      item.changeType === 'increase'
-                        ? 'text-green-600'
-                        : item.changeType === 'live'
-                        ? 'text-red-600'
-                        : 'text-red-600'
+                      item.changeType === 'increase' ? 'text-green-600' : 'text-gray-500'
                     }`}>
                       {item.changeType === 'increase' && (
                         <i className="ri-arrow-up-line text-xs mr-1"></i>
-                      )}
-                      {item.changeType === 'live' && (
-                        <div className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></div>
                       )}
                       {item.change}
                     </div>

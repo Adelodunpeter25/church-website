@@ -1,7 +1,6 @@
-
-
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSeries } from '@/hooks/useSeries';
+import { SermonSeries } from '@/types';
 import Sidebar from '@/components/layout/Sidebar';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import SermonGrid from './SermonGrid';
@@ -183,28 +182,49 @@ export default function SermonsPage() {
 }
 
 function SeriesManagementModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const [series, setSeries] = useState([
-    { id: 1, name: 'Walking in Faith', sermonCount: 8, description: 'A journey through faith challenges' },
-    { id: 2, name: 'Love in Action', sermonCount: 5, description: 'Demonstrating Christ\'s love practically' },
-    { id: 3, name: 'Grace and Truth', sermonCount: 12, description: 'Exploring grace and truth together' }
-  ]);
+  const { getSeries, createSeries, deleteSeries } = useSeries();
+  const [series, setSeries] = useState<SermonSeries[]>([]);
+  const [loading, setLoading] = useState(true);
   const [newSeries, setNewSeries] = useState({ name: '', description: '' });
 
-  const handleAddSeries = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newSeries.name) {
-      setSeries(prev => [...prev, {
-        id: Date.now(),
-        name: newSeries.name,
-        sermonCount: 0,
-        description: newSeries.description
-      }]);
-      setNewSeries({ name: '', description: '' });
+  useEffect(() => {
+    if (isOpen) {
+      fetchSeries();
+    }
+  }, [isOpen]);
+
+  const fetchSeries = async () => {
+    try {
+      setLoading(true);
+      const data = await getSeries();
+      setSeries(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching series:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDeleteSeries = (id: number) => {
-    setSeries(prev => prev.filter(s => s.id !== id));
+  const handleAddSeries = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newSeries.name) {
+      try {
+        await createSeries({ name: newSeries.name, description: newSeries.description });
+        setNewSeries({ name: '', description: '' });
+        fetchSeries();
+      } catch (error) {
+        console.error('Error creating series:', error);
+      }
+    }
+  };
+
+  const handleDeleteSeries = async (id: string) => {
+    try {
+      await deleteSeries(id);
+      fetchSeries();
+    } catch (error) {
+      console.error('Error deleting series:', error);
+    }
   };
 
   if (!isOpen) return null;
@@ -260,6 +280,14 @@ function SeriesManagementModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
 
             <div>
               <h4 className="text-md font-medium text-gray-900 mb-3">Existing Series</h4>
+              {loading ? (
+                <div className="text-center py-4 text-gray-500">Loading...</div>
+              ) : series.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <i className="ri-folder-line text-3xl mb-2"></i>
+                  <p className="text-sm">No series created yet</p>
+                </div>
+              ) : (
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {series.map((s) => (
                   <div key={s.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
@@ -279,6 +307,7 @@ function SeriesManagementModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
                   </div>
                 ))}
               </div>
+              )}
             </div>
           </div>
 

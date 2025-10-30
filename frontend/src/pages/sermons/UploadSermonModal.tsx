@@ -1,14 +1,19 @@
-
-
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSermons } from '@/hooks/useSermons';
+import { useSeries } from '@/hooks/useSeries';
+import { SermonSeries } from '@/types';
 
 interface UploadSermonModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export default function UploadSermonModal({ isOpen, onClose }: UploadSermonModalProps) {
+export default function UploadSermonModal({ isOpen, onClose, onSuccess }: UploadSermonModalProps) {
+  const { createSermon } = useSermons();
+  const { getSeries } = useSeries();
+  const [series, setSeries] = useState<SermonSeries[]>([]);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     speaker: '',
@@ -95,20 +100,15 @@ export default function UploadSermonModal({ isOpen, onClose }: UploadSermonModal
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Speaker *
                 </label>
-                <select
+                <input
+                  type="text"
                   name="speaker"
                   required
                   value={formData.speaker}
                   onChange={handleChange}
-                  className="w-full pr-8 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select Speaker</option>
-                  <option value="Pastor John Smith">Pastor John Smith</option>
-                  <option value="Pastor David Wilson">Pastor David Wilson</option>
-                  <option value="Pastor Sarah Johnson">Pastor Sarah Johnson</option>
-                  <option value="Pastor Michael Brown">Pastor Michael Brown</option>
-                  <option value="Guest Speaker">Guest Speaker</option>
-                </select>
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter speaker name"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">

@@ -87,7 +87,11 @@ export default function MembershipPage() {
         </main>
       </div>
 
-      <AddMemberModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
+      <AddMemberModal 
+        isOpen={showAddModal} 
+        onClose={() => setShowAddModal(false)} 
+        onSuccess={() => window.location.reload()} 
+      />
     </div>
   );
 }
