@@ -1,13 +1,15 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useDashboard } from '@/hooks/useDashboard';
 
-const quickActions = [
+const quickActionsConfig = [
   {
     title: 'Membership Management',
     description: 'Add, edit, and manage church members',
     icon: 'ri-group-line',
     href: '/membership',
     color: 'bg-blue-500',
-    stats: '248 Active Members'
+    statsKey: 'members'
   },
   {
     title: 'Sermon Library',
@@ -15,7 +17,7 @@ const quickActions = [
     icon: 'ri-book-open-line',
     href: '/sermons',
     color: 'bg-green-500',
-    stats: '156 Sermons'
+    statsKey: 'sermons'
   },
   {
     title: 'Live Streaming',
@@ -23,7 +25,7 @@ const quickActions = [
     icon: 'ri-live-line',
     href: '/live',
     color: 'bg-red-500',
-    stats: 'Go Live Now'
+    statsKey: 'livestream'
   },
   {
     title: 'Event Management',
@@ -31,7 +33,7 @@ const quickActions = [
     icon: 'ri-calendar-event-line',
     href: '/events',
     color: 'bg-purple-500',
-    stats: '8 Upcoming Events'
+    statsKey: 'events'
   },
   {
     title: 'Announcements',
@@ -39,7 +41,7 @@ const quickActions = [
     icon: 'ri-megaphone-line',
     href: '/announcements',
     color: 'bg-orange-500',
-    stats: '3 Active'
+    statsKey: 'announcements'
   },
   {
     title: 'Forms Management',
@@ -47,11 +49,47 @@ const quickActions = [
     icon: 'ri-file-list-line',
     href: '/forms',
     color: 'bg-teal-500',
-    stats: '12 Forms'
+    statsKey: 'forms'
   }
 ];
 
 export default function QuickAccessPanel() {
+  const { getDashboardStats } = useDashboard();
+  const [stats, setStats] = useState<any>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getDashboardStats()
+      .then(data => {
+        setStats(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to fetch stats:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  const getStatsDisplay = (statsKey: string) => {
+    if (loading) return 'Loading...';
+    
+    switch(statsKey) {
+      case 'members':
+        return `${stats.totalMembers || 0} Active Members`;
+      case 'sermons':
+        return `${stats.totalSermons || 0} Sermons`;
+      case 'livestream':
+        return 'Go Live Now';
+      case 'events':
+        return `${stats.upcomingEvents || 0} Upcoming Events`;
+      case 'announcements':
+        return `${stats.activeAnnouncements || 0} Active`;
+      case 'forms':
+        return `${stats.totalForms || 0} Forms`;
+      default:
+        return '';
+    }
+  };
   return (
     <div className="bg-white overflow-hidden shadow-sm rounded-lg">
       <div className="px-6 py-4 border-b border-gray-200">
@@ -61,30 +99,33 @@ export default function QuickAccessPanel() {
         </p>
       </div>
       <div className="p-6">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {quickActions.map((action) => (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {quickActionsConfig.map((action) => (
             <Link
               key={action.title}
               to={action.href}
-              className="relative group bg-white p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow cursor-pointer"
+              className="relative group bg-gradient-to-br from-white to-gray-50 p-5 border border-gray-200 rounded-xl hover:shadow-lg hover:border-gray-300 transition-all duration-200 cursor-pointer overflow-hidden"
             >
-              <div className="flex items-center">
-                <div className={`${action.color} w-10 h-10 flex items-center justify-center rounded-lg flex-shrink-0`}>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-gray-100/50 to-transparent rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-300"></div>
+              <div className="relative">
+                <div className={`${action.color} w-11 h-11 flex items-center justify-center rounded-xl shadow-md group-hover:scale-110 transition-transform duration-200`}>
                   <i className={`${action.icon} text-white text-lg`}></i>
                 </div>
-                <div className="ml-4 flex-1 min-w-0">
-                  <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600 truncate">
+                <div className="mt-3">
+                  <h4 className="text-base font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                     {action.title}
                   </h4>
-                  <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                  <p className="text-sm text-gray-600 mt-1 leading-snug">
                     {action.description}
                   </p>
-                  <p className="text-xs text-blue-600 font-medium mt-1 truncate">
-                    {action.stats}
-                  </p>
-                </div>
-                <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 ml-2">
-                  <i className="ri-arrow-right-line text-gray-400 group-hover:text-blue-600"></i>
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
+                    <p className="text-sm font-semibold text-blue-600">
+                      {getStatsDisplay(action.statsKey)}
+                    </p>
+                    <div className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-50 group-hover:bg-blue-100 transition-colors">
+                      <i className="ri-arrow-right-line text-blue-600 text-sm group-hover:translate-x-0.5 transition-transform"></i>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Link>

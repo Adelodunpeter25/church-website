@@ -20,7 +20,7 @@ export default function SermonGrid({
   sortBy, 
   viewMode 
 }: SermonGridProps) {
-  const { getSermons, deleteSermon } = useSermons();
+  const { fetchSermons: getSermons, deleteSermon } = useSermons();
   const [sermons, setSermons] = useState<Sermon[]>([]);
   const [loading, setLoading] = useState(true);
   const [playingSermon, setPlayingSermon] = useState<string | null>(null);
