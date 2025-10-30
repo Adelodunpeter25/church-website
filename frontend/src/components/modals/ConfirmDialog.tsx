@@ -1,7 +1,9 @@
+import { useState } from 'react';
+
 interface ConfirmDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
   title: string;
   message: string;
   confirmText?: string;
@@ -19,11 +21,20 @@ export default function ConfirmDialog({
   cancelText = 'Cancel',
   type = 'danger'
 }: ConfirmDialogProps) {
+  const [loading, setLoading] = useState(false);
+
   if (!isOpen) return null;
 
-  const handleConfirm = () => {
-    onConfirm();
-    onClose();
+  const handleConfirm = async () => {
+    setLoading(true);
+    try {
+      await onConfirm();
+      onClose();
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const buttonColor = type === 'danger' ? 'bg-red-600 hover:bg-red-700' : 
@@ -59,14 +70,23 @@ export default function ConfirmDialog({
             <button
               type="button"
               onClick={handleConfirm}
-              className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 ${buttonColor} text-base font-medium text-white focus:outline-none sm:ml-3 sm:w-auto sm:text-sm`}
+              disabled={loading}
+              className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 ${buttonColor} text-base font-medium text-white focus:outline-none sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              {confirmText}
+              {loading ? (
+                <span className="flex items-center">
+                  <i className="ri-loader-4-line animate-spin mr-2"></i>
+                  {type === 'danger' ? 'Deleting...' : 'Processing...'}
+                </span>
+              ) : (
+                confirmText
+              )}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm"
+              disabled={loading}
+              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {cancelText}
             </button>

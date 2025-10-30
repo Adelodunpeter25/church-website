@@ -88,7 +88,7 @@ export const createEvent = async (req, res) => {
       startTime, 
       endTime, 
       location, 
-      category, 
+      type, 
       maxAttendees, 
       registrationRequired, 
       registrationDeadline, 
@@ -99,17 +99,25 @@ export const createEvent = async (req, res) => {
     } = req.body;
 
     const result = await pool.query(
-      `INSERT INTO events (title, description, date, start_time, end_time, location, type, capacity, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      `INSERT INTO events (title, description, date, end_date, start_time, end_time, location, type, capacity, 
+       registration_required, registration_deadline, organizer, cost, recurring, recurring_type, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *`,
       [
         title, 
         description || null, 
         startDate, 
+        endDate || null,
         startTime, 
         endTime || null, 
         location, 
-        category || 'general', 
-        maxAttendees ? parseInt(maxAttendees) : null, 
+        type || 'general', 
+        maxAttendees ? parseInt(maxAttendees) : null,
+        registrationRequired ?? true,
+        registrationDeadline || null,
+        organizer || null,
+        cost ? parseFloat(cost) : null,
+        recurring || false,
+        recurringType || null,
         'upcoming'
       ]
     );
@@ -128,29 +136,44 @@ export const updateEvent = async (req, res) => {
     const { 
       title, 
       description, 
-      startDate, 
-      startTime, 
-      endTime, 
+      startDate,
+      endDate, 
+      start_time,
+      end_time, 
       location, 
-      category, 
-      maxAttendees, 
+      type,
+      capacity,
+      registrationRequired,
+      registrationDeadline,
+      organizer,
+      cost,
+      recurring,
+      recurringType,
       status 
     } = req.body;
 
     const result = await pool.query(
       `UPDATE events 
-       SET title = $1, description = $2, date = $3, start_time = $4, end_time = $5, 
-           location = $6, type = $7, capacity = $8, status = $9, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $10 RETURNING *`,
+       SET title = $1, description = $2, date = $3, end_date = $4, start_time = $5, end_time = $6, 
+           location = $7, type = $8, capacity = $9, registration_required = $10, registration_deadline = $11,
+           organizer = $12, cost = $13, recurring = $14, recurring_type = $15, status = $16, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $17 RETURNING *`,
       [
         title, 
         description, 
-        startDate, 
-        startTime, 
-        endTime || null, 
+        startDate,
+        endDate || null, 
+        start_time, 
+        end_time || null, 
         location, 
-        category || 'general', 
-        maxAttendees ? parseInt(maxAttendees) : null, 
+        type || 'general', 
+        capacity ? parseInt(capacity) : null,
+        registrationRequired ?? true,
+        registrationDeadline || null,
+        organizer || null,
+        cost ? parseFloat(cost) : null,
+        recurring || false,
+        recurringType || null,
         status || 'upcoming', 
         req.params.id
       ]

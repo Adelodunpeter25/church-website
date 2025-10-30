@@ -34,7 +34,8 @@ export default function EventsPage() {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const data = await getEvents({ status: 'upcoming' });
+      const response = await getEvents({ status: 'upcoming' });
+      const data = response.data || response;
       setUpcomingEvents(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching events:', error);

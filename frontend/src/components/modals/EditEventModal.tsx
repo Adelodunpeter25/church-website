@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useEvents } from '@/hooks/useEvents';
 
 interface EditEventModalProps {
   isOpen: boolean;
@@ -7,23 +8,84 @@ interface EditEventModalProps {
 }
 
 export default function EditEventModal({ isOpen, onClose, eventId }: EditEventModalProps) {
+  const { getEvent, updateEvent } = useEvents();
+  const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
   const [formData, setFormData] = useState({
-    title: 'Sunday Worship Service',
-    date: '2025-01-19',
-    startTime: '10:00',
-    endTime: '12:00',
-    location: 'Main Sanctuary',
-    category: 'Worship',
-    description: 'Join us for our weekly worship service with praise, worship, and a powerful message.'
+    title: '',
+    description: '',
+    startDate: '',
+    endDate: '',
+    start_time: '',
+    end_time: '',
+    location: '',
+    type: 'general',
+    capacity: '',
+    registrationRequired: true,
+    registrationDeadline: '',
+    organizer: '',
+    cost: '',
+    recurring: false,
+    recurringType: 'weekly'
   });
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (isOpen && eventId) {
+      fetchEvent();
+    }
+  }, [isOpen, eventId]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Updating event:', eventId, formData);
-    onClose();
+  const fetchEvent = async () => {
+    try {
+      setLoadingData(true);
+      const event = await getEvent(eventId.toString());
+      setFormData({
+        title: event.title || '',
+        description: event.description || '',
+        startDate: event.date ? event.date.split('T')[0] : '',
+        endDate: event.end_date ? event.end_date.split('T')[0] : '',
+        start_time: event.start_time || '',
+        end_time: event.end_time || '',
+        location: event.location || '',
+        type: event.type || 'general',
+        capacity: event.capacity?.toString() || '',
+        registrationRequired: event.registration_required ?? true,
+        registrationDeadline: event.registration_deadline ? event.registration_deadline.split('T')[0] : '',
+        organizer: event.organizer || '',
+        cost: event.cost?.toString() || '',
+        recurring: event.recurring || false,
+        recurringType: event.recurring_type || 'weekly'
+      });
+    } catch (error) {
+      console.error('Error fetching event:', error);
+    } finally {
+      setLoadingData(false);
+    }
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await updateEvent(eventId.toString(), formData);
+      onClose();
+    } catch (error) {
+      console.error('Error updating event:', error);
+      alert('Failed to update event');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const value = e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: value
+    }));
+  };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -40,100 +102,238 @@ export default function EditEventModal({ isOpen, onClose, eventId }: EditEventMo
             </button>
           </div>
           
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {loadingData ? (
+            <div className="text-center py-8">Loading event data...</div>
+          ) : (
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Event Title *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Event Title *</label>
               <input
                 type="text"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                name="title"
                 required
+                value={formData.title}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+              <textarea
+                name="description"
+                required
+                rows={4}
+                maxLength={500}
+                value={formData.description}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">{formData.description.length}/500 characters</p>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
                 <input
                   type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  name="startDate"
                   required
+                  value={formData.startDate}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option>Worship</option>
-                  <option>Youth</option>
-                  <option>Community</option>
-                  <option>Outreach</option>
-                  <option>Prayer</option>
-                </select>
+                <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={formData.endDate}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Start Time *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Start Time *</label>
                 <input
                   type="time"
-                  value={formData.startTime}
-                  onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  name="start_time"
                   required
+                  value={formData.start_time}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">End Time *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
                 <input
                   type="time"
-                  value={formData.endTime}
-                  onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  required
+                  name="end_time"
+                  value={formData.end_time}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Location *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
               <input
                 type="text"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                name="location"
                 required
+                value={formData.location}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-              <textarea
-                rows={3}
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              ></textarea>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select
+                  name="type"
+                  value={formData.type}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="general">General</option>
+                  <option value="worship">Worship</option>
+                  <option value="fellowship">Fellowship</option>
+                  <option value="outreach">Outreach</option>
+                  <option value="education">Education</option>
+                  <option value="youth">Youth</option>
+                  <option value="children">Children</option>
+                  <option value="seniors">Seniors</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Organizer</label>
+                <input
+                  type="text"
+                  name="organizer"
+                  value={formData.organizer}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
             
-            <div className="flex justify-end space-x-3 pt-4 border-t">
-              <button type="button" onClick={onClose} className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Cost (optional)</label>
+              <input
+                type="number"
+                name="cost"
+                value={formData.cost}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="0"
+                min="0"
+                step="0.01"
+              />
+            </div>
+            
+            <div className="border-t pt-6">
+              <h4 className="text-lg font-medium text-gray-900 mb-4">Registration Settings</h4>
+              
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <input
+                    id="registration-required"
+                    name="registrationRequired"
+                    type="checkbox"
+                    checked={formData.registrationRequired}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="registration-required" className="ml-2 text-sm text-gray-700">
+                    Registration required for this event
+                  </label>
+                </div>
+
+                {formData.registrationRequired && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Maximum Attendees</label>
+                      <input
+                        type="number"
+                        name="capacity"
+                        value={formData.capacity}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Unlimited"
+                        min="1"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Registration Deadline</label>
+                      <input
+                        type="date"
+                        name="registrationDeadline"
+                        value={formData.registrationDeadline}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="border-t pt-6">
+              <h4 className="text-lg font-medium text-gray-900 mb-4">Recurring Event</h4>
+              
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <input
+                    id="recurring"
+                    name="recurring"
+                    type="checkbox"
+                    checked={formData.recurring}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="recurring" className="ml-2 text-sm text-gray-700">
+                    This is a recurring event
+                  </label>
+                </div>
+
+                {formData.recurring && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Recurring Type</label>
+                    <select
+                      name="recurringType"
+                      value={formData.recurringType}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="yearly">Yearly</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 pt-6 border-t">
+              <button type="button" onClick={onClose} className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer whitespace-nowrap">
                 Cancel
               </button>
-              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
-                Save Changes
+              <button type="submit" disabled={loading} className="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 cursor-pointer whitespace-nowrap disabled:opacity-50">
+                {loading ? 'Updating...' : 'Save Changes'}
               </button>
             </div>
           </form>
+          )}
         </div>
       </div>
     </div>

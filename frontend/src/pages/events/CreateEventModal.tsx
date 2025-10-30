@@ -21,7 +21,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
     startTime: '',
     endTime: '',
     location: '',
-    category: 'general',
+    type: 'general',
     maxAttendees: '',
     registrationRequired: true,
     registrationDeadline: '',
@@ -46,7 +46,7 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
       startTime: '',
       endTime: '',
       location: '',
-      category: 'general',
+      type: 'general',
       maxAttendees: '',
       registrationRequired: true,
       registrationDeadline: '',
@@ -197,11 +197,11 @@ export default function CreateEventModal({ isOpen, onClose, onSuccess }: CreateE
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
+                  Type
                 </label>
                 <select
-                  name="category"
-                  value={formData.category}
+                  name="type"
+                  value={formData.type}
                   onChange={handleChange}
                   className="w-full pr-8 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >

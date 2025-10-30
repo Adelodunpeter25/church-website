@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { api } from '@/services/api';
 
 interface ManageAttendeesModalProps {
   isOpen: boolean;
@@ -6,14 +7,52 @@ interface ManageAttendeesModalProps {
   eventId: number;
 }
 
-const attendees = [
-  { id: 1, name: 'John Smith', email: 'john@email.com', status: 'Confirmed' },
-  { id: 2, name: 'Sarah Johnson', email: 'sarah@email.com', status: 'Confirmed' },
-  { id: 3, name: 'Michael Brown', email: 'michael@email.com', status: 'Pending' },
-];
+interface Attendee {
+  id: number;
+  member_id: number;
+  name: string;
+  email: string;
+  phone?: string;
+  attended: boolean;
+  registered_at: string;
+}
 
 export default function ManageAttendeesModal({ isOpen, onClose, eventId }: ManageAttendeesModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && eventId) {
+      fetchAttendees();
+    }
+  }, [isOpen, eventId]);
+
+  const fetchAttendees = async () => {
+    try {
+      setLoading(true);
+      const data = await api.get(`/events/${eventId}/attendees`);
+      setAttendees(data);
+    } catch (error) {
+      console.error('Failed to fetch attendees:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemove = async (memberId: number) => {
+    try {
+      await api.delete(`/events/${eventId}/register/${memberId}`);
+      setAttendees(attendees.filter(a => a.member_id !== memberId));
+    } catch (error) {
+      console.error('Failed to remove attendee:', error);
+    }
+  };
+
+  const filteredAttendees = attendees.filter(a => 
+    a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    a.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (!isOpen) return null;
 
@@ -33,48 +72,58 @@ export default function ManageAttendeesModal({ isOpen, onClose, eventId }: Manag
           </div>
           
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <input
-                type="text"
-                placeholder="Search attendees..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              />
-              <button className="ml-3 px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
-                <i className="ri-add-line mr-2"></i>Add Attendee
-              </button>
-            </div>
+            <input
+              type="text"
+              placeholder="Search attendees..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            />
             
             <div className="border rounded-lg overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {attendees.map((attendee) => (
-                    <tr key={attendee.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{attendee.name}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{attendee.email}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          attendee.status === 'Confirmed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {attendee.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button className="text-red-600 hover:text-red-800 text-sm font-medium">Remove</button>
-                      </td>
+              {loading ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              ) : filteredAttendees.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  {searchTerm ? 'No attendees match your search' : 'No attendees registered yet'}
+                </div>
+              ) : (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredAttendees.map((attendee) => (
+                      <tr key={attendee.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900">{attendee.name}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600">{attendee.email}</td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            attendee.attended ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {attendee.attended ? 'Attended' : 'Registered'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button 
+                            onClick={() => handleRemove(attendee.member_id)}
+                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
             
             <div className="flex justify-end pt-4 border-t">
