@@ -1,8 +1,10 @@
 
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSettings } from '@/hooks/useSettings';
 
 export default function NotificationSettings() {
+  const { getSettings, updateBulkSettings, getRecentNotifications } = useSettings();
   const [settings, setSettings] = useState({
     emailEnabled: true,
     smsEnabled: false,
@@ -33,7 +35,32 @@ export default function NotificationSettings() {
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [recentNotifications, setRecentNotifications] = useState<any[]>([]);
   const [activeSection, setActiveSection] = useState('general');
+
+  useEffect(() => {
+    loadSettings();
+    loadRecentNotifications();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const data = await getSettings('notifications');
+      setSettings(prev => ({ ...prev, ...data }));
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
+
+  const loadRecentNotifications = async () => {
+    try {
+      const data = await getRecentNotifications();
+      setRecentNotifications(data);
+    } catch (error) {
+      console.error('Error loading recent notifications:', error);
+    }
+  };
 
   const handleToggle = (category: string, setting: string, subSetting?: string) => {
     if (subSetting) {
@@ -55,9 +82,15 @@ export default function NotificationSettings() {
     }
   };
 
-  const handleSave = () => {
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await updateBulkSettings(settings, 'notifications');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleTestNotification = () => {
@@ -341,12 +374,7 @@ export default function NotificationSettings() {
         <div className="border-t border-gray-200 pt-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Notifications</h3>
           <div className="space-y-3">
-            {[
-              { type: 'New Member', message: 'Sarah Johnson joined the church', time: '2 hours ago', status: 'sent' },
-              { type: 'Event Reminder', message: 'Youth Retreat reminder sent to 45 members', time: '4 hours ago', status: 'sent' },
-              { type: 'Sermon Upload', message: 'New sermon "Walking in Faith" uploaded', time: '1 day ago', status: 'failed' },
-              { type: 'System Alert', message: 'Weekly backup completed successfully', time: '2 days ago', status: 'sent' }
-            ].map((notification, index) => (
+            {recentNotifications.map((notification, index) => (
               <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div>
                   <p className="font-medium text-gray-900">{notification.type}</p>
@@ -371,10 +399,11 @@ export default function NotificationSettings() {
         <div className="border-t border-gray-200 pt-6">
           <button
             onClick={handleSave}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 cursor-pointer whitespace-nowrap"
+            disabled={loading}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <i className="ri-save-line mr-2"></i>
-            Save Notification Settings
+            {loading ? 'Saving...' : 'Save Notification Settings'}
           </button>
         </div>
       </div>

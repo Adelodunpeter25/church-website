@@ -1,8 +1,10 @@
 
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSettings } from '@/hooks/useSettings';
 
 export default function SecuritySettings() {
+  const { getSettings, updateBulkSettings, getSecurityLogs, getSecurityStats } = useSettings();
   const [settings, setSettings] = useState({
     twoFactorRequired: false,
     passwordExpiry: '90',
@@ -19,7 +21,44 @@ export default function SecuritySettings() {
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
-  const [securityLogs] = useState([
+  const [loading, setLoading] = useState(false);
+  const [securityLogs, setSecurityLogs] = useState<any[]>([]);
+  const [securityStats, setSecurityStats] = useState<any>({});
+
+  useEffect(() => {
+    loadSettings();
+    loadSecurityLogs();
+    loadSecurityStats();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const data = await getSettings('security');
+      setSettings(prev => ({ ...prev, ...data }));
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
+
+  const loadSecurityLogs = async () => {
+    try {
+      const data = await getSecurityLogs(10);
+      setSecurityLogs(data);
+    } catch (error) {
+      console.error('Error loading security logs:', error);
+    }
+  };
+
+  const loadSecurityStats = async () => {
+    try {
+      const data = await getSecurityStats();
+      setSecurityStats(data);
+    } catch (error) {
+      console.error('Error loading security stats:', error);
+    }
+  };
+
+  const [oldSecurityLogs] = useState([
     {
       id: 1,
       event: 'Failed Login Attempt',
@@ -65,9 +104,15 @@ export default function SecuritySettings() {
     setSettings(prev => ({ ...prev, [setting]: value }));
   };
 
-  const handleSave = () => {
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await updateBulkSettings(settings, 'security');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getSeverityColor = (severity: string) => {
@@ -104,7 +149,7 @@ export default function SecuritySettings() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-green-600">Security Score</p>
-                  <p className="text-2xl font-bold text-green-900">87%</p>
+                  <p className="text-2xl font-bold text-green-900">{securityStats.securityScore || 0}%</p>
                 </div>
               </div>
             </div>
@@ -116,7 +161,7 @@ export default function SecuritySettings() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-blue-600">Active Sessions</p>
-                  <p className="text-2xl font-bold text-blue-900">23</p>
+                  <p className="text-2xl font-bold text-blue-900">{securityStats.activeSessions || 0}</p>
                 </div>
               </div>
             </div>
@@ -128,7 +173,7 @@ export default function SecuritySettings() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-yellow-600">Security Alerts</p>
-                  <p className="text-2xl font-bold text-yellow-900">2</p>
+                  <p className="text-2xl font-bold text-yellow-900">{securityStats.securityAlerts || 0}</p>
                 </div>
               </div>
             </div>
@@ -140,7 +185,7 @@ export default function SecuritySettings() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-red-600">Blocked Attempts</p>
-                  <p className="text-2xl font-bold text-red-900">15</p>
+                  <p className="text-2xl font-bold text-red-900">{securityStats.blockedAttempts || 0}</p>
                 </div>
               </div>
             </div>
@@ -392,10 +437,11 @@ export default function SecuritySettings() {
         <div className="border-t border-gray-200 pt-6">
           <button
             onClick={handleSave}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 cursor-pointer whitespace-nowrap"
+            disabled={loading}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <i className="ri-save-line mr-2"></i>
-            Save Security Settings
+            {loading ? 'Saving...' : 'Save Security Settings'}
           </button>
         </div>
       </div>

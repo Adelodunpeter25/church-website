@@ -1,28 +1,51 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSettings } from '@/hooks/useSettings';
 
 export default function GeneralSettings() {
+  const { getSettings, updateBulkSettings } = useSettings();
   const [settings, setSettings] = useState({
-    churchName: 'Grace Community Church',
-    address: '123 Main Street, Springfield, IL 62701',
-    phone: '+1 (555) 123-4567',
-    email: 'info@gracechurch.org',
-    website: 'https://gracechurch.org',
-    timezone: 'America/Chicago',
-    dateFormat: 'MM/DD/YYYY',
-    timeFormat: '12h',
-    currency: 'USD',
-    language: 'English'
+    church_name: '',
+    address: '',
+    phone: '',
+    email: '',
+    website: ''
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const data = await getSettings('general');
+      setSettings({
+        church_name: data.church_name || '',
+        address: data.address || '',
+        phone: data.phone || '',
+        email: data.email || '',
+        website: data.website || ''
+      });
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
 
   const handleChange = (field: string, value: string) => {
     setSettings(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await updateBulkSettings(settings, 'general');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -49,8 +72,8 @@ export default function GeneralSettings() {
               </label>
               <input
                 type="text"
-                value={settings.churchName}
-                onChange={(e) => handleChange('churchName', e.target.value)}
+                value={settings.church_name}
+                onChange={(e) => handleChange('church_name', e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -105,81 +128,15 @@ export default function GeneralSettings() {
           </div>
         </div>
 
-        {/* Regional Settings */}
-        <div className="border-t border-gray-200 pt-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Regional Settings</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Timezone
-              </label>
-              <select
-                value={settings.timezone}
-                onChange={(e) => handleChange('timezone', e.target.value)}
-                className="w-full pr-8 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="America/Chicago">Central Time</option>
-                <option value="America/New_York">Eastern Time</option>
-                <option value="America/Denver">Mountain Time</option>
-                <option value="America/Los_Angeles">Pacific Time</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Date Format
-              </label>
-              <select
-                value={settings.dateFormat}
-                onChange={(e) => handleChange('dateFormat', e.target.value)}
-                className="w-full pr-8 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Time Format
-              </label>
-              <select
-                value={settings.timeFormat}
-                onChange={(e) => handleChange('timeFormat', e.target.value)}
-                className="w-full pr-8 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="12h">12 Hour</option>
-                <option value="24h">24 Hour</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Currency
-              </label>
-              <select
-                value={settings.currency}
-                onChange={(e) => handleChange('currency', e.target.value)}
-                className="w-full pr-8 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="USD">USD ($)</option>
-                <option value="CAD">CAD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
         {/* Save Button */}
         <div className="border-t border-gray-200 pt-6">
           <button
             onClick={handleSave}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 cursor-pointer whitespace-nowrap"
+            disabled={loading}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <i className="ri-save-line mr-2"></i>
-            Save General Settings
+            {loading ? 'Saving...' : 'Save General Settings'}
           </button>
         </div>
       </div>

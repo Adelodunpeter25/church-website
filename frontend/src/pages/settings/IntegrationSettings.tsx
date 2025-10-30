@@ -1,8 +1,10 @@
 
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSettings } from '@/hooks/useSettings';
 
 export default function IntegrationSettings() {
+  const { getSettings, updateBulkSettings, getIntegrationStats } = useSettings();
   const [integrations, setIntegrations] = useState({
     paypal: { enabled: false, clientId: '', clientSecret: '' },
     stripe: { enabled: true, publishableKey: 'pk_test_...', secretKey: 'sk_test_...' },
@@ -15,7 +17,32 @@ export default function IntegrationSettings() {
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [testResults, setTestResults] = useState({});
+  const [integrationStats, setIntegrationStats] = useState<any>({});
+
+  useEffect(() => {
+    loadSettings();
+    loadIntegrationStats();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const data = await getSettings('integrations');
+      setIntegrations(prev => ({ ...prev, ...data }));
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
+
+  const loadIntegrationStats = async () => {
+    try {
+      const data = await getIntegrationStats();
+      setIntegrationStats(data);
+    } catch (error) {
+      console.error('Error loading integration stats:', error);
+    }
+  };
 
   const integrationConfigs = {
     paypal: {
@@ -107,9 +134,15 @@ export default function IntegrationSettings() {
     }, 2000);
   };
 
-  const handleSave = () => {
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await updateBulkSettings(integrations, 'integrations');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getTestResultColor = (result: string) => {
@@ -156,7 +189,7 @@ export default function IntegrationSettings() {
                 <div className="ml-3">
                   <p className="text-sm font-medium text-green-600">Active</p>
                   <p className="text-2xl font-bold text-green-900">
-                    {Object.values(integrations).filter(i => i.enabled).length}
+                    {integrationStats.active || 0}
                   </p>
                 </div>
               </div>
@@ -170,7 +203,7 @@ export default function IntegrationSettings() {
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-600">Inactive</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {Object.values(integrations).filter(i => !i.enabled).length}
+                    {integrationStats.inactive || 0}
                   </p>
                 </div>
               </div>
@@ -184,7 +217,7 @@ export default function IntegrationSettings() {
                 <div className="ml-3">
                   <p className="text-sm font-medium text-blue-600">Total</p>
                   <p className="text-2xl font-bold text-blue-900">
-                    {Object.keys(integrations).length}
+                    {integrationStats.total || 0}
                   </p>
                 </div>
               </div>
@@ -197,7 +230,7 @@ export default function IntegrationSettings() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-orange-600">Errors</p>
-                  <p className="text-2xl font-bold text-orange-900">0</p>
+                  <p className="text-2xl font-bold text-orange-900">{integrationStats.errors || 0}</p>
                 </div>
               </div>
             </div>
@@ -371,10 +404,11 @@ export default function IntegrationSettings() {
         <div className="border-t border-gray-200 pt-6">
           <button
             onClick={handleSave}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 cursor-pointer whitespace-nowrap"
+            disabled={loading}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <i className="ri-save-line mr-2"></i>
-            Save Integration Settings
+            {loading ? 'Saving...' : 'Save Integration Settings'}
           </button>
         </div>
       </div>

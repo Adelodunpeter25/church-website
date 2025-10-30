@@ -1,8 +1,10 @@
 
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSettings } from '@/hooks/useSettings';
 
 export default function SystemSettings() {
+  const { getSettings, updateBulkSettings, getSystemStatus, getBackupHistory } = useSettings();
   const [settings, setSettings] = useState({
     maintenanceMode: false,
     autoBackup: true,
@@ -19,14 +21,42 @@ export default function SystemSettings() {
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
-  const [systemStatus] = useState({
-    uptime: '15 days, 6 hours',
-    cpuUsage: '24%',
-    memoryUsage: '68%',
-    diskSpace: '45%',
-    activeUsers: 127,
-    lastBackup: '2025-01-15 02:00 AM'
-  });
+  const [loading, setLoading] = useState(false);
+  const [systemStatus, setSystemStatus] = useState<any>({});
+  const [backups, setBackups] = useState<any[]>([]);
+
+  useEffect(() => {
+    loadSettings();
+    loadSystemStatus();
+    loadBackups();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const data = await getSettings('system');
+      setSettings(prev => ({ ...prev, ...data }));
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
+
+  const loadSystemStatus = async () => {
+    try {
+      const data = await getSystemStatus();
+      setSystemStatus(data);
+    } catch (error) {
+      console.error('Error loading system status:', error);
+    }
+  };
+
+  const loadBackups = async () => {
+    try {
+      const data = await getBackupHistory();
+      setBackups(data);
+    } catch (error) {
+      console.error('Error loading backups:', error);
+    }
+  };
 
   const handleToggle = (setting: string) => {
     setSettings(prev => ({
@@ -39,9 +69,15 @@ export default function SystemSettings() {
     setSettings(prev => ({ ...prev, [setting]: value }));
   };
 
-  const handleSave = () => {
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await updateBulkSettings(settings, 'system');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBackupNow = () => {
@@ -257,21 +293,21 @@ export default function SystemSettings() {
             <div>
               <h4 className="text-sm font-medium text-gray-700 mb-2">Recent Backups</h4>
               <div className="space-y-2">
-                {[
-                  { name: 'backup_2025_01_15_02_00.zip', size: '234 MB', date: '15 Jan 2025' },
-                  { name: 'backup_2025_01_14_02_00.zip', size: '231 MB', date: '14 Jan 2025' },
-                  { name: 'backup_2025_01_13_02_00.zip', size: '229 MB', date: '13 Jan 2025' }
-                ].map((backup, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{backup.name}</p>
-                      <p className="text-xs text-gray-500">{backup.size} • {backup.date}</p>
+                {backups.length > 0 ? (
+                  backups.map((backup, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{backup.name}</p>
+                        <p className="text-xs text-gray-500">{backup.size} • {backup.date}</p>
+                      </div>
+                      <button className="text-blue-600 hover:text-blue-800 cursor-pointer">
+                        <i className="ri-download-line"></i>
+                      </button>
                     </div>
-                    <button className="text-blue-600 hover:text-blue-800 cursor-pointer">
-                      <i className="ri-download-line"></i>
-                    </button>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">No backups available</p>
+                )}
               </div>
             </div>
           </div>
@@ -343,10 +379,11 @@ export default function SystemSettings() {
         <div className="border-t border-gray-200 pt-6">
           <button
             onClick={handleSave}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 cursor-pointer whitespace-nowrap"
+            disabled={loading}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <i className="ri-save-line mr-2"></i>
-            Save System Settings
+            {loading ? 'Saving...' : 'Save System Settings'}
           </button>
         </div>
       </div>
