@@ -43,6 +43,20 @@ export const updateProfile = async (req, res) => {
   }
 };
 
+export const deleteProfile = async (req, res) => {
+  try {
+    console.log('Deleting profile:', req.params.userId);
+    
+    await pool.query('DELETE FROM users WHERE id = $1', [req.params.userId]);
+    
+    console.log('Profile deleted:', req.params.userId);
+    res.json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Delete profile error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const changePassword = async (req, res) => {
   try {
     console.log('Changing password for user:', req.params.userId);

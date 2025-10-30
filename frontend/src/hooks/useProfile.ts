@@ -10,7 +10,7 @@ export const useProfile = () => {
   const changePassword = (userId: string, currentPassword: string, newPassword: string) =>
     api.post(`/profile/${userId}/change-password`, { current_password: currentPassword, new_password: newPassword });
 
-  const uploadProfilePhoto = (userId: string, photoUrl: string) =>
+  const uploadPhoto = (userId: string, photoUrl: string) =>
     api.post(`/profile/${userId}/photo`, { photo_url: photoUrl });
 
   const getNotificationPreferences = (userId: string) =>
@@ -19,5 +19,5 @@ export const useProfile = () => {
   const updateNotificationPreferences = (userId: string, preferences: any) =>
     api.put(`/profile/${userId}/notifications`, { preferences });
 
-  return { getProfile, updateProfile, changePassword, uploadProfilePhoto, getNotificationPreferences, updateNotificationPreferences };
+  return { getProfile, updateProfile, changePassword, uploadPhoto, getNotificationPreferences, updateNotificationPreferences };
 };

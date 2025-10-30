@@ -1,8 +1,12 @@
 
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useProfile } from '@/hooks/useProfile';
 
 export default function NotificationSettings() {
+  const { user } = useAuth();
+  const { getNotificationPreferences, updateNotificationPreferences } = useProfile();
   const [settings, setSettings] = useState({
     emailNotifications: {
       announcements: true,
@@ -27,8 +31,26 @@ export default function NotificationSettings() {
       end: '07:00'
     }
   });
-
+  const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    if (user?.id) {
+      getNotificationPreferences(user.id)
+        .then(data => {
+          if (Object.keys(data).length > 0) {
+            setSettings(data);
+          }
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error('Failed to fetch notification preferences:', err);
+          setLoading(false);
+        });
+    }
+  }, [user]);
+
+  if (!user) return null;
 
   const handleToggle = (category: string, setting: string) => {
     setSettings(prev => ({
@@ -38,10 +60,6 @@ export default function NotificationSettings() {
         [setting]: !prev[category as keyof typeof prev][setting as keyof typeof prev[typeof category]]
       }
     }));
-  };
-
-  const handleFrequencyChange = (frequency: string) => {
-    setSettings(prev => ({ ...prev, frequency }));
   };
 
   const handleQuietHoursToggle = () => {
@@ -64,10 +82,24 @@ export default function NotificationSettings() {
     }));
   };
 
-  const handleSave = () => {
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+  const handleSave = async () => {
+    if (!user) return;
+    try {
+      await updateNotificationPreferences(user.id, settings);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error) {
+      console.error('Failed to update notification preferences:', error);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <i className="ri-loader-4-line text-4xl text-blue-600 animate-spin"></i>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl">
@@ -140,33 +172,6 @@ export default function NotificationSettings() {
                     }`}
                   />
                 </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Notification Frequency */}
-        <div className="border-t border-gray-200 pt-8">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Notification Frequency</h3>
-          <div className="space-y-3">
-            {[
-              { value: 'immediate', label: 'Immediate', description: 'Get notifications as they happen' },
-              { value: 'daily', label: 'Daily Digest', description: 'Receive a summary once per day' },
-              { value: 'weekly', label: 'Weekly Summary', description: 'Get a weekly roundup of activities' }
-            ].map((option) => (
-              <div key={option.value} className="flex items-center">
-                <input
-                  id={option.value}
-                  name="frequency"
-                  type="radio"
-                  checked={settings.frequency === option.value}
-                  onChange={() => handleFrequencyChange(option.value)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 cursor-pointer"
-                />
-                <label htmlFor={option.value} className="ml-3 cursor-pointer">
-                  <span className="block text-sm font-medium text-gray-700">{option.label}</span>
-                  <span className="block text-sm text-gray-500">{option.description}</span>
-                </label>
               </div>
             ))}
           </div>

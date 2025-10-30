@@ -12,7 +12,7 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [notifications, setNotifications] = useState<any[]>([]);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     fetchNotifications();
@@ -143,9 +143,15 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                 <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
                   Settings
                 </Link>
-                <Link to="/landing" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">
+                <button
+                  onClick={() => {
+                    logout();
+                    navigate('/landing');
+                  }}
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                >
                   Sign out
-                </Link>
+                </button>
               </div>
             )}
           </div>

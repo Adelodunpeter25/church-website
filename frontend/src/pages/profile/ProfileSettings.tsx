@@ -1,35 +1,84 @@
-
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useProfile } from '@/hooks/useProfile';
 
 export default function ProfileSettings() {
+  const { user } = useAuth();
+  const { getProfile, updateProfile, uploadPhoto } = useProfile();
   const [formData, setFormData] = useState({
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@email.com',
-    phone: '+1 (555) 123-4567',
-    address: '123 Main Street',
-    city: 'Springfield',
-    state: 'IL',
-    zipCode: '62701',
-    bio: 'Active church member and volunteer coordinator.',
-    birthDate: '1985-06-15',
-    memberSince: '2018-03-10'
+    name: '',
+    email: '',
+    phone: '',
+    role: '',
+    created_at: ''
   });
-
+  const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    if (user?.id) {
+      getProfile(user.id)
+        .then(data => {
+          setFormData(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error('Failed to fetch profile:', err);
+          setLoading(false);
+        });
+    }
+  }, [user]);
+
+  if (!user) return null;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+  const handleSave = async () => {
+    if (!user) return;
+    try {
+      await updateProfile(user.id, formData);
+      setIsEditing(false);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+    }
   };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!user || !e.target.files?.[0]) return;
+    const file = e.target.files[0];
+    
+    // Create a temporary URL for preview
+    const photoUrl = URL.createObjectURL(file);
+    
+    try {
+      // In production, upload to cloud storage and get URL
+      // For now, using the blob URL
+      await uploadPhoto(user.id, photoUrl);
+      setFormData(prev => ({ ...prev, photo_url: photoUrl }));
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error) {
+      console.error('Failed to upload photo:', error);
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <i className="ri-loader-4-line text-4xl text-blue-600 animate-spin"></i>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl">
@@ -48,15 +97,21 @@ export default function ProfileSettings() {
         <div className="flex items-center space-x-6">
           <div className="flex-shrink-0">
             <div className="h-20 w-20 rounded-full bg-blue-500 flex items-center justify-center">
-              <span className="text-white text-2xl font-semibold">JD</span>
+              <span className="text-white text-2xl font-semibold">{getInitials(formData.name)}</span>
             </div>
           </div>
           <div>
             <h3 className="text-lg font-medium text-gray-900">Profile Photo</h3>
             <p className="text-sm text-gray-500">Update your profile picture</p>
-            <button className="mt-2 bg-white border border-gray-300 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer">
+            <label className="mt-2 inline-block bg-white border border-gray-300 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer">
               Change Photo
-            </button>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+            </label>
           </div>
         </div>
 
@@ -91,35 +146,18 @@ export default function ProfileSettings() {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                First Name
+                Full Name
               </label>
               {isEditing ? (
                 <input
                   type="text"
-                  name="firstName"
-                  value={formData.firstName}
+                  name="name"
+                  value={formData.name}
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               ) : (
-                <p className="text-sm text-gray-900 py-2">{formData.firstName}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Last Name
-              </label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              ) : (
-                <p className="text-sm text-gray-900 py-2">{formData.lastName}</p>
+                <p className="text-sm text-gray-900 py-2">{formData.name}</p>
               )}
             </div>
 
@@ -148,32 +186,20 @@ export default function ProfileSettings() {
                 <input
                   type="tel"
                   name="phone"
-                  value={formData.phone}
+                  value={formData.phone || ''}
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               ) : (
-                <p className="text-sm text-gray-900 py-2">{formData.phone}</p>
+                <p className="text-sm text-gray-900 py-2">{formData.phone || 'Not set'}</p>
               )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Birth Date
+                Role
               </label>
-              {isEditing ? (
-                <input
-                  type="date"
-                  name="birthDate"
-                  value={formData.birthDate}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              ) : (
-                <p className="text-sm text-gray-900 py-2">
-                  {new Date(formData.birthDate).toLocaleDateString()}
-                </p>
-              )}
+              <p className="text-sm text-gray-900 py-2 capitalize">{formData.role}</p>
             </div>
 
             <div>
@@ -181,97 +207,9 @@ export default function ProfileSettings() {
                 Member Since
               </label>
               <p className="text-sm text-gray-900 py-2">
-                {new Date(formData.memberSince).toLocaleDateString()}
+                {new Date(formData.created_at).toLocaleDateString()}
               </p>
             </div>
-          </div>
-
-          <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Address
-            </label>
-            {isEditing ? (
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            ) : (
-              <p className="text-sm text-gray-900 py-2">{formData.address}</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mt-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                City
-              </label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              ) : (
-                <p className="text-sm text-gray-900 py-2">{formData.city}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                State
-              </label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="state"
-                  value={formData.state}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              ) : (
-                <p className="text-sm text-gray-900 py-2">{formData.state}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Zip Code
-              </label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="zipCode"
-                  value={formData.zipCode}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              ) : (
-                <p className="text-sm text-gray-900 py-2">{formData.zipCode}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Bio
-            </label>
-            {isEditing ? (
-              <textarea
-                name="bio"
-                rows={3}
-                value={formData.bio}
-                onChange={handleInputChange}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                maxLength={500}
-              />
-            ) : (
-              <p className="text-sm text-gray-900 py-2">{formData.bio}</p>
-            )}
           </div>
         </div>
       </div>
