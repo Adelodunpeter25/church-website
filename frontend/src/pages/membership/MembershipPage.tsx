@@ -3,10 +3,12 @@ import Sidebar from '@/components/layout/Sidebar';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import MemberList from './MemberList';
 import AddMemberModal from './AddMemberModal';
+import ExportModal from './ExportModal';
 
 export default function MembershipPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
 
@@ -66,16 +68,12 @@ export default function MembershipPage() {
                       <option value="volunteer">Volunteer</option>
                     </select>
                     <button 
-                      onClick={() => {
-                        console.log('Exporting members data');
-                        alert('Export functionality would download CSV/Excel file');
-                      }}
-                      className="p-2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                      onClick={() => setShowExportModal(true)}
+                      className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer whitespace-nowrap"
                       title="Export"
                     >
-                      <div className="w-5 h-5 flex items-center justify-center">
-                        <i className="ri-download-line"></i>
-                      </div>
+                      <i className="ri-file-download-line sm:mr-2"></i>
+                      <span className="hidden sm:inline">Export</span>
                     </button>
                   </div>
                 </div>
@@ -91,6 +89,13 @@ export default function MembershipPage() {
         isOpen={showAddModal} 
         onClose={() => setShowAddModal(false)} 
         onSuccess={() => window.location.reload()} 
+      />
+
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        searchTerm={searchTerm}
+        filterRole={filterRole}
       />
     </div>
   );

@@ -30,68 +30,59 @@ export default function StreamStats({ isLive, stats: streamStats }: StreamStatsP
     {
       name: 'Peak Viewers Today',
       value: streamStats.peak_viewers.toString(),
-      change: streamStats.peak_viewers > 0 ? `${streamStats.peak_viewers} peak` : 'No data',
-      changeType: streamStats.peak_viewers > 0 ? 'increase' : 'offline',
+      change: '',
+      changeType: 'offline',
       icon: 'ri-bar-chart-line'
     },
     {
       name: 'Stream Duration',
       value: formatDuration(streamStats.duration),
-      change: isLive ? 'Broadcasting' : 'Offline',
+      change: '',
       changeType: isLive ? 'live' : 'offline',
       icon: 'ri-time-line'
     },
     {
       name: 'Chat Messages',
       value: streamStats.chat_messages.toString(),
-      change: streamStats.chat_messages > 0 ? `${streamStats.chat_messages} total` : 'No messages',
-      changeType: streamStats.chat_messages > 0 ? 'increase' : 'offline',
+      change: '',
+      changeType: 'offline',
       icon: 'ri-chat-3-line'
     }
   ];
 
+  const iconColors = [
+    { gradient: 'from-red-500 to-red-600' },
+    { gradient: 'from-blue-500 to-blue-600' },
+    { gradient: 'from-purple-500 to-purple-600' },
+    { gradient: 'from-green-500 to-green-600' }
+  ];
+
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-      {stats.map((item) => (
-        <div key={item.name} className="bg-white overflow-hidden shadow-sm rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className={`w-10 h-10 flex items-center justify-center rounded-lg ${
-                  isLive ? 'bg-red-100' : 'bg-blue-100'
-                }`}>
-                  <i className={`${item.icon} text-lg ${
-                    isLive ? 'text-red-600' : 'text-blue-600'
-                  }`}></i>
+      {stats.map((item, index) => (
+        <div key={item.name} className="relative bg-gradient-to-br from-white to-gray-50 overflow-hidden shadow-sm rounded-xl border border-gray-200 hover:shadow-md transition-all duration-200 group">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-gray-100/30 to-transparent rounded-full -mr-12 -mt-12"></div>
+          <div className="relative p-4">
+            <div className="flex items-start justify-between">
+              <div className={`w-11 h-11 flex items-center justify-center bg-gradient-to-br ${iconColors[index].gradient} rounded-xl shadow-md group-hover:scale-110 transition-transform duration-200`}>
+                <i className={`${item.icon} text-white text-lg`}></i>
+              </div>
+              {item.changeType === 'live' && (
+                <div className="flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mr-1.5 animate-pulse"></div>
+                  Live
                 </div>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    {item.name}
-                  </dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">
-                      {item.value}
-                    </div>
-                    <div className={`ml-2 flex items-baseline text-sm font-semibold ${
-                      item.changeType === 'increase'
-                        ? 'text-green-600'
-                        : item.changeType === 'live'
-                        ? 'text-red-600'
-                        : 'text-gray-500'
-                    }`}>
-                      {item.changeType === 'increase' && (
-                        <i className="ri-arrow-up-line text-xs mr-1"></i>
-                      )}
-                      {item.changeType === 'live' && (
-                        <div className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></div>
-                      )}
-                      {item.change}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
+              )}
+            </div>
+            <div className="mt-2.5">
+              <dt className="text-sm font-medium text-gray-600 truncate">
+                {item.name}
+              </dt>
+              <dd className="mt-1">
+                <div className="text-3xl font-bold text-gray-900">
+                  {item.value}
+                </div>
+              </dd>
             </div>
           </div>
         </div>

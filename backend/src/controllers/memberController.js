@@ -137,3 +137,66 @@ export const deleteMember = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const exportMembers = async (req, res) => {
+  try {
+    const { format, search, role } = req.query;
+    
+    let query = 'SELECT name, email, phone, address, membership_status, role, birthday, gender, marital_status, date_joined FROM members WHERE 1=1';
+    const params = [];
+    let paramCount = 1;
+
+    if (search) {
+      query += ` AND (name ILIKE $${paramCount} OR email ILIKE $${paramCount})`;
+      params.push(`%${search}%`);
+      paramCount++;
+    }
+
+    if (role) {
+      query += ` AND role = $${paramCount}`;
+      params.push(role);
+      paramCount++;
+    }
+
+    query += ' ORDER BY name ASC';
+    const result = await pool.query(query, params);
+
+    if (format === 'csv') {
+      const headers = ['Name', 'Email', 'Phone', 'Address', 'Status', 'Role', 'Birthday', 'Gender', 'Marital Status', 'Date Joined'];
+      const csv = [
+        headers.join(','),
+        ...result.rows.map(row => [
+          `"${row.name}"`,
+          `"${row.email}"`,
+          `"${row.phone}"`,
+          `"${row.address || ''}"`,
+          row.membership_status,
+          row.role,
+          row.birthday || '',
+          row.gender || '',
+          row.marital_status || '',
+          row.date_joined
+        ].join(','))
+      ].join('\n');
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=members-${new Date().toISOString().split('T')[0]}.csv`);
+      res.send(csv);
+    } else if (format === 'pdf') {
+      // Simple PDF generation
+      let pdfContent = `Members Report - ${new Date().toLocaleDateString()}\n\n`;
+      result.rows.forEach(row => {
+        pdfContent += `Name: ${row.name}\nEmail: ${row.email}\nPhone: ${row.phone}\nRole: ${row.role}\n\n`;
+      });
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=members-${new Date().toISOString().split('T')[0]}.pdf`);
+      res.send(pdfContent);
+    } else {
+      res.status(400).json({ error: 'Invalid format' });
+    }
+  } catch (error) {
+    console.error('Export members error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
