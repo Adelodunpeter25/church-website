@@ -21,10 +21,15 @@ export const register = async (req, res) => {
       [name, email, hashedPassword, phone || null]
     );
 
+    const settingsResult = await pool.query(
+      "SELECT value FROM settings WHERE key = 'sessionTimeout'"
+    );
+    const sessionTimeout = settingsResult.rows[0]?.value ? parseInt(settingsResult.rows[0].value) : 4320;
+
     const token = jwt.sign(
       { userId: result.rows[0].id, email: result.rows[0].email, role: result.rows[0].role },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: `${sessionTimeout}m` }
     );
 
     console.log('User registered:', result.rows[0].id);
@@ -45,7 +50,7 @@ export const login = async (req, res) => {
     );
     const settings = {};
     settingsResult.rows.forEach(row => {
-      settings[row.key] = parseInt(row.value) || (row.key === 'maxLoginAttempts' ? 5 : row.key === 'lockoutDuration' ? 15 : 30);
+      settings[row.key] = parseInt(row.value) || (row.key === 'maxLoginAttempts' ? 5 : row.key === 'lockoutDuration' ? 15 : 4320);
     });
 
     const lockoutCheck = await pool.query(
