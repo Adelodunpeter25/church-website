@@ -1,10 +1,11 @@
 export interface Playlist {
-  id: string;
+  id: number;
   name: string;
   description?: string;
-  memberId: string;
-  sermons: string[];
-  plays: number;
-  isPublic: boolean;
-  createdAt: string;
+  member_id: number;
+  sermon_count?: number;
+  plays?: number;
+  is_public?: boolean;
+  created_at: string;
+  updated_at: string;
 }

@@ -6,8 +6,10 @@ import Sidebar from '@/components/layout/Sidebar';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import PlaylistGrid from './PlaylistGrid';
 import CreatePlaylistModal from './CreatePlaylistModal';
+import { usePlaylists } from '@/hooks/usePlaylists';
 
 export default function PlaylistsPage() {
+  const { fetchPlaylists } = usePlaylists();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -57,13 +59,17 @@ export default function PlaylistsPage() {
             </div>
 
             <div className="mt-8">
-              <PlaylistGrid viewMode={viewMode} />
+              <PlaylistGrid viewMode={viewMode} onRefresh={fetchPlaylists} onCreateClick={() => setShowCreateModal(true)} />
             </div>
           </div>
         </main>
       </div>
 
-      <CreatePlaylistModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
+      <CreatePlaylistModal 
+        isOpen={showCreateModal} 
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={fetchPlaylists}
+      />
     </div>
   );
 }

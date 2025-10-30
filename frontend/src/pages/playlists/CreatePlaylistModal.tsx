@@ -1,14 +1,19 @@
 
 
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { usePlaylists } from '@/hooks/usePlaylists';
+import { useSermons } from '@/hooks/useSermons';
 
 interface CreatePlaylistModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export default function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProps) {
+export default function CreatePlaylistModal({ isOpen, onClose, onSuccess }: CreatePlaylistModalProps) {
+  const { createPlaylist, loading: playlistLoading } = usePlaylists();
+  const { sermons, fetchSermons } = useSermons();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -16,17 +21,19 @@ export default function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistM
     selectedSermons: [] as number[]
   });
 
-  const availableSermons = [
-    { id: 1, title: 'Walking in Faith - Part 3', speaker: 'Pastor John Smith', duration: '45:30' },
-    { id: 2, title: 'The Power of Prayer', speaker: 'Pastor David Wilson', duration: '38:15' },
-    { id: 3, title: 'Love in Action - Serving Others', speaker: 'Pastor Sarah Johnson', duration: '42:20' },
-    { id: 4, title: 'Finding Hope in Dark Times', speaker: 'Pastor Michael Brown', duration: '51:45' },
-    { id: 5, title: 'Walking in Faith - Part 2', speaker: 'Pastor John Smith', duration: '47:10' }
-  ];
+  useEffect(() => {
+    if (isOpen) {
+      fetchSermons();
+    }
+  }, [isOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Creating playlist:', formData);
+    await createPlaylist({
+      name: formData.name,
+      description: formData.description,
+      member_id: 1
+    });
     onClose();
     setFormData({
       name: '',
@@ -34,6 +41,7 @@ export default function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistM
       isPublic: false,
       selectedSermons: []
     });
+    onSuccess?.();
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -57,7 +65,7 @@ export default function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistM
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div className="flex items-center justify-center min-h-screen px-4 py-6 text-center">
         <div className="fixed inset-0 transition-opacity" onClick={onClose}>
           <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
         </div>
@@ -127,26 +135,30 @@ export default function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistM
                 Select Sermons
               </label>
               <div className="max-h-64 overflow-y-auto border border-gray-300 rounded-md">
-                {availableSermons.map((sermon) => (
-                  <div
-                    key={sermon.id}
-                    className={`flex items-center p-3 hover:bg-gray-50 cursor-pointer ${
-                      formData.selectedSermons.includes(sermon.id) ? 'bg-blue-50' : ''
-                    }`}
-                    onClick={() => toggleSermon(sermon.id)}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={formData.selectedSermons.includes(sermon.id)}
-                      onChange={() => toggleSermon(sermon.id)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <div className="ml-3 flex-1">
-                      <div className="text-sm font-medium text-gray-900">{sermon.title}</div>
-                      <div className="text-sm text-gray-500">{sermon.speaker} • {sermon.duration}</div>
+                {sermons && sermons.length > 0 ? (
+                  sermons.map((sermon) => (
+                    <div
+                      key={sermon.id}
+                      className={`flex items-center p-3 hover:bg-gray-50 cursor-pointer ${
+                        formData.selectedSermons.includes(sermon.id) ? 'bg-blue-50' : ''
+                      }`}
+                      onClick={() => toggleSermon(sermon.id)}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.selectedSermons.includes(sermon.id)}
+                        onChange={() => toggleSermon(sermon.id)}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <div className="ml-3 flex-1">
+                        <div className="text-sm font-medium text-gray-900">{sermon.title}</div>
+                        <div className="text-sm text-gray-500">{sermon.speaker} • {sermon.duration || 'N/A'}</div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-gray-500 text-sm">No sermons available</div>
+                )}
               </div>
               <p className="text-xs text-gray-500 mt-2">
                 {formData.selectedSermons.length} sermons selected
@@ -163,9 +175,10 @@ export default function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistM
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 cursor-pointer whitespace-nowrap"
+                disabled={playlistLoading}
+                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create Playlist
+                {playlistLoading ? 'Creating...' : 'Create Playlist'}
               </button>
             </div>
           </form>
