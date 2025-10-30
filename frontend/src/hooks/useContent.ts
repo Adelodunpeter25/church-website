@@ -19,7 +19,7 @@ export const useContent = () => {
   const updateServiceTime = (id: string, data: any) =>
     api.put(`/content/service-times/${id}`, data);
 
-  const deleteServiceTime = (id: string) =>
+  const deleteServiceTime = (id: number) =>
     api.delete(`/content/service-times/${id}`);
 
   return { getContent, getContentByKey, updateContent, getServiceTimes, createServiceTime, updateServiceTime, deleteServiceTime };
