@@ -1,8 +1,9 @@
 import express from 'express';
-import { getUsers, getUser, createUser, updateUser, deleteUser, resetPassword } from '../controllers/userController.js';
+import { getUsers, getUser, createUser, updateUser, deleteUser, resetPassword, getUserStats } from '../controllers/userController.js';
 
 const router = express.Router();
 
+router.get('/stats', getUserStats);
 router.get('/', getUsers);
 router.get('/:id', getUser);
 router.post('/', createUser);

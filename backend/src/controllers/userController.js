@@ -1,6 +1,35 @@
 import pool from '../config/database.js';
 import bcrypt from 'bcryptjs';
 
+export const getUserStats = async (req, res) => {
+  try {
+    console.log('Fetching user statistics...');
+    
+    const statsQuery = `
+      SELECT 
+        COUNT(*) as total_users,
+        COUNT(*) FILTER (WHERE status = 'active') as active_users,
+        COUNT(*) FILTER (WHERE role IN ('admin', 'pastor', 'minister', 'staff')) as staff_members,
+        COUNT(*) FILTER (WHERE role = 'member') as volunteers
+      FROM users
+    `;
+    
+    const result = await pool.query(statsQuery);
+    const stats = result.rows[0];
+    
+    res.json({
+      totalUsers: parseInt(stats.total_users),
+      activeUsers: parseInt(stats.active_users),
+      staffMembers: parseInt(stats.staff_members),
+      volunteers: parseInt(stats.volunteers)
+    });
+  } catch (error) {
+    console.error('Get user stats error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 export const getUsers = async (req, res) => {
   try {
     console.log('Fetching users...');
