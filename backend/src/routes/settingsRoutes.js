@@ -1,15 +1,15 @@
 import express from 'express';
-import { getSettings, getSettingByKey, updateSetting, updateBulkSettings, getSystemStatus, getSecurityLogs, getSecurityStats, getRecentNotifications, getIntegrationStats, getBackupHistory } from '../controllers/settingsController.js';
+import { getSettings, getSettingByKey, updateSetting, updateBulkSettings, getSystemStatus, getSecurityStats, getRecentNotifications, getIntegrationStats, testIntegration, testEmail } from '../controllers/settingsController.js';
 
 const router = express.Router();
 
 router.get('/', getSettings);
 router.get('/system/status', getSystemStatus);
-router.get('/system/backups', getBackupHistory);
-router.get('/security/logs', getSecurityLogs);
 router.get('/security/stats', getSecurityStats);
 router.get('/notifications/recent', getRecentNotifications);
+router.post('/notifications/test-email', testEmail);
 router.get('/integrations/stats', getIntegrationStats);
+router.post('/integrations/:integration/test', testIntegration);
 router.get('/:key', getSettingByKey);
 router.put('/:key', updateSetting);
 router.post('/bulk', updateBulkSettings);

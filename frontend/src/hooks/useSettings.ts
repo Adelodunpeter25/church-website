@@ -21,20 +21,20 @@ export const useSettings = () => {
   const getSystemStatus = () =>
     api.get('/settings/system/status');
 
-  const getSecurityLogs = (limit?: number) =>
-    api.get(`/settings/security/logs${limit ? `?limit=${limit}` : ''}`);
-
   const getSecurityStats = () =>
     api.get('/settings/security/stats');
 
   const getRecentNotifications = () =>
     api.get('/settings/notifications/recent');
 
+  const testEmail = (recipient?: string) =>
+    api.post('/settings/notifications/test-email', { recipient });
+
   const getIntegrationStats = () =>
     api.get('/settings/integrations/stats');
 
-  const getBackupHistory = () =>
-    api.get('/settings/system/backups');
+  const testIntegration = (integration: string) =>
+    api.post(`/settings/integrations/${integration}/test`, {});
 
-  return { getSettings, getSettingByKey, updateSetting, updateBulkSettings, getSystemStatus, getSecurityLogs, getSecurityStats, getRecentNotifications, getIntegrationStats, getBackupHistory };
+  return { getSettings, getSettingByKey, updateSetting, updateBulkSettings, getSystemStatus, getSecurityStats, getRecentNotifications, testEmail, getIntegrationStats, testIntegration };
 };

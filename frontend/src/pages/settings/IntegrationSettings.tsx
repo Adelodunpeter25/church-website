@@ -4,15 +4,15 @@ import { useState, useEffect } from 'react';
 import { useSettings } from '@/hooks/useSettings';
 
 export default function IntegrationSettings() {
-  const { getSettings, updateBulkSettings, getIntegrationStats } = useSettings();
+  const { getSettings, updateBulkSettings, getIntegrationStats, testIntegration } = useSettings();
   const [integrations, setIntegrations] = useState({
     paypal: { enabled: false, clientId: '', clientSecret: '' },
-    stripe: { enabled: true, publishableKey: 'pk_test_...', secretKey: 'sk_test_...' },
+    stripe: { enabled: false, publishableKey: '', secretKey: '' },
     mailchimp: { enabled: false, apiKey: '', listId: '' },
-    zoom: { enabled: true, apiKey: 'your_zoom_api_key', secretKey: 'your_zoom_secret' },
+    zoom: { enabled: false, apiKey: '', secretKey: '' },
     youtube: { enabled: false, apiKey: '', channelId: '' },
     facebook: { enabled: false, appId: '', appSecret: '' },
-    google: { enabled: true, clientId: 'your_google_client_id', clientSecret: 'your_google_secret' },
+    google: { enabled: false, clientId: '', clientSecret: '' },
     slack: { enabled: false, webhookUrl: '', channel: '#general' }
   });
 
@@ -123,15 +123,18 @@ export default function IntegrationSettings() {
     }));
   };
 
-  const handleTest = (integration: string) => {
+  const handleTest = async (integration: string) => {
     setTestResults(prev => ({ ...prev, [integration]: 'testing' }));
     
-    setTimeout(() => {
+    try {
+      const result = await testIntegration(integration);
       setTestResults(prev => ({ 
         ...prev, 
-        [integration]: Math.random() > 0.3 ? 'success' : 'error' 
+        [integration]: result.success ? 'success' : 'error' 
       }));
-    }, 2000);
+    } catch (error) {
+      setTestResults(prev => ({ ...prev, [integration]: 'error' }));
+    }
   };
 
   const handleSave = async () => {
@@ -367,38 +370,7 @@ export default function IntegrationSettings() {
           </div>
         </div>
 
-        {/* API Keys */}
-        <div className="border-t border-gray-200 pt-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">API Keys</h3>
-          <div className="space-y-4">
-            {[
-              { name: 'Production API Key', value: 'pk_live_...', status: 'Active' },
-              { name: 'Test API Key', value: 'pk_test_...', status: 'Active' },
-              { name: 'Webhook Secret', value: 'whsec_...', status: 'Active' }
-            ].map((apiKey, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900">{apiKey.name}</p>
-                  <p className="text-sm text-gray-600 font-mono">{apiKey.value}</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                    {apiKey.status}
-                  </span>
-                  <button className="text-gray-600 hover:text-gray-800 cursor-pointer">
-                    <i className="ri-eye-line"></i>
-                  </button>
-                  <button className="text-blue-600 hover:text-blue-800 cursor-pointer">
-                    <i className="ri-file-copy-line"></i>
-                  </button>
-                  <button className="text-red-600 hover:text-red-800 cursor-pointer">
-                    <i className="ri-refresh-line"></i>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+
 
         {/* Save Button */}
         <div className="border-t border-gray-200 pt-6">

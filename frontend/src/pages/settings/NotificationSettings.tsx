@@ -4,34 +4,15 @@ import { useState, useEffect } from 'react';
 import { useSettings } from '@/hooks/useSettings';
 
 export default function NotificationSettings() {
-  const { getSettings, updateBulkSettings, getRecentNotifications } = useSettings();
+  const { getSettings, updateBulkSettings, getRecentNotifications, testEmail } = useSettings();
   const [settings, setSettings] = useState({
     emailEnabled: true,
     smsEnabled: false,
     pushEnabled: true,
     slackEnabled: false,
     webhooksEnabled: false,
-    emailTemplates: {
-      welcome: true,
-      eventReminder: true,
-      sermonUpload: false,
-      membershipUpdate: true,
-      systemAlert: true
-    },
-    notificationTypes: {
-      newMember: { email: true, sms: false, push: true },
-      eventRegistration: { email: true, sms: false, push: false },
-      sermonUpload: { email: false, sms: false, push: true },
-      systemAlert: { email: true, sms: true, push: true },
-      formSubmission: { email: true, sms: false, push: false }
-    },
-    smtpSettings: {
-      host: 'smtp.gmail.com',
-      port: '587',
-      username: 'notifications@gracechurch.org',
-      password: '••••••••',
-      encryption: 'tls'
-    }
+    resend_api_key: '',
+    resend_from_email: ''
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
@@ -47,7 +28,15 @@ export default function NotificationSettings() {
   const loadSettings = async () => {
     try {
       const data = await getSettings('notifications');
-      setSettings(prev => ({ ...prev, ...data }));
+      setSettings({
+        emailEnabled: data.emailEnabled ?? true,
+        smsEnabled: data.smsEnabled ?? false,
+        pushEnabled: data.pushEnabled ?? true,
+        slackEnabled: data.slackEnabled ?? false,
+        webhooksEnabled: data.webhooksEnabled ?? false,
+        resend_api_key: data.resend_api_key || '',
+        resend_from_email: data.resend_from_email || ''
+      });
     } catch (error) {
       console.error('Error loading settings:', error);
     }
@@ -93,9 +82,14 @@ export default function NotificationSettings() {
     }
   };
 
-  const handleTestNotification = () => {
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+  const handleTestNotification = async () => {
+    try {
+      await testEmail(settings.resend_from_email);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error) {
+      console.error('Test email error:', error);
+    }
   };
 
   return (
@@ -198,167 +192,39 @@ export default function NotificationSettings() {
           </div>
         </div>
 
-        {/* Notification Types */}
-        <div className="border-t border-gray-200 pt-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Notification Types</h3>
-          <div className="space-y-4">
-            {Object.entries(settings.notificationTypes).map(([type, channels]) => (
-              <div key={type} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-gray-900 capitalize">
-                    {type.replace(/([A-Z])/g, ' $1').trim()}
-                  </h4>
-                  <button className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer whitespace-nowrap">
-                    Test Notification
-                  </button>
-                </div>
-                <div className="flex space-x-8">
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={channels.email}
-                      onChange={() => handleToggle('notificationTypes', type, 'email')}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Email</span>
-                  </label>
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={channels.sms}
-                      onChange={() => handleToggle('notificationTypes', type, 'sms')}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">SMS</span>
-                  </label>
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={channels.push}
-                      onChange={() => handleToggle('notificationTypes', type, 'push')}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Push</span>
-                  </label>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Email Templates */}
-        <div className="border-t border-gray-200 pt-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Email Templates</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.entries(settings.emailTemplates).map(([template, enabled]) => (
-              <div key={template} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                <div>
-                  <h4 className="font-medium text-gray-900 capitalize">
-                    {template.replace(/([A-Z])/g, ' $1').trim()}
-                  </h4>
-                  <p className="text-sm text-gray-500">
-                    {template === 'welcome' && 'Sent to new members upon registration'}
-                    {template === 'eventReminder' && 'Reminder sent before events'}
-                    {template === 'sermonUpload' && 'Notify when new sermons are uploaded'}
-                    {template === 'membershipUpdate' && 'Updates about membership status'}
-                    {template === 'systemAlert' && 'Critical system notifications'}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => handleToggle('emailTemplates', template)}
-                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                      enabled ? 'bg-green-600' : 'bg-gray-200'
-                    }`}
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                        enabled ? 'translate-x-5' : 'translate-x-0'
-                      }`}
-                    />
-                  </button>
-                  <button className="text-blue-600 hover:text-blue-800 cursor-pointer">
-                    <i className="ri-edit-line"></i>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {/* SMTP Configuration */}
+
+
+        {/* Resend Configuration */}
         <div className="border-t border-gray-200 pt-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">SMTP Configuration</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Email Configuration (Resend)</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Host</label>
-              <input
-                type="text"
-                value={settings.smtpSettings.host}
-                onChange={(e) => setSettings(prev => ({
-                  ...prev,
-                  smtpSettings: { ...prev.smtpSettings, host: e.target.value }
-                }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Port</label>
-              <input
-                type="text"
-                value={settings.smtpSettings.port}
-                onChange={(e) => setSettings(prev => ({
-                  ...prev,
-                  smtpSettings: { ...prev.smtpSettings, port: e.target.value }
-                }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
-              <input
-                type="text"
-                value={settings.smtpSettings.username}
-                onChange={(e) => setSettings(prev => ({
-                  ...prev,
-                  smtpSettings: { ...prev.smtpSettings, username: e.target.value }
-                }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Resend API Key</label>
               <input
                 type="password"
-                value={settings.smtpSettings.password}
-                onChange={(e) => setSettings(prev => ({
-                  ...prev,
-                  smtpSettings: { ...prev.smtpSettings, password: e.target.value }
-                }))}
+                value={settings.resend_api_key}
+                onChange={(e) => setSettings(prev => ({ ...prev, resend_api_key: e.target.value }))}
+                placeholder="re_xxxxxxxxxxxx"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              <p className="text-xs text-gray-500 mt-1">Get your API key from <a href="https://resend.com/api-keys" target="_blank" className="text-blue-600 hover:underline">resend.com</a></p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Encryption</label>
-              <select
-                value={settings.smtpSettings.encryption}
-                onChange={(e) => setSettings(prev => ({
-                  ...prev,
-                  smtpSettings: { ...prev.smtpSettings, encryption: e.target.value }
-                }))}
-                className="w-full pr-8 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="none">None</option>
-                <option value="tls">TLS</option>
-                <option value="ssl">SSL</option>
-              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-2">From Email</label>
+              <input
+                type="email"
+                value={settings.resend_from_email}
+                onChange={(e) => setSettings(prev => ({ ...prev, resend_from_email: e.target.value }))}
+                placeholder="noreply@yourdomain.com"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">Must be a verified domain in Resend</p>
             </div>
 
-            <div className="flex items-center pt-6">
+            <div className="md:col-span-2">
               <button
                 onClick={handleTestNotification}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 cursor-pointer whitespace-nowrap"
@@ -381,7 +247,7 @@ export default function NotificationSettings() {
                   <p className="text-sm text-gray-600">{notification.message}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-500">{notification.time}</p>
+                  <p className="text-sm text-gray-500">{Math.round(parseFloat(notification.time))} {notification.time.includes('minutes') ? 'min' : notification.time.includes('hours') ? 'hrs' : 'days'} ago</p>
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                     notification.status === 'sent' 
                       ? 'bg-green-100 text-green-800' 

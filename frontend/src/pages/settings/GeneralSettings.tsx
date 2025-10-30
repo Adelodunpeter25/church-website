@@ -23,9 +23,9 @@ export default function GeneralSettings() {
       const data = await getSettings('general');
       setSettings({
         church_name: data.church_name || '',
-        address: data.address || '',
-        phone: data.phone || '',
-        email: data.email || '',
+        address: data.church_address || '',
+        phone: data.church_phone || '',
+        email: data.church_email || '',
         website: data.website || ''
       });
     } catch (error) {

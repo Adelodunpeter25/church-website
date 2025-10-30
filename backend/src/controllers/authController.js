@@ -40,9 +40,34 @@ export const login = async (req, res) => {
     console.log('Login attempt:', req.body.email);
     const { email, password } = req.body;
 
+    const settingsResult = await pool.query(
+      "SELECT key, value FROM settings WHERE key IN ('maxLoginAttempts', 'lockoutDuration', 'sessionTimeout')"
+    );
+    const settings = {};
+    settingsResult.rows.forEach(row => {
+      settings[row.key] = parseInt(row.value) || (row.key === 'maxLoginAttempts' ? 5 : row.key === 'lockoutDuration' ? 15 : 30);
+    });
+
+    const lockoutCheck = await pool.query(
+      "SELECT COUNT(*) as count, MAX(created_at) as last_attempt FROM audit_logs WHERE user_email = $1 AND event = 'Failed Login Attempt' AND created_at > NOW() - INTERVAL '1 minute' * $2",
+      [email, settings.lockoutDuration || 15]
+    );
+
+    if (parseInt(lockoutCheck.rows[0].count) >= (settings.maxLoginAttempts || 5)) {
+      await pool.query(
+        "INSERT INTO audit_logs (event, user_email, ip_address, severity, details) VALUES ('Account Locked', $1, $2, 'high', 'Too many failed login attempts')",
+        [email, req.ip]
+      );
+      return res.status(429).json({ error: 'Account temporarily locked due to too many failed attempts' });
+    }
+
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     
     if (result.rows.length === 0) {
+      await pool.query(
+        "INSERT INTO audit_logs (event, user_email, ip_address, severity) VALUES ('Failed Login Attempt', $1, $2, 'medium')",
+        [email, req.ip]
+      );
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -55,13 +80,23 @@ export const login = async (req, res) => {
     const isValid = await bcrypt.compare(password, user.password);
     
     if (!isValid) {
+      await pool.query(
+        "INSERT INTO audit_logs (event, user_email, user_id, ip_address, severity) VALUES ('Failed Login Attempt', $1, $2, $3, 'medium')",
+        [email, user.id, req.ip]
+      );
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    const sessionTimeout = settings.sessionTimeout || 30;
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: `${sessionTimeout}m` }
+    );
+
+    await pool.query(
+      "INSERT INTO audit_logs (event, user_email, user_id, ip_address, severity) VALUES ('Successful Login', $1, $2, $3, 'low')",
+      [email, user.id, req.ip]
     );
 
     const { password: _, ...userWithoutPassword } = user;
