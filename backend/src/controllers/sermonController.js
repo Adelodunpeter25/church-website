@@ -160,3 +160,13 @@ export const incrementPlays = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const incrementDownloads = async (req, res) => {
+  try {
+    await pool.query('UPDATE sermons SET downloads = downloads + 1 WHERE id = $1', [req.params.id]);
+    res.json({ message: 'Download count incremented' });
+  } catch (error) {
+    console.error('Increment downloads error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
