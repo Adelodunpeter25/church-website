@@ -53,3 +53,72 @@ export const updateContent = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getServiceTimes = async (req, res) => {
+  try {
+    console.log('Fetching service times...');
+    const result = await pool.query('SELECT * FROM service_times ORDER BY day, time');
+    console.log(`Found ${result.rows.length} service times`);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get service times error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const createServiceTime = async (req, res) => {
+  try {
+    console.log('Creating service time');
+    const { day, time, service } = req.body;
+
+    const result = await pool.query(
+      'INSERT INTO service_times (day, time, service) VALUES ($1, $2, $3) RETURNING *',
+      [day, time, service]
+    );
+
+    console.log('Service time created:', result.rows[0].id);
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Create service time error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const updateServiceTime = async (req, res) => {
+  try {
+    console.log('Updating service time:', req.params.id);
+    const { day, time, service } = req.body;
+
+    const result = await pool.query(
+      'UPDATE service_times SET day = $1, time = $2, service = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *',
+      [day, time, service, req.params.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Service time not found' });
+    }
+
+    console.log('Service time updated:', result.rows[0].id);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Update service time error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteServiceTime = async (req, res) => {
+  try {
+    console.log('Deleting service time:', req.params.id);
+    const result = await pool.query('DELETE FROM service_times WHERE id = $1 RETURNING id', [req.params.id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Service time not found' });
+    }
+
+    console.log('Service time deleted:', req.params.id);
+    res.json({ message: 'Service time deleted successfully' });
+  } catch (error) {
+    console.error('Delete service time error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};

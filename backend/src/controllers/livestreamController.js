@@ -123,3 +123,28 @@ export const sendChatMessage = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const updateViewerCount = async (req, res) => {
+  try {
+    const { viewers } = req.body;
+    await pool.query('UPDATE livestreams SET viewers = $1 WHERE id = $2', [viewers, req.params.id]);
+    res.json({ message: 'Viewer count updated' });
+  } catch (error) {
+    console.error('Update viewer count error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getStreamHistory = async (req, res) => {
+  try {
+    console.log('Fetching stream history...');
+    const result = await pool.query(
+      'SELECT * FROM livestreams WHERE is_live = false AND end_time IS NOT NULL ORDER BY start_time DESC LIMIT 10'
+    );
+    console.log(`Found ${result.rows.length} past streams`);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get stream history error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};

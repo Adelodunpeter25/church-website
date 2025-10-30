@@ -140,3 +140,13 @@ export const deleteAnnouncement = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const incrementViews = async (req, res) => {
+  try {
+    await pool.query('UPDATE announcements SET views = views + 1 WHERE id = $1', [req.params.id]);
+    res.json({ message: 'View count incremented' });
+  } catch (error) {
+    console.error('Increment views error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};

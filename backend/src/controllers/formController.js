@@ -177,3 +177,38 @@ export const getFormResponses = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const deleteForms = async (req, res) => {
+  try {
+    console.log('Deleting multiple forms');
+    const { ids } = req.body;
+
+    const result = await pool.query('DELETE FROM forms WHERE id = ANY($1) RETURNING id', [ids]);
+
+    console.log(`Deleted ${result.rows.length} forms`);
+    res.json({ message: `${result.rows.length} forms deleted successfully` });
+  } catch (error) {
+    console.error('Delete forms error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const exportFormResponses = async (req, res) => {
+  try {
+    console.log('Exporting form responses:', req.params.id);
+    const result = await pool.query(
+      `SELECT fr.*, m.name as member_name, m.email as member_email 
+       FROM form_responses fr 
+       LEFT JOIN members m ON fr.member_id = m.id 
+       WHERE fr.form_id = $1 
+       ORDER BY fr.submitted_at DESC`,
+      [req.params.id]
+    );
+
+    console.log(`Exporting ${result.rows.length} responses`);
+    res.json({ data: result.rows, count: result.rows.length });
+  } catch (error) {
+    console.error('Export form responses error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};

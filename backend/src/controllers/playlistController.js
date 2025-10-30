@@ -142,3 +142,13 @@ export const removeSermonFromPlaylist = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const incrementPlays = async (req, res) => {
+  try {
+    await pool.query('UPDATE playlists SET plays = plays + 1 WHERE id = $1', [req.params.id]);
+    res.json({ message: 'Play count incremented' });
+  } catch (error) {
+    console.error('Increment plays error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};

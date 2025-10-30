@@ -63,3 +63,35 @@ export const updateSetting = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const updateBulkSettings = async (req, res) => {
+  try {
+    console.log('Updating bulk settings');
+    const { settings } = req.body;
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      
+      for (const [key, value] of Object.entries(settings)) {
+        await client.query(
+          `INSERT INTO settings (key, value) VALUES ($1, $2)
+           ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = CURRENT_TIMESTAMP`,
+          [key, value]
+        );
+      }
+      
+      await client.query('COMMIT');
+      console.log(`Updated ${Object.keys(settings).length} settings`);
+      res.json({ message: 'Settings updated successfully' });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Update bulk settings error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
