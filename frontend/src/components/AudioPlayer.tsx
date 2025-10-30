@@ -14,6 +14,9 @@ export default function AudioPlayer({ sermon, onClose }: AudioPlayerProps) {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [hasEnded, setHasEnded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (sermon && audioRef.current) {
@@ -35,17 +38,64 @@ export default function AudioPlayer({ sermon, onClose }: AudioPlayerProps) {
       setIsPlaying(false);
       setHasEnded(true);
     };
+    const handleError = () => {
+      setIsPlaying(false);
+      setError('Connection lost. Trying to reconnect...');
+      retryWithBackoff();
+    };
+    const handleStalled = () => {
+      setError('Connection lost. Trying to reconnect...');
+    };
+    const handleCanPlay = () => {
+      setError(null);
+      setRetryCount(0);
+    };
 
     audio.addEventListener('timeupdate', updateTime);
     audio.addEventListener('loadedmetadata', updateDuration);
     audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('stalled', handleStalled);
+    audio.addEventListener('canplay', handleCanPlay);
 
     return () => {
       audio.removeEventListener('timeupdate', updateTime);
       audio.removeEventListener('loadedmetadata', updateDuration);
       audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('stalled', handleStalled);
+      audio.removeEventListener('canplay', handleCanPlay);
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
     };
   }, []);
+
+  const retryWithBackoff = () => {
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+    }
+    const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+    retryTimeoutRef.current = setTimeout(() => {
+      if (audioRef.current && sermon) {
+        const currentPos = audioRef.current.currentTime;
+        audioRef.current.load();
+        audioRef.current.currentTime = currentPos;
+        audioRef.current.play().then(() => {
+          setError(null);
+          setIsPlaying(true);
+          setRetryCount(0);
+        }).catch(() => {
+          setRetryCount(prev => prev + 1);
+          if (retryCount < 5) {
+            retryWithBackoff();
+          } else {
+            setError('Unable to reconnect. Please check your connection.');
+          }
+        });
+      }
+    }, delay);
+  };
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -107,6 +157,17 @@ export default function AudioPlayer({ sermon, onClose }: AudioPlayerProps) {
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
       <audio ref={audioRef} />
       <div className="max-w-7xl mx-auto px-4 py-3">
+        {error && (
+          <div className="mb-2 px-4 py-2 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <i className="ri-error-warning-line text-yellow-600"></i>
+              <span className="text-sm text-yellow-800">{error}</span>
+            </div>
+            {retryCount > 0 && retryCount < 5 && (
+              <span className="text-xs text-yellow-600">Retry {retryCount}/5</span>
+            )}
+          </div>
+        )}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-4 flex-1">
             <img 
