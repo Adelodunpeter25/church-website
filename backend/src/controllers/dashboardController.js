@@ -84,3 +84,66 @@ export const getRecentActivity = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getMemberStats = async (req, res) => {
+  try {
+    console.log('Fetching member stats:', req.params.memberId);
+    
+    const attendanceCount = await pool.query(
+      `SELECT COUNT(*) as count FROM attendance 
+       WHERE member_id = $1 AND present = true 
+       AND EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)`,
+      [req.params.memberId]
+    );
+    
+    const givingTotal = await pool.query(
+      `SELECT COALESCE(SUM(amount), 0) as total FROM giving 
+       WHERE member_id = $1 
+       AND EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)`,
+      [req.params.memberId]
+    );
+    
+    const eventsCount = await pool.query(
+      `SELECT COUNT(*) as count FROM event_registrations 
+       WHERE member_id = $1 AND attended = true`,
+      [req.params.memberId]
+    );
+
+    res.json({
+      attendanceThisYear: parseInt(attendanceCount.rows[0].count),
+      totalGiving: parseFloat(givingTotal.rows[0].total),
+      eventsAttended: parseInt(eventsCount.rows[0].count)
+    });
+  } catch (error) {
+    console.error('Get member stats error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getMemberRecentSermons = async (req, res) => {
+  try {
+    console.log('Fetching recent sermons for member');
+    const result = await pool.query(
+      'SELECT id, title, speaker, date, duration FROM sermons ORDER BY date DESC LIMIT 3'
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get member recent sermons error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getMemberUpcomingEvents = async (req, res) => {
+  try {
+    console.log('Fetching upcoming events for member');
+    const result = await pool.query(
+      `SELECT id, title, date, type, location FROM events 
+       WHERE date >= CURRENT_DATE 
+       ORDER BY date ASC LIMIT 3`
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get member upcoming events error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};

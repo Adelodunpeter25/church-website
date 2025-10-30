@@ -221,3 +221,31 @@ export const markAttendance = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getMemberEvents = async (req, res) => {
+  try {
+    console.log('Fetching member events:', req.params.memberId);
+    const { registered_only } = req.query;
+
+    let query = `
+      SELECT e.*, 
+        CASE WHEN er.id IS NOT NULL THEN true ELSE false END as is_registered
+      FROM events e
+      LEFT JOIN event_registrations er ON e.id = er.event_id AND er.member_id = $1
+      WHERE e.date >= CURRENT_DATE
+    `;
+
+    if (registered_only === 'true') {
+      query += ' AND er.id IS NOT NULL';
+    }
+
+    query += ' ORDER BY e.date ASC';
+
+    const result = await pool.query(query, [req.params.memberId]);
+    console.log(`Found ${result.rows.length} events for member`);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get member events error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};

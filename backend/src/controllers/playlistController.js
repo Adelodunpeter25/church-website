@@ -152,3 +152,32 @@ export const incrementPlays = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const toggleSermonBookmark = async (req, res) => {
+  try {
+    console.log('Toggling sermon bookmark:', req.params.sermonId);
+    const { member_id, playlist_id } = req.body;
+
+    const existing = await pool.query(
+      'SELECT id FROM playlist_sermons WHERE playlist_id = $1 AND sermon_id = $2',
+      [playlist_id, req.params.sermonId]
+    );
+
+    if (existing.rows.length > 0) {
+      await pool.query(
+        'DELETE FROM playlist_sermons WHERE playlist_id = $1 AND sermon_id = $2',
+        [playlist_id, req.params.sermonId]
+      );
+      res.json({ bookmarked: false, message: 'Bookmark removed' });
+    } else {
+      await pool.query(
+        'INSERT INTO playlist_sermons (playlist_id, sermon_id) VALUES ($1, $2)',
+        [playlist_id, req.params.sermonId]
+      );
+      res.json({ bookmarked: true, message: 'Bookmark added' });
+    }
+  } catch (error) {
+    console.error('Toggle sermon bookmark error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};

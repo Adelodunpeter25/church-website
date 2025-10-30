@@ -1,9 +1,10 @@
 import express from 'express';
-import { getEvents, getEvent, createEvent, updateEvent, deleteEvent, registerForEvent, unregisterFromEvent, getEventAttendees, markAttendance } from '../controllers/eventController.js';
+import { getEvents, getEvent, createEvent, updateEvent, deleteEvent, registerForEvent, unregisterFromEvent, getEventAttendees, markAttendance, getMemberEvents } from '../controllers/eventController.js';
 
 const router = express.Router();
 
 router.get('/', getEvents);
+router.get('/member/:memberId', getMemberEvents);
 router.get('/:id', getEvent);
 router.post('/', createEvent);
 router.put('/:id', updateEvent);

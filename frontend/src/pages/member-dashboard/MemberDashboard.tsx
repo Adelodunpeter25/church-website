@@ -79,7 +79,7 @@ export default function MemberDashboard() {
                 { id: 'overview', label: 'Overview', icon: 'ri-dashboard-line' },
                 { id: 'livestream', label: 'Live Stream', icon: 'ri-live-line' },
                 { id: 'sermons', label: 'Sermons', icon: 'ri-book-open-line' },
-                { id: 'events', label: 'My Events', icon: 'ri-calendar-line' },
+                { id: 'events', label: 'Events', icon: 'ri-calendar-line' },
                 { id: 'giving', label: 'Giving', icon: 'ri-hand-heart-line' },
                 { id: 'prayer', label: 'Prayer Requests', icon: 'ri-heart-line' }
               ].map((tab) => (
@@ -261,7 +261,7 @@ export default function MemberDashboard() {
             {activeTab === 'events' && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900">My Events</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Events</h3>
                   <div className="flex space-x-2">
                     <button className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer whitespace-nowrap">
                       Registered
