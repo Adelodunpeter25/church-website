@@ -6,9 +6,10 @@ import { useState } from 'react';
 interface StreamControlsProps {
   isLive: boolean;
   onToggleLive: (live: boolean) => void;
+  loading?: boolean;
 }
 
-export default function StreamControls({ isLive, onToggleLive }: StreamControlsProps) {
+export default function StreamControls({ isLive, onToggleLive, loading }: StreamControlsProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(75);
   const [inputGain, setInputGain] = useState(65);
@@ -23,14 +24,15 @@ export default function StreamControls({ isLive, onToggleLive }: StreamControlsP
         <div className="flex items-center space-x-4">
           <button
             onClick={handleGoLive}
-            className={`flex items-center px-6 py-3 rounded-lg font-medium cursor-pointer whitespace-nowrap ${
+            disabled={loading}
+            className={`flex items-center px-6 py-3 rounded-lg font-medium cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${
               isLive 
                 ? 'bg-red-600 text-white hover:bg-red-700' 
                 : 'bg-blue-600 text-white hover:bg-blue-700'
             }`}
           >
             <i className={`${isLive ? 'ri-stop-circle-line' : 'ri-mic-line'} mr-2 text-lg`}></i>
-            {isLive ? 'Stop Stream' : 'Go Live'}
+            {loading ? 'Processing...' : isLive ? 'Stop Stream' : 'Go Live'}
           </button>
           
           {isLive && (

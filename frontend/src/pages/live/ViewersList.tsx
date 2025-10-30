@@ -1,47 +1,57 @@
 
 
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLivestream } from '@/hooks/useLivestream';
 
-const viewers = [
-  { id: 1, name: 'Sarah Johnson', joinTime: '10:30 AM', location: 'New York', status: 'active', isBanned: false },
-  { id: 2, name: 'Michael Brown', joinTime: '10:32 AM', location: 'California', status: 'active', isBanned: false },
-  { id: 3, name: 'Emily Davis', joinTime: '10:35 AM', location: 'Texas', status: 'active', isBanned: false },
-  { id: 4, name: 'David Wilson', joinTime: '10:36 AM', location: 'Florida', status: 'active', isBanned: false },
-  { id: 5, name: 'Jennifer Martinez', joinTime: '10:38 AM', location: 'Ohio', status: 'active', isBanned: false },
-  { id: 6, name: 'Robert Taylor', joinTime: '10:40 AM', location: 'Illinois', status: 'active', isBanned: false },
-  { id: 7, name: 'Lisa Anderson', joinTime: '10:42 AM', location: 'Michigan', status: 'active', isBanned: true }
-];
+interface ViewersListProps {
+  streamId: number | null;
+}
 
-export default function ViewersList() {
-  const [viewerList, setViewerList] = useState(viewers);
+export default function ViewersList({ streamId }: ViewersListProps) {
+  const { getViewers, removeViewer, banViewer, unbanViewer } = useLivestream();
+  const [viewerList, setViewerList] = useState<any[]>([]);
   const [showActions, setShowActions] = useState<number | null>(null);
 
-  const handleKickUser = (userId: number) => {
-    setViewerList(prev => prev.filter(viewer => viewer.id !== userId));
+  useEffect(() => {
+    if (streamId) {
+      loadViewers();
+    }
+  }, [streamId]);
+
+  const loadViewers = async () => {
+    if (!streamId) return;
+    try {
+      const viewers = await getViewers(streamId);
+      setViewerList(viewers);
+    } catch (error) {
+      console.error('Error loading viewers:', error);
+    }
+  };
+
+  const handleKickUser = async (userId: number) => {
+    if (!streamId) return;
+    await removeViewer(streamId, userId);
+    await loadViewers();
     setShowActions(null);
   };
 
-  const handleBanUser = (userId: number) => {
-    setViewerList(prev => prev.map(viewer => 
-      viewer.id === userId 
-        ? { ...viewer, isBanned: true, status: 'banned' }
-        : viewer
-    ));
+  const handleBanUser = async (userId: number) => {
+    if (!streamId) return;
+    await banViewer(streamId, userId);
+    await loadViewers();
     setShowActions(null);
   };
 
-  const handleUnbanUser = (userId: number) => {
-    setViewerList(prev => prev.map(viewer => 
-      viewer.id === userId 
-        ? { ...viewer, isBanned: false, status: 'active' }
-        : viewer
-    ));
+  const handleUnbanUser = async (userId: number) => {
+    if (!streamId) return;
+    await unbanViewer(streamId, userId);
+    await loadViewers();
     setShowActions(null);
   };
 
-  const activeViewers = viewerList.filter(v => !v.isBanned);
-  const bannedViewers = viewerList.filter(v => v.isBanned);
+  const activeViewers = viewerList.filter(v => v.status === 'active');
+  const bannedViewers = viewerList.filter(v => v.status === 'banned');
 
   return (
     <div className="bg-white shadow-sm rounded-lg">
@@ -71,12 +81,12 @@ export default function ViewersList() {
                 </div>
                 <div>
                   <div className="text-sm font-medium text-gray-900">{viewer.name}</div>
-                  <div className="text-xs text-gray-500">{viewer.location}</div>
+                  <div className="text-xs text-gray-500">{viewer.location || 'Unknown'}</div>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="text-xs text-gray-500">
-                  {viewer.joinTime}
+                  {new Date(viewer.joined_at).toLocaleTimeString()}
                 </div>
                 <div className="relative">
                   <button
@@ -150,17 +160,11 @@ export default function ViewersList() {
         )}
       </div>
       
-      <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-600">
-            Stream started at 10:30 AM
-          </span>
-          <button className="text-blue-600 hover:text-blue-500 cursor-pointer whitespace-nowrap">
-            Export listener log
-            <i className="ml-1 ri-download-line"></i>
-          </button>
+      {viewerList.length === 0 && (
+        <div className="px-6 py-8 text-center text-gray-500 text-sm">
+          No listeners connected yet
         </div>
-      </div>
+      )}
     </div>
   );
 }

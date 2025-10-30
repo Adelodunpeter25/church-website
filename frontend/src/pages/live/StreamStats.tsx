@@ -3,37 +3,49 @@
 
 interface StreamStatsProps {
   isLive: boolean;
-  viewerCount: number;
+  stats: {
+    current_viewers: number;
+    peak_viewers: number;
+    duration: number;
+    chat_messages: number;
+  };
 }
 
-export default function StreamStats({ isLive, viewerCount }: StreamStatsProps) {
+export default function StreamStats({ isLive, stats: streamStats }: StreamStatsProps) {
+  const formatDuration = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
   const stats = [
     {
       name: 'Current Viewers',
-      value: viewerCount.toString(),
+      value: streamStats.current_viewers.toString(),
       change: isLive ? 'Live now' : 'Offline',
       changeType: isLive ? 'live' : 'offline',
       icon: 'ri-eye-line'
     },
     {
       name: 'Peak Viewers Today',
-      value: '142',
-      change: '+15%',
-      changeType: 'increase',
+      value: streamStats.peak_viewers.toString(),
+      change: streamStats.peak_viewers > 0 ? `${streamStats.peak_viewers} peak` : 'No data',
+      changeType: streamStats.peak_viewers > 0 ? 'increase' : 'offline',
       icon: 'ri-bar-chart-line'
     },
     {
       name: 'Stream Duration',
-      value: isLive ? '1:23:45' : '0:00:00',
+      value: formatDuration(streamStats.duration),
       change: isLive ? 'Broadcasting' : 'Offline',
       changeType: isLive ? 'live' : 'offline',
       icon: 'ri-time-line'
     },
     {
       name: 'Chat Messages',
-      value: '234',
-      change: '+45 new',
-      changeType: 'increase',
+      value: streamStats.chat_messages.toString(),
+      change: streamStats.chat_messages > 0 ? `${streamStats.chat_messages} total` : 'No messages',
+      changeType: streamStats.chat_messages > 0 ? 'increase' : 'offline',
       icon: 'ri-chat-3-line'
     }
   ];
