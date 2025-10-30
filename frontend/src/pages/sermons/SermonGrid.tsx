@@ -3,6 +3,7 @@ import { useSermons } from '@/hooks/useSermons';
 import { Sermon } from '@/types';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import { getMediaUrl } from '@/services/api';
+import AudioPlayer from '@/components/AudioPlayer';
 
 interface SermonGridProps {
   searchTerm: string;
@@ -23,8 +24,7 @@ export default function SermonGrid({
 }: SermonGridProps) {
   const { sermons, fetchSermons, deleteSermon } = useSermons();
   const [loading, setLoading] = useState(true);
-  const [playingSermon, setPlayingSermon] = useState<string | null>(null);
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  const [playingSermon, setPlayingSermon] = useState<Sermon | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [sermonToDelete, setSermonToDelete] = useState<{ id: string; title: string } | null>(null);
 
@@ -61,25 +61,10 @@ export default function SermonGrid({
   };
 
   const togglePlay = (sermon: Sermon) => {
-    if (playingSermon === sermon.id) {
-      audioElement?.pause();
+    if (playingSermon?.id === sermon.id) {
       setPlayingSermon(null);
     } else {
-      if (audioElement) {
-        audioElement.pause();
-      }
-      const audioUrl = getMediaUrl(sermon.audio_url);
-      if (!audioUrl) {
-        alert('Audio file not available');
-        return;
-      }
-      const audio = new Audio(audioUrl);
-      audio.play().catch(err => {
-        console.error('Error playing audio:', err);
-      });
-      audio.onended = () => setPlayingSermon(null);
-      setAudioElement(audio);
-      setPlayingSermon(sermon.id);
+      setPlayingSermon(sermon);
     }
   };
 
@@ -114,7 +99,7 @@ export default function SermonGrid({
                       onClick={() => togglePlay(sermon)}
                       className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
                     >
-                      <i className={`${playingSermon === sermon.id ? 'ri-pause-fill' : 'ri-play-fill'} text-white text-lg`}></i>
+                      <i className={`${playingSermon?.id === sermon.id ? 'ri-pause-fill' : 'ri-play-fill'} text-white text-lg`}></i>
                     </button>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -187,6 +172,8 @@ export default function SermonGrid({
   }
 
   return (
+    <>
+      <AudioPlayer sermon={playingSermon} onClose={() => setPlayingSermon(null)} />
     <div className="p-6">
       <div className="mb-4 text-sm text-gray-600">
         Showing {filteredSermons.length} sermons
@@ -206,7 +193,7 @@ export default function SermonGrid({
                 className="absolute inset-0 flex items-center justify-center cursor-pointer"
               >
                 <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
-                  <i className={`${playingSermon === sermon.id ? 'ri-pause-fill' : 'ri-play-fill'} text-white text-2xl`}></i>
+                  <i className={`${playingSermon?.id === sermon.id ? 'ri-pause-fill' : 'ri-play-fill'} text-white text-2xl`}></i>
                 </div>
               </button>
               <div className="absolute bottom-4 left-4 right-4">
@@ -245,13 +232,13 @@ export default function SermonGrid({
                 <button
                   onClick={() => togglePlay(sermon)}
                   className={`flex items-center px-3 py-1 rounded-md text-sm cursor-pointer whitespace-nowrap ${
-                    playingSermon === sermon.id 
+                    playingSermon?.id === sermon.id 
                       ? 'bg-red-100 text-red-700' 
                       : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                   }`}
                 >
-                  <i className={`${playingSermon === sermon.id ? 'ri-pause-line' : 'ri-play-line'} mr-1`}></i>
-                  {playingSermon === sermon.id ? 'Playing' : 'Play'}
+                  <i className={`${playingSermon?.id === sermon.id ? 'ri-pause-line' : 'ri-play-line'} mr-1`}></i>
+                  {playingSermon?.id === sermon.id ? 'Playing' : 'Play'}
                 </button>
                 <div className="flex items-center space-x-2">
                   <button
@@ -296,6 +283,7 @@ export default function SermonGrid({
         </div>
       )}
     </div>
+    </>
   );
 }
 
