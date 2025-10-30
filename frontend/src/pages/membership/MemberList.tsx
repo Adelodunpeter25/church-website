@@ -78,7 +78,88 @@ export default function MemberList({ searchTerm, filterRole }: MemberListProps) 
 
   return (
     <div>
-      <div>
+      {/* Mobile View */}
+      <div className="block md:hidden">
+        <div className="divide-y divide-gray-200">
+          {filteredMembers.map((member) => (
+            <div key={member.id} className="p-4 hover:bg-gray-50">
+              <div className="flex items-start space-x-3">
+                <input
+                  type="checkbox"
+                  checked={selectedMembers.includes(member.id)}
+                  onChange={() => toggleMember(member.id)}
+                  className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <img 
+                  className="h-12 w-12 rounded-full object-cover flex-shrink-0" 
+                  src={`https://readdy.ai/api/search-image?query=professional%20church%20member%20portrait%20photo&width=100&height=100&seq=member${member.id}&orientation=squarish`}
+                  alt={member.name}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{member.name}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{member.email}</p>
+                      <p className="text-xs text-gray-500">{member.phone}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
+                      member.role === 'leader' ? 'bg-purple-100 text-purple-800' :
+                      member.role === 'volunteer' ? 'bg-blue-100 text-blue-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {member.role}
+                    </span>
+                    <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
+                      member.membershipStatus === 'active' ? 'bg-green-100 text-green-800' :
+                      member.membershipStatus === 'inactive' ? 'bg-gray-100 text-gray-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {member.membershipStatus}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-3">
+                    <span className="text-xs text-gray-500">Since {new Date(member.dateJoined).getFullYear()}</span>
+                    <div className="flex items-center space-x-3">
+                      <button 
+                        onClick={() => {
+                          setSelectedMember(member.id);
+                          setShowEditModal(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-900 cursor-pointer"
+                      >
+                        <i className="ri-edit-line text-lg"></i>
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setSelectedMember(member.id);
+                          setShowViewModal(true);
+                        }}
+                        className="text-green-600 hover:text-green-900 cursor-pointer"
+                      >
+                        <i className="ri-eye-line text-lg"></i>
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setMemberToDelete({ id: member.id, name: member.name });
+                          setShowDeleteConfirm(true);
+                        }}
+                        className="text-red-600 hover:text-red-900 cursor-pointer"
+                      >
+                        <i className="ri-delete-bin-line text-lg"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop View */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>

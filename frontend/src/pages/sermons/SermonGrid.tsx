@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSermons } from '@/hooks/useSermons';
 import { Sermon } from '@/types';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
+import { getMediaUrl } from '@/services/api';
 
 interface SermonGridProps {
   searchTerm: string;
@@ -20,18 +21,18 @@ export default function SermonGrid({
   sortBy, 
   viewMode 
 }: SermonGridProps) {
-  const { fetchSermons: getSermons, deleteSermon } = useSermons();
-  const [sermons, setSermons] = useState<Sermon[]>([]);
+  const { sermons, fetchSermons, deleteSermon } = useSermons();
   const [loading, setLoading] = useState(true);
   const [playingSermon, setPlayingSermon] = useState<string | null>(null);
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [sermonToDelete, setSermonToDelete] = useState<{ id: string; title: string } | null>(null);
 
   useEffect(() => {
-    fetchSermons();
+    loadSermons();
   }, [searchTerm, filterSeries, filterSpeaker, sortBy]);
 
-  const fetchSermons = async () => {
+  const loadSermons = async () => {
     try {
       setLoading(true);
       const params: any = {};
@@ -39,11 +40,9 @@ export default function SermonGrid({
       if (filterSeries !== 'all') params.series = filterSeries;
       if (filterSpeaker !== 'all') params.speaker = filterSpeaker;
       if (sortBy) params.sort = sortBy;
-      const data = await getSermons(params);
-      setSermons(Array.isArray(data) ? data : []);
+      await fetchSermons(params);
     } catch (error) {
       console.error('Error fetching sermons:', error);
-      setSermons([]);
     } finally {
       setLoading(false);
     }
@@ -55,14 +54,33 @@ export default function SermonGrid({
       await deleteSermon(sermonToDelete.id);
       setShowDeleteConfirm(false);
       setSermonToDelete(null);
-      fetchSermons();
+      loadSermons();
     } catch (error) {
       console.error('Error deleting sermon:', error);
     }
   };
 
-  const togglePlay = (sermonId: string) => {
-    setPlayingSermon(playingSermon === sermonId ? null : sermonId);
+  const togglePlay = (sermon: Sermon) => {
+    if (playingSermon === sermon.id) {
+      audioElement?.pause();
+      setPlayingSermon(null);
+    } else {
+      if (audioElement) {
+        audioElement.pause();
+      }
+      const audioUrl = getMediaUrl(sermon.audio_url);
+      if (!audioUrl) {
+        alert('Audio file not available');
+        return;
+      }
+      const audio = new Audio(audioUrl);
+      audio.play().catch(err => {
+        console.error('Error playing audio:', err);
+      });
+      audio.onended = () => setPlayingSermon(null);
+      setAudioElement(audio);
+      setPlayingSermon(sermon.id);
+    }
   };
 
   const downloadSermon = (sermon: Sermon) => {
@@ -89,11 +107,11 @@ export default function SermonGrid({
                   <div className="relative">
                     <img 
                       className="w-16 h-16 rounded-lg object-top object-cover" 
-                      src={sermon.thumbnailUrl || `https://readdy.ai/api/search-image?query=modern%20church%20sermon%20artwork&width=200&height=200&seq=${sermon.id}&orientation=squarish`}
+                      src={getMediaUrl(sermon.thumbnail_url) || `https://readdy.ai/api/search-image?query=modern%20church%20sermon%20artwork&width=200&height=200&seq=${sermon.id}&orientation=squarish`}
                       alt={sermon.title}
                     />
                     <button
-                      onClick={() => togglePlay(sermon.id)}
+                      onClick={() => togglePlay(sermon)}
                       className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
                     >
                       <i className={`${playingSermon === sermon.id ? 'ri-pause-fill' : 'ri-play-fill'} text-white text-lg`}></i>
@@ -105,9 +123,9 @@ export default function SermonGrid({
                     <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
                       <span>{new Date(sermon.date).toLocaleDateString()}</span>
                       <span>{sermon.duration}</span>
-                      {sermon.series && (
+                      {sermon.series_name && (
                         <span className="inline-flex px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                          {sermon.series}
+                          {sermon.series_name}
                         </span>
                       )}
                     </div>
@@ -179,12 +197,12 @@ export default function SermonGrid({
             <div className="relative">
               <img 
                 className="w-full h-48 object-top object-cover" 
-                src={sermon.thumbnailUrl || `https://readdy.ai/api/search-image?query=modern%20church%20sermon%20artwork&width=400&height=300&seq=${sermon.id}&orientation=landscape`}
+                src={getMediaUrl(sermon.thumbnail_url) || `https://readdy.ai/api/search-image?query=modern%20church%20sermon%20artwork&width=400&height=300&seq=${sermon.id}&orientation=landscape`}
                 alt={sermon.title}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
               <button
-                onClick={() => togglePlay(sermon.id)}
+                onClick={() => togglePlay(sermon)}
                 className="absolute inset-0 flex items-center justify-center cursor-pointer"
               >
                 <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
@@ -192,9 +210,9 @@ export default function SermonGrid({
                 </div>
               </button>
               <div className="absolute bottom-4 left-4 right-4">
-                {sermon.series ? (
+                {sermon.series_name ? (
                   <span className="inline-flex px-2 py-1 text-xs bg-blue-600 text-white rounded-full">
-                    {sermon.series}
+                    {sermon.series_name}
                   </span>
                 ) : (
                   <span className="inline-flex px-2 py-1 text-xs bg-gray-600 text-white rounded-full">
@@ -225,7 +243,7 @@ export default function SermonGrid({
               
               <div className="flex items-center justify-between">
                 <button
-                  onClick={() => togglePlay(sermon.id)}
+                  onClick={() => togglePlay(sermon)}
                   className={`flex items-center px-3 py-1 rounded-md text-sm cursor-pointer whitespace-nowrap ${
                     playingSermon === sermon.id 
                       ? 'bg-red-100 text-red-700' 

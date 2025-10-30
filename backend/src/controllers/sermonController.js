@@ -82,13 +82,24 @@ export const getSermon = async (req, res) => {
 
 export const createSermon = async (req, res) => {
   try {
-    console.log('Creating sermon:', req.body.title);
-    const { title, speaker, date, duration, description, series_id, audio_url, video_url, thumbnail_url, tags } = req.body;
+    console.log('Request body:', req.body);
+    console.log('Request files:', req.files);
+    
+    const { title, speaker, date, duration, description, series_id, tags } = req.body;
+
+    if (!title || !speaker || !date) {
+      return res.status(400).json({ error: 'Title, speaker, and date are required' });
+    }
+
+    const audio_url = req.files?.audio ? `/uploads/sermons/audio/${req.files.audio[0].filename}` : null;
+    const thumbnail_url = req.files?.thumbnail ? `/uploads/sermons/thumbnails/${req.files.thumbnail[0].filename}` : null;
+    
+    console.log('Creating sermon:', title);
 
     const result = await pool.query(
       `INSERT INTO sermons (title, speaker, date, duration, description, series_id, audio_url, video_url, thumbnail_url, tags)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
-      [title, speaker, date, duration || null, description || null, series_id || null, audio_url || null, video_url || null, thumbnail_url || null, tags || null]
+      [title, speaker, date, duration || null, description || null, series_id || null, audio_url, null, thumbnail_url, tags || null]
     );
 
     if (series_id) {

@@ -67,7 +67,7 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
       <div className="h-6 w-px bg-gray-200 lg:hidden"></div>
 
       <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-        <form onSubmit={handleSearch} className="relative flex flex-1">
+        <form onSubmit={handleSearch} className="relative hidden sm:flex sm:flex-1">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3">
             <i className="ri-search-line text-gray-400 text-sm"></i>
           </div>
@@ -79,7 +79,7 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
             type="search"
           />
         </form>
-        <div className="flex items-center gap-x-4 lg:gap-x-6">
+        <div className="flex items-center gap-x-4 lg:gap-x-6 ml-auto">
           <div className="relative">
             <button
               type="button"

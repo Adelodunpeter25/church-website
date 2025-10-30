@@ -9,8 +9,8 @@ export const useSermons = () => {
   const fetchSermons = async (params?: { search?: string; series?: string; speaker?: string; page?: number; limit?: number }) => {
     setLoading(true);
     try {
-      const data = await api.get(`/sermons?${new URLSearchParams(params as any).toString()}`);
-      setSermons(data);
+      const response = await api.get(`/sermons?${new URLSearchParams(params as any).toString()}`);
+      setSermons(response.data || response);
     } catch (error) {
       console.error('Error fetching sermons:', error);
     } finally {
@@ -25,7 +25,7 @@ export const useSermons = () => {
   const getSermon = (id: string) =>
     api.get(`/sermons/${id}`);
 
-  const createSermon = async (data: any) => {
+  const createSermon = async (data: FormData) => {
     const result = await api.post('/sermons', data);
     await fetchSermons();
     return result;

@@ -175,7 +175,11 @@ export default function SermonsPage() {
         </main>
       </div>
 
-      <UploadSermonModal isOpen={showUploadModal} onClose={() => setShowUploadModal(false)} />
+      <UploadSermonModal 
+        isOpen={showUploadModal} 
+        onClose={() => setShowUploadModal(false)} 
+        onSuccess={() => window.location.reload()} 
+      />
       <SeriesManagementModal isOpen={showSeriesModal} onClose={() => setShowSeriesModal(false)} />
     </div>
   );
@@ -294,7 +298,7 @@ function SeriesManagementModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
                     <div className="flex-1">
                       <h5 className="font-medium text-gray-900">{s.name}</h5>
                       <p className="text-sm text-gray-500">{s.description}</p>
-                      <p className="text-xs text-gray-400">{s.sermonCount} sermons</p>
+                      <p className="text-xs text-gray-400">{s.sermon_count} sermons</p>
                     </div>
                     <button
                       onClick={() => handleDeleteSeries(s.id)}

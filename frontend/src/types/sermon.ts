@@ -6,17 +6,18 @@ export interface Sermon {
   duration: string;
   description?: string;
   series?: string;
-  audioUrl?: string;
-  videoUrl?: string;
-  thumbnailUrl?: string;
+  series_name?: string;
+  audio_url?: string;
+  video_url?: string;
+  thumbnail_url?: string;
   plays: number;
   tags?: string[];
-  createdAt: string;
+  created_at: string;
 }
 
 export interface SermonSeries {
   id: string;
   name: string;
   description?: string;
-  sermonCount: number;
+  sermon_count: number;
 }
