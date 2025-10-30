@@ -25,10 +25,10 @@ export const getDashboardStats = async (req, res) => {
       : 0;
 
     const sermonDownloads = await pool.query(`
-      SELECT COALESCE(SUM(plays), 0) as count FROM sermons
+      SELECT COALESCE(SUM(downloads), 0) as count FROM sermons
     `);
     const downloadsLastMonth = await pool.query(`
-      SELECT COALESCE(SUM(plays), 0) as count FROM sermons 
+      SELECT COALESCE(SUM(downloads), 0) as count FROM sermons 
       WHERE created_at < CURRENT_DATE - INTERVAL '30 days'
     `);
     const downloadsChange = downloadsLastMonth.rows[0].count > 0
@@ -40,6 +40,22 @@ export const getDashboardStats = async (req, res) => {
       ORDER BY created_at DESC LIMIT 1
     `);
 
+    const totalSermons = await pool.query(`
+      SELECT COUNT(*) as count FROM sermons
+    `);
+
+    const upcomingEvents = await pool.query(`
+      SELECT COUNT(*) as count FROM events WHERE date >= CURRENT_DATE
+    `);
+
+    const activeAnnouncements = await pool.query(`
+      SELECT COUNT(*) as count FROM announcements
+    `);
+
+    const totalForms = await pool.query(`
+      SELECT COUNT(*) as count FROM forms
+    `);
+
     const response = {
       totalMembers: parseInt(totalMembers.rows[0].count),
       newMembersThisWeek: parseInt(newMembersThisWeek.rows[0].count),
@@ -48,7 +64,11 @@ export const getDashboardStats = async (req, res) => {
       sermonDownloads: parseInt(sermonDownloads.rows[0].count),
       downloadsChange: downloadsChange,
       liveViewers: parseInt(liveViewers.rows[0]?.count || 0),
-      isLive: liveViewers.rows[0]?.is_live || false
+      isLive: liveViewers.rows[0]?.is_live || false,
+      totalSermons: parseInt(totalSermons.rows[0].count),
+      upcomingEvents: parseInt(upcomingEvents.rows[0].count),
+      activeAnnouncements: parseInt(activeAnnouncements.rows[0].count),
+      totalForms: parseInt(totalForms.rows[0].count)
     };
     console.log('Dashboard stats:', response);
     res.json(response);

@@ -46,10 +46,31 @@ export default function RecentActivity() {
       ) : (
         <div className="flow-root">
           <ul className="divide-y divide-gray-200">
-            {activities.map((activity) => {
+            {activities.map((activity, index) => {
               const { icon, color } = getActivityIcon(activity.type);
+              const title = (activity as any).title || (activity as any).description || 'Activity';
+              const timestamp = (activity as any).timestamp || (activity as any).date;
+              
+              let description = '';
+              switch (activity.type) {
+                case 'sermon':
+                  description = `New sermon "${title}" uploaded`;
+                  break;
+                case 'event':
+                  description = `New event "${title}" created`;
+                  break;
+                case 'announcement':
+                  description = `New announcement "${title}" posted`;
+                  break;
+                case 'member':
+                  description = `New member "${title}" joined`;
+                  break;
+                default:
+                  description = title;
+              }
+              
               return (
-                <li key={activity.id} className="px-6 py-4">
+                <li key={(activity as any).id || index} className="px-6 py-4">
                   <div className="flex items-center space-x-3">
                     <div className="flex-shrink-0">
                       <div className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full">
@@ -57,8 +78,8 @@ export default function RecentActivity() {
                       </div>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm text-gray-900">{activity.description}</p>
-                      <p className="text-sm text-gray-500">{new Date(activity.timestamp).toLocaleString()}</p>
+                      <p className="text-sm text-gray-900">{description}</p>
+                      <p className="text-sm text-gray-500">{new Date(timestamp).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</p>
                     </div>
                   </div>
                 </li>

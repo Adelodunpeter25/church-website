@@ -79,7 +79,7 @@ export default function QuickAccessPanel() {
       case 'sermons':
         return `${stats.totalSermons || 0} Sermons`;
       case 'livestream':
-        return 'Go Live Now';
+        return stats.isLive ? `${stats.liveViewers || 0} Viewers` : 'Go Live Now';
       case 'events':
         return `${stats.upcomingEvents || 0} Upcoming Events`;
       case 'announcements':

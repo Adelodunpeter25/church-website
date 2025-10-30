@@ -27,31 +27,31 @@ export default function StatsOverview() {
   const statItems = [
     {
       name: 'Total Members',
-      value: (stats.totalMembers || 0).toString(),
-      change: stats.recentMembers ? `+${stats.recentMembers}` : '',
+      value: ((stats as any).totalMembers || 0).toString(),
+      change: (stats as any).newMembersThisWeek ? `+${(stats as any).newMembersThisWeek}` : '',
       changeType: 'increase',
       icon: 'ri-group-line'
     },
     {
-      name: 'Total Sermons',
-      value: (stats.totalSermons || 0).toString(),
-      change: '',
-      changeType: 'neutral',
-      icon: 'ri-book-line'
+      name: 'Weekly Attendance',
+      value: ((stats as any).weeklyAttendance || 0).toString(),
+      change: (stats as any).attendanceChange ? `${(stats as any).attendanceChange > 0 ? '+' : ''}${(stats as any).attendanceChange}%` : '',
+      changeType: (stats as any).attendanceChange > 0 ? 'increase' : 'neutral',
+      icon: 'ri-calendar-check-line'
     },
     {
-      name: 'Upcoming Events',
-      value: (stats.upcomingEvents || 0).toString(),
-      change: '',
-      changeType: 'neutral',
-      icon: 'ri-calendar-line'
+      name: 'Sermon Downloads',
+      value: ((stats as any).sermonDownloads || 0).toString(),
+      change: (stats as any).downloadsChange ? `${(stats as any).downloadsChange > 0 ? '+' : ''}${(stats as any).downloadsChange}%` : '',
+      changeType: (stats as any).downloadsChange > 0 ? 'increase' : 'neutral',
+      icon: 'ri-download-line'
     },
     {
-      name: 'Active Announcements',
-      value: (stats.activeAnnouncements || 0).toString(),
+      name: (stats as any).isLive ? 'Live Viewers' : 'Live Stream',
+      value: (stats as any).isLive ? ((stats as any).liveViewers || 0).toString() : 'Offline',
       change: '',
       changeType: 'neutral',
-      icon: 'ri-megaphone-line'
+      icon: 'ri-live-line'
     }
   ];
   const iconColors = [
