@@ -1,25 +1,57 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useUsers } from '@/hooks/useUsers';
 
 interface EditUserModalProps {
   isOpen: boolean;
   onClose: () => void;
   userId: number;
+  onSuccess?: () => void;
 }
 
-export default function EditUserModal({ isOpen, onClose, userId }: EditUserModalProps) {
+export default function EditUserModal({ isOpen, onClose, userId, onSuccess }: EditUserModalProps) {
+  const { getUser, updateUser } = useUsers();
   const [formData, setFormData] = useState({
-    name: 'John Smith',
-    email: 'john@gracechurch.org',
-    role: 'admin',
-    department: 'Leadership'
+    name: '',
+    email: '',
+    role: 'member',
+    phone: '',
+    status: 'active'
   });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && userId) {
+      loadUser();
+    }
+  }, [isOpen, userId]);
+
+  const loadUser = async () => {
+    try {
+      const user = await getUser(userId);
+      setFormData({
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone || '',
+        status: user.status
+      });
+    } catch (error) {
+      console.error('Error loading user:', error);
+    }
+  };
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Updating user:', userId, formData);
-    onClose();
+    setLoading(true);
+    try {
+      await updateUser(userId, formData);
+      onClose();
+      onSuccess?.();
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -77,22 +109,34 @@ export default function EditUserModal({ isOpen, onClose, userId }: EditUserModal
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
-                <input
-                  type="text"
-                  value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+              <input
+                type="text"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              />
             </div>
             
             <div className="flex justify-end space-x-3 pt-4 border-t">
               <button type="button" onClick={onClose} className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
                 Cancel
               </button>
-              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
-                Save Changes
+              <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                {loading ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </form>

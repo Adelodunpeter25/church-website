@@ -1,11 +1,15 @@
 
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import EditUserModal from '@/components/modals/EditUserModal';
 import ResetPasswordModal from '@/components/modals/ResetPasswordModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
+import { useUsers } from '@/hooks/useUsers';
+import { useRoles } from '@/hooks/useRoles';
 
 export default function UserManagement() {
+  const { users, loading, fetchUsers, createUser, deleteUser, getUserStats } = useUsers();
+  const { getRoles, getPermissions, getRolePermissions } = useRoles();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
   const [showAddUser, setShowAddUser] = useState(false);
@@ -17,85 +21,89 @@ export default function UserManagement() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [userToDelete, setUserToDelete] = useState<{ id: number; name: string } | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeUsers: 0,
+    staffMembers: 0,
+    volunteers: 0
+  });
 
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
+    password: '',
     role: 'member',
-    department: '',
-    permissions: []
+    phone: '',
+    status: 'active'
   });
   const [newRole, setNewRole] = useState({
     name: '',
     permissions: [] as string[]
   });
 
-  const [users] = useState([
-    {
-      id: 1,
-      name: 'John Smith',
-      email: 'john@gracechurch.org',
-      role: 'Admin',
-      department: 'Leadership',
-      lastLogin: '2025-01-15 09:30 AM',
-      status: 'Active',
-      permissions: ['Full Access']
-    },
-    {
-      id: 2,
-      name: 'Sarah Johnson',
-      email: 'sarah@gracechurch.org',
-      role: 'Pastor',
-      department: 'Pastoral',
-      lastLogin: '2025-01-14 07:45 PM',
-      status: 'Active',
-      permissions: ['Sermons', 'Events', 'Members']
-    },
-    {
-      id: 3,
-      name: 'Mike Wilson',
-      email: 'mike@gracechurch.org',
-      role: 'Staff',
-      department: 'Youth Ministry',
-      lastLogin: '2025-01-12 02:15 PM',
-      status: 'Active',
-      permissions: ['Events', 'Announcements']
-    },
-    {
-      id: 4,
-      name: 'Emily Davis',
-      email: 'emily@gracechurch.org',
-      role: 'Volunteer',
-      department: 'Music Ministry',
-      lastLogin: '2025-01-10 06:20 PM',
-      status: 'Inactive',
-      permissions: ['Limited Access']
+  useEffect(() => {
+    loadUsers();
+    loadStats();
+    loadRoles();
+    loadPermissions();
+  }, [searchTerm, selectedRole]);
+
+  const loadRoles = async () => {
+    try {
+      const data = await getRoles();
+      setRoles(data.map((r: any) => ({ ...r, label: r.label.charAt(0).toUpperCase() + r.label.slice(1) })));
+      for (const role of data) {
+        const perms = await getRolePermissions(role.value);
+        setRolePermissionsMap(prev => ({ ...prev, [role.value]: perms }));
+      }
+    } catch (error) {
+      console.error('Error loading roles:', error);
     }
-  ]);
+  };
 
-  const roles = [
-    { value: 'admin', label: 'Administrator', color: 'bg-red-100 text-red-800' },
-    { value: 'pastor', label: 'Pastor', color: 'bg-purple-100 text-purple-800' },
-    { value: 'staff', label: 'Staff', color: 'bg-blue-100 text-blue-800' },
-    { value: 'volunteer', label: 'Volunteer', color: 'bg-green-100 text-green-800' },
-    { value: 'member', label: 'Member', color: 'bg-gray-100 text-gray-800' }
-  ];
+  const loadPermissions = async () => {
+    try {
+      const data = await getPermissions();
+      setPermissions(data);
+    } catch (error) {
+      console.error('Error loading permissions:', error);
+    }
+  };
 
-  const permissions = [
-    'Dashboard Access',
-    'Member Management',
-    'Sermon Management',
-    'Event Management',
-    'Announcement Management',
-    'Form Management',
-    'Live Streaming',
-    'Financial Reports',
-    'System Settings'
-  ];
+  const loadUsers = async () => {
+    const params: any = {};
+    if (searchTerm) params.search = searchTerm;
+    if (selectedRole !== 'all') params.role = selectedRole;
+    await fetchUsers(params);
+  };
 
-  const handleAddUser = () => {
+  const loadStats = async () => {
+    try {
+      const data = await getUserStats();
+      setStats(data);
+    } catch (error) {
+      console.error('Error loading stats:', error);
+    }
+  };
+
+  const [roles, setRoles] = useState<any[]>([]);
+  const [permissions, setPermissions] = useState<any[]>([]);
+  const [rolePermissionsMap, setRolePermissionsMap] = useState<Record<string, any[]>>({});
+
+  const roleColors: Record<string, string> = {
+    admin: 'bg-red-100 text-red-800',
+    pastor: 'bg-purple-100 text-purple-800',
+    minister: 'bg-indigo-100 text-indigo-800',
+    staff: 'bg-blue-100 text-blue-800',
+    member: 'bg-gray-100 text-gray-800'
+  };
+
+  const handleAddUser = async () => {
+    await createUser(newUser);
     setShowAddUser(false);
-    setNewUser({ name: '', email: '', role: 'member', department: '', permissions: [] });
+    setNewUser({ name: '', email: '', password: '', role: 'member', phone: '', status: 'active' });
+    loadUsers();
+    loadStats();
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
   };
@@ -116,12 +124,15 @@ export default function UserManagement() {
     }));
   };
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = selectedRole === 'all' || user.role.toLowerCase() === selectedRole;
-    return matchesSearch && matchesRole;
-  });
+  const handleDeleteUser = async () => {
+    if (userToDelete) {
+      await deleteUser(userToDelete.id);
+      setShowDeleteConfirm(false);
+      setUserToDelete(null);
+      loadUsers();
+      loadStats();
+    }
+  };
 
   return (
     <div className="max-w-6xl">
@@ -140,10 +151,10 @@ export default function UserManagement() {
         {/* User Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[
-            { label: 'Total Users', value: '247', icon: 'ri-group-line', color: 'bg-blue-500' },
-            { label: 'Active Users', value: '231', icon: 'ri-user-line', color: 'bg-green-500' },
-            { label: 'Staff Members', value: '12', icon: 'ri-shield-user-line', color: 'bg-purple-500' },
-            { label: 'Volunteers', value: '45', icon: 'ri-heart-line', color: 'bg-orange-500' }
+            { label: 'Total Users', value: stats.totalUsers.toString(), icon: 'ri-group-line', color: 'bg-blue-500' },
+            { label: 'Active Users', value: stats.activeUsers.toString(), icon: 'ri-user-line', color: 'bg-green-500' },
+            { label: 'Staff Members', value: stats.staffMembers.toString(), icon: 'ri-shield-user-line', color: 'bg-purple-500' },
+            { label: 'Volunteers', value: stats.volunteers.toString(), icon: 'ri-heart-line', color: 'bg-orange-500' }
           ].map((stat, index) => (
             <div key={index} className="bg-white border border-gray-200 rounded-lg p-6">
               <div className="flex items-center">
@@ -208,10 +219,10 @@ export default function UserManagement() {
                   Role
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Department
+                  Phone
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Login
+                  Created
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
@@ -222,8 +233,17 @@ export default function UserManagement() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredUsers.map((user) => {
-                const roleConfig = roles.find(r => r.label.toLowerCase() === user.role.toLowerCase()) || roles[4];
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">Loading users...</td>
+                </tr>
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">No users found</td>
+                </tr>
+              ) : (
+                users.map((user) => {
+                const roleConfig = { color: roleColors[user.role] || 'bg-gray-100 text-gray-800' };
                 return (
                   <tr key={user.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -245,10 +265,10 @@ export default function UserManagement() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {user.department}
+                      {user.phone || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.lastLogin}
+                      {new Date(user.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -295,7 +315,7 @@ export default function UserManagement() {
                     </td>
                   </tr>
                 );
-              })}
+              }))}
             </tbody>
           </table>
         </div>
@@ -317,7 +337,7 @@ export default function UserManagement() {
             {roles.map((role) => (
               <div key={role.value} className="bg-white border border-gray-200 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${role.color}`}>
+                  <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${roleColors[role.value] || 'bg-gray-100 text-gray-800'}`}>
                     {role.label}
                   </span>
                   <button className="text-gray-400 hover:text-gray-600 cursor-pointer">
@@ -325,15 +345,17 @@ export default function UserManagement() {
                   </button>
                 </div>
                 <div className="space-y-2">
-                  {permissions.slice(0, 4).map((permission, index) => (
+                  {(rolePermissionsMap[role.value] || []).slice(0, 4).map((permission, index) => (
                     <div key={index} className="flex items-center text-sm text-gray-600">
                       <i className="ri-check-line text-green-500 mr-2"></i>
-                      {permission}
+                      {permission.description}
                     </div>
                   ))}
-                  <button onClick={() => setShowPermissions(role.value)} className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer">
-                    View all permissions
-                  </button>
+                  {(rolePermissionsMap[role.value] || []).length > 4 && (
+                    <button onClick={() => setShowPermissions(role.value)} className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer">
+                      View all permissions
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -392,11 +414,21 @@ export default function UserManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input
+                  type="password"
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
                 <input
                   type="text"
-                  value={newUser.department}
-                  onChange={(e) => setNewUser({ ...newUser, department: e.target.value })}
+                  value={newUser.phone}
+                  onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -447,15 +479,15 @@ export default function UserManagement() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
                 <div className="space-y-2 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-3">
                   {permissions.map((permission) => (
-                    <div key={permission} className="flex items-center">
+                    <div key={permission.id} className="flex items-center">
                       <input
                         type="checkbox"
-                        id={permission}
-                        checked={newRole.permissions.includes(permission)}
-                        onChange={() => togglePermission(permission)}
+                        id={permission.id}
+                        checked={newRole.permissions.includes(permission.id)}
+                        onChange={() => togglePermission(permission.id)}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
-                      <label htmlFor={permission} className="ml-2 text-sm text-gray-700">{permission}</label>
+                      <label htmlFor={permission.id} className="ml-2 text-sm text-gray-700">{permission.description}</label>
                     </div>
                   ))}
                 </div>
@@ -477,9 +509,7 @@ export default function UserManagement() {
       <ConfirmDialog
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={() => {
-          console.log('Deleting user:', userToDelete?.id);
-        }}
+        onConfirm={handleDeleteUser}
         title="Delete User"
         message={`Are you sure you want to delete ${userToDelete?.name}? This action cannot be undone.`}
         confirmText="Delete"
@@ -492,11 +522,19 @@ export default function UserManagement() {
             isOpen={showEditUser}
             onClose={() => setShowEditUser(false)}
             userId={selectedUser}
+            onSuccess={() => {
+              loadUsers();
+              loadStats();
+            }}
           />
           <ResetPasswordModal
             isOpen={showResetPassword}
             onClose={() => setShowResetPassword(false)}
             userId={selectedUser}
+            onSuccess={() => {
+              setShowSuccess(true);
+              setTimeout(() => setShowSuccess(false), 3000);
+            }}
           />
         </>
       )}
@@ -515,10 +553,10 @@ export default function UserManagement() {
             </div>
 
             <div className="space-y-2">
-              {permissions.map((permission, index) => (
+              {(rolePermissionsMap[showPermissions] || []).map((permission, index) => (
                 <div key={index} className="flex items-center text-sm text-gray-700 p-2 bg-gray-50 rounded">
                   <i className="ri-check-line text-green-500 mr-2"></i>
-                  {permission}
+                  {permission.description}
                 </div>
               ))}
             </div>

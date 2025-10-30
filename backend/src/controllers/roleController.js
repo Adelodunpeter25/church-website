@@ -5,8 +5,9 @@ export const getRoles = async (req, res) => {
     console.log('Fetching roles...');
     const result = await pool.query(`
       SELECT 
-        role as name,
-        array_agg(p.name) as permissions
+        role as value,
+        role as label,
+        COUNT(DISTINCT p.id) as permission_count
       FROM role_permissions rp
       JOIN permissions p ON rp.permission_id = p.id
       GROUP BY role
@@ -16,6 +17,36 @@ export const getRoles = async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Get roles error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getPermissions = async (req, res) => {
+  try {
+    console.log('Fetching permissions...');
+    const result = await pool.query('SELECT * FROM permissions ORDER BY name');
+    console.log(`Found ${result.rows.length} permissions`);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get permissions error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getRolePermissions = async (req, res) => {
+  try {
+    console.log('Fetching permissions for role:', req.params.role);
+    const result = await pool.query(`
+      SELECT p.* 
+      FROM permissions p
+      JOIN role_permissions rp ON p.id = rp.permission_id
+      WHERE rp.role = $1
+      ORDER BY p.name
+    `, [req.params.role]);
+    console.log(`Found ${result.rows.length} permissions`);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get role permissions error:', error.message);
     res.status(500).json({ error: error.message });
   }
 };

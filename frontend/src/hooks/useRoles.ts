@@ -16,5 +16,11 @@ export const useRoles = () => {
   const deleteRole = (id: string) =>
     api.delete(`/roles/${id}`);
 
-  return { getRoles, getRole, createRole, updateRole, deleteRole };
+  const getPermissions = () =>
+    api.get('/roles/permissions');
+
+  const getRolePermissions = (role: string) =>
+    api.get(`/roles/${role}/permissions`);
+
+  return { getRoles, getRole, createRole, updateRole, deleteRole, getPermissions, getRolePermissions };
 };
