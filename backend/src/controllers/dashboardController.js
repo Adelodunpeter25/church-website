@@ -4,19 +4,19 @@ export const getDashboardStats = async (req, res) => {
   try {
     console.log('Fetching dashboard stats...');
     const totalMembers = await pool.query(`
-      SELECT COUNT(*) as count FROM members WHERE membership_status = 'active'
+      SELECT COUNT(*) as count FROM users WHERE membership_status = 'active' AND role = 'member'
     `);
     const newMembersThisWeek = await pool.query(`
-      SELECT COUNT(*) as count FROM members 
-      WHERE date_joined >= CURRENT_DATE - INTERVAL '7 days'
+      SELECT COUNT(*) as count FROM users 
+      WHERE date_joined >= CURRENT_DATE - INTERVAL '7 days' AND role = 'member'
     `);
 
     const thisWeekAttendance = await pool.query(`
-      SELECT COUNT(DISTINCT member_id) as count FROM attendance 
+      SELECT COUNT(DISTINCT user_id) as count FROM attendance 
       WHERE date >= CURRENT_DATE - INTERVAL '7 days' AND present = true
     `);
     const lastWeekAttendance = await pool.query(`
-      SELECT COUNT(DISTINCT member_id) as count FROM attendance 
+      SELECT COUNT(DISTINCT user_id) as count FROM attendance 
       WHERE date >= CURRENT_DATE - INTERVAL '14 days' 
       AND date < CURRENT_DATE - INTERVAL '7 days' AND present = true
     `);
@@ -83,7 +83,7 @@ export const getRecentActivity = async (req, res) => {
     console.log('Fetching recent activity...');
     const activities = await pool.query(`
       (
-        SELECT 'member' as type, name as title, date_joined as date FROM members ORDER BY date_joined DESC LIMIT 5
+        SELECT 'member' as type, name as title, date_joined as date FROM users WHERE role = 'member' ORDER BY date_joined DESC LIMIT 5
       )
       UNION ALL
       (
@@ -111,21 +111,21 @@ export const getMemberStats = async (req, res) => {
     
     const attendanceCount = await pool.query(
       `SELECT COUNT(*) as count FROM attendance 
-       WHERE member_id = $1 AND present = true 
+       WHERE user_id = $1 AND present = true 
        AND EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)`,
       [req.params.memberId]
     );
     
     const givingTotal = await pool.query(
       `SELECT COALESCE(SUM(amount), 0) as total FROM giving 
-       WHERE member_id = $1 
+       WHERE user_id = $1 
        AND EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)`,
       [req.params.memberId]
     );
     
     const eventsCount = await pool.query(
       `SELECT COUNT(*) as count FROM event_registrations 
-       WHERE member_id = $1 AND attended = true`,
+       WHERE user_id = $1 AND attended = true`,
       [req.params.memberId]
     );
 

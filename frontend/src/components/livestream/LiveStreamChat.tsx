@@ -1,24 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLivestream } from '@/hooks/useLivestream';
+import { useAuth } from '@/context/AuthContext';
 
 interface Message {
-  id: number;
-  user: string;
+  id: string;
+  user_name: string;
   text: string;
-  time: string;
+  created_at: string;
 }
 
-export default function LiveStreamChat() {
-  const [messages] = useState<Message[]>([
-    { id: 1, user: 'John D.', text: 'Praise the Lord!', time: '10:05 AM' },
-    { id: 2, user: 'Sarah M.', text: 'Amen! Great message today', time: '10:07 AM' },
-    { id: 3, user: 'Michael K.', text: 'Blessed to be here', time: '10:10 AM' },
-  ]);
+interface LiveStreamChatProps {
+  streamId?: string;
+}
+
+export default function LiveStreamChat({ streamId }: LiveStreamChatProps) {
+  const { user } = useAuth();
+  const { getChatMessages, sendChatMessage } = useLivestream();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
 
-  const handleSend = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (streamId) {
+      loadMessages();
+      const interval = setInterval(loadMessages, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [streamId]);
+
+  const loadMessages = async () => {
+    if (!streamId) return;
+    try {
+      const data = await getChatMessages(streamId, 50);
+      setMessages(data);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  };
+
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim()) {
-      setNewMessage('');
+    if (newMessage.trim() && streamId && user) {
+      try {
+        await sendChatMessage(streamId, {
+          user_id: user.id,
+          user_name: user.name,
+          text: newMessage
+        });
+        setNewMessage('');
+        loadMessages();
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
     }
   };
 
@@ -29,15 +61,19 @@ export default function LiveStreamChat() {
       </div>
       
       <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2 sm:space-y-3">
-        {messages.map((msg) => (
+        {messages.length > 0 ? messages.map((msg) => (
           <div key={msg.id} className="bg-gray-50 rounded-lg p-2 sm:p-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="font-semibold text-sm">{msg.user}</span>
-              <span className="text-xs text-gray-500">{msg.time}</span>
+              <span className="font-semibold text-sm">{msg.user_name}</span>
+              <span className="text-xs text-gray-500">{new Date(msg.created_at).toLocaleTimeString()}</span>
             </div>
             <p className="text-sm text-gray-700">{msg.text}</p>
           </div>
-        ))}
+        )) : (
+          <div className="text-center text-gray-500 py-8">
+            <p className="text-sm">No messages yet. Be the first to chat!</p>
+          </div>
+        )}
       </div>
       
       <form onSubmit={handleSend} className="p-3 sm:p-4 border-t">

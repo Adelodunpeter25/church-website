@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 
 interface LiveStreamPlayerProps {
   isLive: boolean;
+  title?: string;
+  streamUrl?: string;
 }
 
-export default function LiveStreamPlayer({ isLive }: LiveStreamPlayerProps) {
+export default function LiveStreamPlayer({ isLive, title, streamUrl }: LiveStreamPlayerProps) {
   const [volume, setVolume] = useState(70);
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -21,7 +23,7 @@ export default function LiveStreamPlayer({ isLive }: LiveStreamPlayerProps) {
             <div className="text-white text-center">
               <i className="ri-radio-line text-6xl mb-4"></i>
               <p className="text-xl font-semibold">Audio Stream Active</p>
-              <p className="text-sm mt-2 text-blue-100">Sunday Morning Service</p>
+              <p className="text-sm mt-2 text-blue-100">{title || 'Sunday Morning Service'}</p>
             </div>
           </>
         ) : (

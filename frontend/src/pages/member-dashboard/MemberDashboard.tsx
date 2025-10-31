@@ -1,8 +1,11 @@
 
 
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
+import { useMemberDashboard } from '@/hooks/useMemberDashboard';
+import { useLivestream } from '@/hooks/useLivestream';
 import EventRegistrationModal from '@/components/modals/EventRegistrationModal';
 import EventDetailsModal from '@/components/modals/EventDetailsModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
@@ -13,7 +16,39 @@ import LiveStreamInfo from '@/components/livestream/LiveStreamInfo';
 import LiveStreamChat from '@/components/livestream/LiveStreamChat';
 
 export default function MemberDashboard() {
+  const { user } = useAuth();
+  const { stats, recentSermons, upcomingEvents, loading } = useMemberDashboard(user?.id || '');
+  const { getCurrentLivestream, getStreamStats } = useLivestream();
   const [activeTab, setActiveTab] = useState('overview');
+  const [currentStream, setCurrentStream] = useState<any>(null);
+  const [streamStats, setStreamStats] = useState<any>(null);
+  const [loadingStream, setLoadingStream] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'livestream') {
+      loadLivestream();
+    }
+  }, [activeTab]);
+
+  const loadLivestream = async () => {
+    setLoadingStream(true);
+    try {
+      const stream = await getCurrentLivestream();
+      if (stream && stream.id) {
+        setCurrentStream(stream);
+        const stats = await getStreamStats(stream.id);
+        setStreamStats(stats);
+      } else {
+        setCurrentStream(null);
+        setStreamStats(null);
+      }
+    } catch (error) {
+      console.error('Error loading livestream:', error);
+      setCurrentStream(null);
+    } finally {
+      setLoadingStream(false);
+    }
+  };
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -67,7 +102,7 @@ export default function MemberDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Welcome back, John!</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Welcome back, {user?.name?.split(' ')[0] || 'Member'}!</h1>
           <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">Stay connected with your church community</p>
         </div>
 
@@ -103,106 +138,121 @@ export default function MemberDashboard() {
           <div className="p-4 sm:p-6">
             {activeTab === 'overview' && (
               <div className="space-y-6">
-                {/* Quick Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-                  <div className="bg-blue-50 rounded-lg p-6">
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <i className="ri-calendar-check-line text-blue-600 text-xl"></i>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-blue-600">Attendance This Year</p>
-                        <p className="text-2xl font-bold text-blue-900">42 Services</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-green-50 rounded-lg p-6">
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                        <i className="ri-hand-heart-line text-green-600 text-xl"></i>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-green-600">Total Giving</p>
-                        <p className="text-2xl font-bold text-green-900">$2,450</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-purple-50 rounded-lg p-6">
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <i className="ri-group-line text-purple-600 text-xl"></i>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-purple-600">Events Attended</p>
-                        <p className="text-2xl font-bold text-purple-900">15 Events</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Recent Activity */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Sermons</h3>
-                    <div className="space-y-4">
-                      {[
-                        { title: 'Walking in Faith - Part 3', date: 'Jan 14, 2025', duration: '42 min' },
-                        { title: 'The Power of Prayer', date: 'Jan 7, 2025', duration: '38 min' },
-                        { title: 'Love Your Neighbor', date: 'Dec 31, 2023', duration: '45 min' }
-                      ].map((sermon, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div>
-                            <p className="font-medium text-gray-900">{sermon.title}</p>
-                            <p className="text-sm text-gray-500">{sermon.date}</p>
+                {loading ? (
+                  <div className="text-center py-12">Loading...</div>
+                ) : (
+                  <>
+                    {/* Quick Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                      <div className="bg-blue-50 rounded-lg p-6">
+                        <div className="flex items-center">
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i className="ri-calendar-check-line text-blue-600 text-xl"></i>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-xs text-gray-500">{sermon.duration}</span>
-                            <button className="text-blue-600 hover:text-blue-800 cursor-pointer">
-                              <i className="ri-play-line"></i>
-                            </button>
+                          <div className="ml-4">
+                            <p className="text-sm font-medium text-blue-600">Attendance This Year</p>
+                            <p className="text-2xl font-bold text-blue-900">{stats.attendanceThisYear} Services</p>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                      </div>
 
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Events</h3>
-                    <div className="space-y-4">
-                      {[
-                        { title: 'Youth Retreat', date: 'Mar 15-17', type: 'Retreat' },
-                        { title: 'Community Outreach', date: 'Mar 22', type: 'Service' },
-                        { title: 'Easter Celebration', date: 'Mar 31', type: 'Special Service' }
-                      ].map((event, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div>
-                            <p className="font-medium text-gray-900">{event.title}</p>
-                            <p className="text-sm text-gray-500">{event.date}</p>
+                      <div className="bg-green-50 rounded-lg p-6">
+                        <div className="flex items-center">
+                          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i className="ri-hand-heart-line text-green-600 text-xl"></i>
                           </div>
-                          <div>
-                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                              {event.type}
-                            </span>
+                          <div className="ml-4">
+                            <p className="text-sm font-medium text-green-600">Total Giving</p>
+                            <p className="text-2xl font-bold text-green-900">₦{stats.totalGiving.toLocaleString()}</p>
                           </div>
                         </div>
-                      ))}
+                      </div>
+
+                      <div className="bg-purple-50 rounded-lg p-6">
+                        <div className="flex items-center">
+                          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i className="ri-group-line text-purple-600 text-xl"></i>
+                          </div>
+                          <div className="ml-4">
+                            <p className="text-sm font-medium text-purple-600">Events Attended</p>
+                            <p className="text-2xl font-bold text-purple-900">{stats.eventsAttended} Events</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+
+                    {/* Recent Activity */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Sermons</h3>
+                        <div className="space-y-4">
+                          {recentSermons.length > 0 ? recentSermons.map((sermon: any) => (
+                            <div key={sermon.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div>
+                                <p className="font-medium text-gray-900">{sermon.title}</p>
+                                <p className="text-sm text-gray-500">{new Date(sermon.date).toLocaleDateString()}</p>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs text-gray-500">{sermon.duration}</span>
+                                <button className="text-blue-600 hover:text-blue-800 cursor-pointer">
+                                  <i className="ri-play-line"></i>
+                                </button>
+                              </div>
+                            </div>
+                          )) : (
+                            <p className="text-gray-500 text-center py-4">No recent sermons</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Events</h3>
+                        <div className="space-y-4">
+                          {upcomingEvents.length > 0 ? upcomingEvents.map((event: any) => (
+                            <div key={event.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div>
+                                <p className="font-medium text-gray-900">{event.title}</p>
+                                <p className="text-sm text-gray-500">{new Date(event.date).toLocaleDateString()}</p>
+                              </div>
+                              <div>
+                                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                  {event.type}
+                                </span>
+                              </div>
+                            </div>
+                          )) : (
+                            <p className="text-gray-500 text-center py-4">No upcoming events</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
             {activeTab === 'livestream' && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-                <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-                  <LiveStreamPlayer isLive={true} />
-                  <LiveStreamInfo isLive={true} viewers={245} />
-                </div>
-                <div>
-                  <LiveStreamChat />
-                </div>
+              <div>
+                {loadingStream ? (
+                  <div className="text-center py-12">Loading stream...</div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                    <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+                      <LiveStreamPlayer 
+                        isLive={currentStream?.is_live || false} 
+                        title={currentStream?.title}
+                        streamUrl={currentStream?.stream_url}
+                      />
+                      <LiveStreamInfo 
+                        isLive={currentStream?.is_live || false} 
+                        viewers={streamStats?.current_viewers || 0} 
+                      />
+                    </div>
+                    <div>
+                      <LiveStreamChat streamId={currentStream?.id} />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
