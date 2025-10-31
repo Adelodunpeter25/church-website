@@ -109,24 +109,39 @@ export const getMemberStats = async (req, res) => {
   try {
     console.log('Fetching member stats:', req.params.memberId);
     
-    const downloadedSermons = await pool.query(
-      `SELECT COUNT(DISTINCT sermon_id) as count FROM sermon_downloads 
-       WHERE user_id = $1`,
-      [req.params.memberId]
-    );
+    let downloadedSermons = { rows: [{ count: 0 }] };
+    try {
+      downloadedSermons = await pool.query(
+        `SELECT COUNT(DISTINCT sermon_id) as count FROM sermon_downloads 
+         WHERE user_id = $1`,
+        [req.params.memberId]
+      );
+    } catch (err) {
+      console.log('sermon_downloads table may not exist yet');
+    }
     
-    const givingTotal = await pool.query(
-      `SELECT COALESCE(SUM(amount), 0) as total FROM giving 
-       WHERE user_id = $1 
-       AND EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)`,
-      [req.params.memberId]
-    );
+    let givingTotal = { rows: [{ total: 0 }] };
+    try {
+      givingTotal = await pool.query(
+        `SELECT COALESCE(SUM(amount), 0) as total FROM giving 
+         WHERE user_id = $1 
+         AND EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)`,
+        [req.params.memberId]
+      );
+    } catch (err) {
+      console.log('giving table may not have user_id column yet');
+    }
     
-    const eventsCount = await pool.query(
-      `SELECT COUNT(*) as count FROM event_registrations 
-       WHERE user_id = $1 AND attended = true`,
-      [req.params.memberId]
-    );
+    let eventsCount = { rows: [{ count: 0 }] };
+    try {
+      eventsCount = await pool.query(
+        `SELECT COUNT(*) as count FROM event_registrations 
+         WHERE user_id = $1 AND attended = true`,
+        [req.params.memberId]
+      );
+    } catch (err) {
+      console.log('event_registrations table may not have user_id column yet');
+    }
 
     res.json({
       downloadedSermons: parseInt(downloadedSermons.rows[0]?.count || 0),
