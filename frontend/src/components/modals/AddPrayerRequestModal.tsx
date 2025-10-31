@@ -1,22 +1,42 @@
 import React, { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { usePrayers } from '@/hooks/usePrayers';
 
 interface AddPrayerRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export default function AddPrayerRequestModal({ isOpen, onClose }: AddPrayerRequestModalProps) {
+export default function AddPrayerRequestModal({ isOpen, onClose, onSuccess }: AddPrayerRequestModalProps) {
+  const { user } = useAuth();
+  const { createPrayerRequest } = usePrayers();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Prayer request submitted:', { title, description, isPrivate });
-    setTitle('');
-    setDescription('');
-    setIsPrivate(false);
-    onClose();
+    if (!user?.id) return;
+    setLoading(true);
+    try {
+      await createPrayerRequest({
+        member_id: user.id,
+        title,
+        description,
+        status: 'active'
+      });
+      setTitle('');
+      setDescription('');
+      setIsPrivate(false);
+      onSuccess?.();
+      onClose();
+    } catch (error) {
+      console.error('Error creating prayer request:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -85,9 +105,10 @@ export default function AddPrayerRequestModal({ isOpen, onClose }: AddPrayerRequ
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              disabled={loading}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Submit Request
+              {loading ? 'Submitting...' : 'Submit Request'}
             </button>
           </div>
         </form>

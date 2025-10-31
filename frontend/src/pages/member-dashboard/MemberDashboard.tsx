@@ -11,6 +11,8 @@ import LiveStreamPlayer from '@/components/livestream/LiveStreamPlayer';
 import LiveStreamInfo from '@/components/livestream/LiveStreamInfo';
 import LiveStreamChat from '@/components/livestream/LiveStreamChat';
 import MemberEvents from './MemberEvents';
+import MemberGiving from './MemberGiving';
+import MemberPrayer from './MemberPrayer';
 
 export default function MemberDashboard() {
   const { user } = useAuth();
@@ -46,9 +48,7 @@ export default function MemberDashboard() {
       setLoadingStream(false);
     }
   };
-  const [showPrayerModal, setShowPrayerModal] = useState(false);
-  const [showPrayerDetailsModal, setShowPrayerDetailsModal] = useState(false);
-  const [selectedPrayerRequest, setSelectedPrayerRequest] = useState<any>(null);
+
   const [sermonSearchTerm, setSermonSearchTerm] = useState('');
   const [sermons, setSermons] = useState<any[]>([]);
   const [loadingSermons, setLoadingSermons] = useState(false);
@@ -341,177 +341,12 @@ export default function MemberDashboard() {
 
             {activeTab === 'events' && <MemberEvents />}
 
-            {activeTab === 'giving' && (
-              <div>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                  <div className="lg:col-span-2">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-6">Giving History</h3>
-                    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                      <table className="min-w-full">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Method</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
-                          {[
-                            { date: 'Jan 14, 2025', type: 'Tithe', amount: '$250', method: 'Online' },
-                            { date: 'Jan 7, 2025', type: 'Tithe', amount: '$250', method: 'Online' },
-                            { date: 'Dec 31, 2023', type: 'Special Offering', amount: '$100', method: 'Cash' },
-                            { date: 'Dec 24, 2023', type: 'Tithe', amount: '$250', method: 'Online' }
-                          ].map((giving, index) => (
-                            <tr key={index}>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{giving.date}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{giving.type}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">{giving.amount}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{giving.method}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+            {activeTab === 'giving' && <MemberGiving />}
 
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-6">Quick Give</h3>
-                    <div className="bg-white border border-gray-200 rounded-lg p-6">
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Giving Type</label>
-                          <select className="w-full pr-8 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option>Tithe</option>
-                            <option>Offering</option>
-                            <option>Missions</option>
-                            <option>Building Fund</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
-                          <input
-                            type="number"
-                            placeholder="$0.00"
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-                        <div className="grid grid-cols-3 gap-2">
-                          {['$50', '$100', '$250'].map((amount) => (
-                            <button key={amount} className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
-                              {amount}
-                            </button>
-                          ))}
-                        </div>
-                        <button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold cursor-pointer whitespace-nowrap">
-                          Give Now
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="mt-6 bg-blue-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-blue-900 mb-2">2025 Giving Summary</h4>
-                      <p className="text-sm text-blue-700">Total Given: <span className="font-bold">$2,450</span></p>
-                      <p className="text-xs text-blue-600 mt-1">Tax statement available in January</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'prayer' && (
-              <div>
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900">Prayer Requests</h3>
-                  <button 
-                    onClick={() => setShowPrayerModal(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm cursor-pointer whitespace-nowrap"
-                  >
-                    Add Prayer Request
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-4">My Prayer Requests</h4>
-                    <div className="space-y-4">
-                      {[
-                        { title: 'Health and healing for my mother', date: 'Jan 10, 2025', status: 'Active', prayers: 24 },
-                        { title: 'Job interview success', date: 'Dec 15, 2023', status: 'Answered', prayers: 18 },
-                        { title: 'Guidance in life decisions', date: 'Nov 28, 2023', status: 'Active', prayers: 31 }
-                      ].map((request, index) => (
-                        <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <h5 className="font-medium text-gray-900 mb-1">{request.title}</h5>
-                              <p className="text-sm text-gray-500">{request.date}</p>
-                            </div>
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              request.status === 'Answered' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-blue-100 text-blue-800'
-                            }`}>
-                              {request.status}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">{request.prayers} people praying</span>
-                            <button 
-                              onClick={() => {
-                                setSelectedPrayerRequest(request);
-                                setShowPrayerDetailsModal(true);
-                              }}
-                              className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer"
-                            >
-                              View Details
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-4">Community Prayer Wall</h4>
-                    <div className="space-y-4">
-                      {[
-                        { title: 'Prayers for our church building project', author: 'Pastor David', date: 'Jan 12, 2025', prayers: 67 },
-                        { title: 'Healing for the Johnson family', author: 'Mary S.', date: 'Jan 11, 2025', prayers: 43 },
-                        { title: 'Safe travels for missions team', author: 'Youth Ministry', date: 'Jan 9, 2025', prayers: 29 }
-                      ].map((request, index) => (
-                        <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
-                          <div className="mb-3">
-                            <h5 className="font-medium text-gray-900 mb-1">{request.title}</h5>
-                            <p className="text-sm text-gray-500">by {request.author} • {request.date}</p>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">{request.prayers} prayers</span>
-                            <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm cursor-pointer whitespace-nowrap">
-                              <i className="ri-heart-line mr-1"></i>
-                              Pray
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            {activeTab === 'prayer' && <MemberPrayer />}
           </div>
         </div>
       </div>
-
-      <AddPrayerRequestModal
-        isOpen={showPrayerModal}
-        onClose={() => setShowPrayerModal(false)}
-      />
-
-      <PrayerRequestDetailsModal
-        isOpen={showPrayerDetailsModal}
-        onClose={() => setShowPrayerDetailsModal(false)}
-        request={selectedPrayerRequest}
-      />
 
       <AudioPlayer 
         sermon={currentSermon} 
