@@ -28,6 +28,9 @@ export const useLivestream = () => {
   const sendChatMessage = (id: string, data: any) =>
     api.post(`/livestreams/${id}/chat`, data);
 
+  const deleteChatMessage = (id: string, messageId: string) =>
+    api.delete(`/livestreams/${id}/chat/${messageId}`);
+
   const getViewers = (id: string) =>
     api.get(`/livestreams/${id}/viewers`);
 
@@ -56,6 +59,7 @@ export const useLivestream = () => {
     updateViewerCount, 
     getChatMessages, 
     sendChatMessage, 
+    deleteChatMessage, 
     getViewers, 
     addViewer, 
     removeViewer, 

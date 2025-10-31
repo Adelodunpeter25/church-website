@@ -8,12 +8,12 @@ interface LiveStreamChatProps {
 }
 
 export default function LiveStreamChat({ streamId, isLive }: LiveStreamChatProps) {
-  const { getChatMessages } = useLivestream();
+  const { getChatMessages, deleteChatMessage } = useLivestream();
   const { user } = useAuth();
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -60,7 +60,9 @@ export default function LiveStreamChat({ streamId, isLive }: LiveStreamChatProps
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -84,6 +86,16 @@ export default function LiveStreamChat({ streamId, isLive }: LiveStreamChatProps
     }
   };
 
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!streamId) return;
+    try {
+      await deleteChatMessage(streamId, messageId);
+      setMessages(prev => prev.filter(msg => msg.id !== messageId));
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    }
+  };
+
   if (!isLive) {
     return (
       <div className="bg-white shadow-sm rounded-lg p-6">
@@ -102,9 +114,9 @@ export default function LiveStreamChat({ streamId, isLive }: LiveStreamChatProps
         <p className="text-sm text-gray-500">{messages.length} messages</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
         {messages.map((message) => (
-          <div key={message.id} className="flex items-start space-x-2">
+          <div key={message.id} className="group flex items-start space-x-2 hover:bg-gray-50 -mx-2 px-2 py-1 rounded">
             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-xs font-semibold text-blue-600">
                 {message.user_name.charAt(0).toUpperCase()}
@@ -119,9 +131,15 @@ export default function LiveStreamChat({ streamId, isLive }: LiveStreamChatProps
               </div>
               <p className="text-sm text-gray-700 break-words">{message.text}</p>
             </div>
+            <button
+              onClick={() => handleDeleteMessage(message.id)}
+              className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-opacity"
+              title="Delete message"
+            >
+              <i className="ri-delete-bin-line text-sm"></i>
+            </button>
           </div>
         ))}
-        <div ref={messagesEndRef} />
       </div>
 
       <div className="px-6 py-4 border-t border-gray-200">

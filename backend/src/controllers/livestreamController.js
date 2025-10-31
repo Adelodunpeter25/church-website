@@ -240,6 +240,17 @@ export const unbanViewer = async (req, res) => {
   }
 };
 
+export const deleteChatMessage = async (req, res) => {
+  try {
+    console.log('Deleting chat message:', req.params.messageId);
+    await pool.query('DELETE FROM chat_messages WHERE id = $1', [req.params.messageId]);
+    res.json({ message: 'Message deleted' });
+  } catch (error) {
+    console.error('Delete chat message error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const streamAudio = async (req, res) => {
   try {
     res.json({ success: true });
