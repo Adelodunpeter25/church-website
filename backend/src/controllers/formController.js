@@ -142,10 +142,22 @@ export const submitFormResponse = async (req, res) => {
     console.log('Submitting form response:', req.params.id);
     const { member_id, responses } = req.body;
 
+    // Get form fields to map field IDs to names
+    const formResult = await pool.query('SELECT fields FROM forms WHERE id = $1', [req.params.id]);
+    const fields = formResult.rows[0]?.fields || [];
+    
+    // Convert field IDs to field names in responses
+    const namedResponses = {};
+    Object.entries(responses).forEach(([fieldId, value]) => {
+      const field = fields.find(f => f.id === fieldId);
+      const fieldName = field?.name || fieldId;
+      namedResponses[fieldName] = value;
+    });
+
     const result = await pool.query(
       `INSERT INTO form_responses (form_id, member_id, responses)
        VALUES ($1, $2, $3) RETURNING *`,
-      [req.params.id, member_id || null, JSON.stringify(responses)]
+      [req.params.id, member_id || null, JSON.stringify(namedResponses)]
     );
 
     await pool.query('UPDATE forms SET responses = responses + 1 WHERE id = $1', [req.params.id]);
@@ -209,6 +221,38 @@ export const exportFormResponses = async (req, res) => {
     res.json({ data: result.rows, count: result.rows.length });
   } catch (error) {
     console.error('Export form responses error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const exportForms = async (req, res) => {
+  try {
+    console.log('Exporting forms');
+    const { formIds, format } = req.body;
+
+    const result = await pool.query(
+      `SELECT f.*, 
+        (SELECT COUNT(*) FROM form_responses WHERE form_id = f.id) as response_count
+       FROM forms f 
+       WHERE f.id = ANY($1) 
+       ORDER BY f.created_at DESC`,
+      [formIds]
+    );
+
+    if (format === 'csv') {
+      let csv = 'ID,Title,Description,Type,Status,Responses,Created At\n';
+      result.rows.forEach(form => {
+        csv += `${form.id},"${form.title}","${form.description || ''}",${form.type},${form.status},${form.response_count},${form.created_at}\n`;
+      });
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=forms-export-${Date.now()}.csv`);
+      res.send(csv);
+    } else {
+      res.status(400).json({ error: 'PDF export not yet implemented' });
+    }
+  } catch (error) {
+    console.error('Export forms error:', error.message);
     res.status(500).json({ error: error.message });
   }
 };

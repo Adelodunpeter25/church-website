@@ -1,13 +1,19 @@
+import { useState } from 'react';
+
 interface ShareFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  formId: number;
+  formId: string;
 }
 
 export default function ShareFormModal({ isOpen, onClose, formId }: ShareFormModalProps) {
+  const [copied, setCopied] = useState(false);
+  const formLink = `${window.location.origin}/forms/${formId}`;
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(`https://church.com/forms/${formId}`);
-    alert('Link copied to clipboard!');
+    navigator.clipboard.writeText(formLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   if (!isOpen) return null;
@@ -18,41 +24,56 @@ export default function ShareFormModal({ isOpen, onClose, formId }: ShareFormMod
         <div className="fixed inset-0 transition-opacity" onClick={onClose}>
           <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
         </div>
-        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Share Form</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <i className="ri-close-line text-xl"></i>
-            </button>
+        <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+        <div className="inline-block align-bottom bg-white rounded-xl px-4 pt-5 pb-4 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-0">
+          <div className="bg-white px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">Share Form</h3>
+              <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <i className="ri-close-line text-2xl"></i>
+              </button>
+            </div>
           </div>
-          <div className="space-y-4">
+          
+          <div className="px-6 py-6 space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Form Link</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Form Link</label>
               <div className="flex">
                 <input
                   type="text"
-                  value={`https://church.com/forms/${formId}`}
+                  value={formLink}
                   readOnly
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md bg-gray-50"
+                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-l-lg bg-gray-50 text-sm"
                 />
                 <button 
                   onClick={handleCopy}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700"
+                  className="px-6 py-2.5 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors font-semibold text-sm"
                 >
-                  Copy
+                  {copied ? (
+                    <span className="flex items-center">
+                      <i className="ri-check-line mr-1"></i>
+                      Copied
+                    </span>
+                  ) : (
+                    <span className="flex items-center">
+                      <i className="ri-file-copy-line mr-1"></i>
+                      Copy
+                    </span>
+                  )}
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <button className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
-                <i className="ri-mail-line mr-2"></i>
-                Email
-              </button>
-              <button className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
-                <i className="ri-qr-code-line mr-2"></i>
-                QR Code
-              </button>
-            </div>
+
+
+          </div>
+
+          <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+            <button
+              onClick={onClose}
+              className="w-full px-4 py-2.5 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>

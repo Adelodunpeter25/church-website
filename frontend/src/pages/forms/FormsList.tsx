@@ -25,6 +25,7 @@ export default function FormsList({ filterStatus }: FormsListProps) {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDeleteSelectedConfirm, setShowDeleteSelectedConfirm] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [selectedForm, setSelectedForm] = useState<string | null>(null);
   const [formToDelete, setFormToDelete] = useState<string | null>(null);
 
@@ -37,8 +38,8 @@ export default function FormsList({ filterStatus }: FormsListProps) {
       setLoading(true);
       const params: any = {};
       if (filterStatus !== 'all') params.status = filterStatus;
-      const data = await getForms(params);
-      setForms(Array.isArray(data) ? data : []);
+      const response = await getForms(params);
+      setForms(response.data || []);
     } catch (error) {
       console.error('Error fetching forms:', error);
       setForms([]);
@@ -159,6 +160,11 @@ const oldForms = [
   };
 
   const handleShare = (id: string) => {
+    const form = forms.find(f => f.id === id);
+    if (form?.status !== 'active') {
+      alert('Only active forms can be shared');
+      return;
+    }
     setSelectedForm(id);
     setShowShareModal(true);
   };
@@ -168,8 +174,36 @@ const oldForms = [
   };
 
   const handleExportData = () => {
-    console.log('Exporting data for forms:', selectedForms);
-    alert('Export functionality would download CSV/Excel file');
+    setShowExportModal(true);
+  };
+
+  const handleExport = async (format: 'csv' | 'pdf') => {
+    try {
+      setShowExportModal(false);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/forms/export`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ formIds: selectedForms, format })
+      });
+      
+      if (!response.ok) throw new Error('Export failed');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `forms-export-${Date.now()}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export forms');
+    }
   };
 
   const filteredForms = forms;
@@ -262,7 +296,7 @@ const oldForms = [
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(form.type)}`}>
                       {form.type}
                     </span>
-                    {form.isPublic && (
+                    {form.is_public && (
                       <span className="inline-flex px-2 py-1 text-xs bg-blue-50 text-blue-600 rounded-full">
                         Public
                       </span>
@@ -310,12 +344,8 @@ const oldForms = [
                     {form.responses} responses
                   </div>
                   <div className="flex items-center">
-                    <i className="ri-user-line mr-2"></i>
-                    Created by {form.author}
-                  </div>
-                  <div className="flex items-center">
                     <i className="ri-calendar-line mr-2"></i>
-                    Created {new Date(form.createdDate).toLocaleDateString()}
+                    Created {new Date(form.created_at).toLocaleDateString()}
                   </div>
                   {form.deadline && (
                     <div className="flex items-center">
@@ -408,6 +438,7 @@ const oldForms = [
             isOpen={showEditModal}
             onClose={() => setShowEditModal(false)}
             formId={selectedForm}
+            onSuccess={fetchForms}
           />
           <ViewResponsesModal
             isOpen={showResponsesModal}
@@ -420,6 +451,71 @@ const oldForms = [
             formId={selectedForm}
           />
         </>
+      )}
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 transition-opacity" onClick={() => setShowExportModal(false)}>
+              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            <div className="inline-block align-bottom bg-white rounded-xl px-4 pt-5 pb-4 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full sm:p-0">
+              <div className="bg-white px-6 py-4 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-gray-900">Export Forms</h3>
+                  <button onClick={() => setShowExportModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i className="ri-close-line text-2xl"></i>
+                  </button>
+                </div>
+              </div>
+              <div className="px-6 py-6">
+                <p className="text-sm text-gray-600 mb-6">Choose export format for {selectedForms.length} selected form(s)</p>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => handleExport('csv')}
+                    className="w-full flex items-center justify-between px-4 py-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all group"
+                  >
+                    <div className="flex items-center">
+                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                        <i className="ri-file-excel-2-line text-2xl text-green-600"></i>
+                      </div>
+                      <div className="ml-4 text-left">
+                        <p className="text-sm font-semibold text-gray-900">CSV Format</p>
+                        <p className="text-xs text-gray-500">Excel compatible spreadsheet</p>
+                      </div>
+                    </div>
+                    <i className="ri-arrow-right-line text-gray-400 group-hover:text-blue-600"></i>
+                  </button>
+                  <button
+                    onClick={() => handleExport('pdf')}
+                    className="w-full flex items-center justify-between px-4 py-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all group"
+                  >
+                    <div className="flex items-center">
+                      <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                        <i className="ri-file-pdf-line text-2xl text-red-600"></i>
+                      </div>
+                      <div className="ml-4 text-left">
+                        <p className="text-sm font-semibold text-gray-900">PDF Format</p>
+                        <p className="text-xs text-gray-500">Portable document format</p>
+                      </div>
+                    </div>
+                    <i className="ri-arrow-right-line text-gray-400 group-hover:text-blue-600"></i>
+                  </button>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <button
+                  onClick={() => setShowExportModal(false)}
+                  className="w-full px-4 py-2.5 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

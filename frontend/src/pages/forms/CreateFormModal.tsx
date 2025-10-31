@@ -24,14 +24,7 @@ export default function CreateFormModal({ isOpen, onClose, onSuccess }: CreateFo
     template: 'blank'
   });
 
-  const templates = [
-    { id: 'blank', name: 'Blank Form', description: 'Start from scratch with a blank form' },
-    { id: 'event', name: 'Event Registration', description: 'Form for event registration with common fields' },
-    { id: 'membership', name: 'Membership Application', description: 'Comprehensive membership form template' },
-    { id: 'volunteer', name: 'Volunteer Sign-up', description: 'Form for volunteer opportunities and availability' },
-    { id: 'survey', name: 'Survey Template', description: 'Basic survey form with rating and feedback fields' },
-    { id: 'contact', name: 'Contact Information', description: 'Simple contact information collection form' }
-  ];
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,43 +145,7 @@ export default function CreateFormModal({ isOpen, onClose, onSuccess }: CreateFo
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Choose Template
-              </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {templates.map((template) => (
-                  <div
-                    key={template.id}
-                    className={`relative cursor-pointer rounded-lg border p-4 ${
-                      formData.template === template.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-300 hover:border-gray-400'
-                    }`}
-                    onClick={() => setFormData(prev => ({ ...prev, template: template.id }))}
-                  >
-                    <div className="flex items-center">
-                      <input
-                        type="radio"
-                        name="template"
-                        value={template.id}
-                        checked={formData.template === template.id}
-                        onChange={handleChange}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                      />
-                      <div className="ml-3">
-                        <h4 className="text-sm font-medium text-gray-900">
-                          {template.name}
-                        </h4>
-                        <p className="text-xs text-gray-500">
-                          {template.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+
 
             <div className="border-t pt-6">
               <h4 className="text-sm font-medium text-gray-900 mb-4">Form Settings</h4>

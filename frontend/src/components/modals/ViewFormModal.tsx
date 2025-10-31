@@ -1,11 +1,36 @@
+import { useState, useEffect } from 'react';
+import { useForms } from '@/hooks/useForms';
+
 interface ViewFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit: () => void;
-  formId: number;
+  formId: string;
 }
 
 export default function ViewFormModal({ isOpen, onClose, onEdit, formId }: ViewFormModalProps) {
+  const { getForm } = useForms();
+  const [form, setForm] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (isOpen && formId) {
+      fetchForm();
+    }
+  }, [isOpen, formId]);
+
+  const fetchForm = async () => {
+    try {
+      setLoading(true);
+      const data = await getForm(formId);
+      setForm(data);
+    } catch (error) {
+      console.error('Error fetching form:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -22,31 +47,51 @@ export default function ViewFormModal({ isOpen, onClose, onEdit, formId }: ViewF
               <i className="ri-close-line text-xl"></i>
             </button>
           </div>
+          
+          {loading ? (
+            <div className="text-center py-12">Loading form...</div>
+          ) : form ? (
           <div className="space-y-6">
             <div className="bg-blue-50 border-l-4 border-blue-600 p-4">
               <p className="text-sm text-blue-800">This is a preview of how the form will appear to users</p>
             </div>
             
+            <div>
+              <h4 className="text-lg font-semibold text-gray-900">{form.title}</h4>
+              {form.description && (
+                <p className="text-sm text-gray-600 mt-1">{form.description}</p>
+              )}
+            </div>
+            
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Enter your full name" disabled />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                <input type="email" className="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="your.email@example.com" disabled />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                <input type="tel" className="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="(555) 123-4567" disabled />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
-                <textarea rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Your message here..." disabled></textarea>
-              </div>
+              {form.fields && form.fields.length > 0 ? (
+                form.fields.map((field: any) => (
+                  <div key={field.id}>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {field.name} {field.required && '*'}
+                    </label>
+                    {field.type === 'textarea' ? (
+                      <textarea 
+                        rows={4} 
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md" 
+                        placeholder={field.placeholder || ''}
+                        disabled 
+                      />
+                    ) : (
+                      <input 
+                        type={field.type || 'text'} 
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md" 
+                        placeholder={field.placeholder || ''}
+                        disabled 
+                      />
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  No fields added to this form yet
+                </div>
+              )}
             </div>
             
             <div className="flex justify-end space-x-3 pt-4 border-t">
@@ -58,6 +103,9 @@ export default function ViewFormModal({ isOpen, onClose, onEdit, formId }: ViewF
               </button>
             </div>
           </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500">Form not found</div>
+          )}
         </div>
       </div>
     </div>

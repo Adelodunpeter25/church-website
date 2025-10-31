@@ -17,6 +17,7 @@ import UserManagementPage from './pages/users/UserManagementPage'
 import ContentManagementPage from './pages/content/ContentManagementPage'
 import SettingsPage from './pages/settings/SettingsPage'
 import ProfilePage from './pages/profile/ProfilePage'
+import PublicFormPage from './pages/forms/PublicFormPage'
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/landing" replace />} />
         <Route path="/landing" element={<LandingPage />} />
+        <Route path="/forms/:id" element={<PublicFormPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

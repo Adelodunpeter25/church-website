@@ -1,31 +1,83 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useForms } from '@/hooks/useForms';
 
 interface EditFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  formId: number;
+  formId: string;
+  onSuccess?: () => void;
 }
 
 interface FormField {
-  id: number;
+  id: string;
   name: string;
   type: string;
 }
 
-export default function EditFormModal({ isOpen, onClose, formId }: EditFormModalProps) {
-  const [fields, setFields] = useState<FormField[]>([
-    { id: 1, name: 'Full Name', type: 'Text' },
-    { id: 2, name: 'Email Address', type: 'Email' },
-    { id: 3, name: 'Phone Number', type: 'Phone' },
-  ]);
-  const [editingField, setEditingField] = useState<number | null>(null);
+export default function EditFormModal({ isOpen, onClose, formId, onSuccess }: EditFormModalProps) {
+  const { getForm, updateForm } = useForms();
+  const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    type: 'registration',
+    status: 'active',
+    deadline: '',
+    is_public: true
+  });
+  const [fields, setFields] = useState<FormField[]>([]);
+  const [editingField, setEditingField] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editType, setEditType] = useState('');
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (isOpen && formId) {
+      fetchForm();
+    }
+  }, [isOpen, formId]);
+
+  const fetchForm = async () => {
+    try {
+      setLoadingData(true);
+      const form = await getForm(formId);
+      setFormData({
+        title: form.title || '',
+        description: form.description || '',
+        type: form.type || 'registration',
+        status: form.status || 'active',
+        deadline: form.deadline ? form.deadline.split('T')[0] : '',
+        is_public: form.is_public ?? true
+      });
+      setFields(form.fields || []);
+    } catch (error) {
+      console.error('Error fetching form:', error);
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await updateForm(formId, {
+        ...formData,
+        fields,
+        deadline: formData.deadline || null
+      });
+      onSuccess?.();
+      onClose();
+    } catch (error) {
+      console.error('Error updating form:', error);
+      alert('Failed to update form');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddField = () => {
-    const newField = { id: Date.now(), name: 'New Field', type: 'Text' };
+    const newField = { id: Date.now().toString(), name: 'New Field', type: 'text' };
     setFields([...fields, newField]);
     setEditingField(newField.id);
     setEditName(newField.name);
@@ -45,10 +97,12 @@ export default function EditFormModal({ isOpen, onClose, formId }: EditFormModal
     setEditingField(null);
   };
 
-  const handleDeleteField = (id: number) => {
+  const handleDeleteField = (id: string) => {
     setFields(fields.filter(f => f.id !== id));
     if (editingField === id) setEditingField(null);
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -65,34 +119,56 @@ export default function EditFormModal({ isOpen, onClose, formId }: EditFormModal
             </button>
           </div>
           
-          <div className="space-y-4">
+          {loadingData ? (
+            <div className="text-center py-8">Loading form data...</div>
+          ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Form Title *</label>
-              <input type="text" defaultValue="Youth Retreat Registration" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
+              <input 
+                type="text" 
+                required
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
+              />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-              <textarea rows={3} defaultValue="Registration form for the annual youth retreat" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"></textarea>
+              <textarea 
+                rows={3} 
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              />
             </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Form Type *</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                  <option>Event Registration</option>
-                  <option>Membership</option>
-                  <option>Survey</option>
-                  <option>Volunteer</option>
+                <select 
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="registration">Registration</option>
+                  <option value="survey">Survey</option>
+                  <option value="feedback">Feedback</option>
+                  <option value="application">Application</option>
                 </select>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Status *</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                  <option>Active</option>
-                  <option>Draft</option>
-                  <option>Closed</option>
+                <select 
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="active">Active</option>
+                  <option value="draft">Draft</option>
+                  <option value="closed">Closed</option>
                 </select>
               </div>
             </div>
@@ -100,11 +176,22 @@ export default function EditFormModal({ isOpen, onClose, formId }: EditFormModal
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Deadline</label>
-                <input type="date" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
+                <input 
+                  type="date" 
+                  value={formData.deadline}
+                  onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
+                />
               </div>
               
               <div className="flex items-center pt-8">
-                <input type="checkbox" id="isPublic" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                <input 
+                  type="checkbox" 
+                  id="isPublic" 
+                  checked={formData.is_public}
+                  onChange={(e) => setFormData({ ...formData, is_public: e.target.checked })}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
+                />
                 <label htmlFor="isPublic" className="ml-2 text-sm text-gray-700">Make form public</label>
               </div>
             </div>
@@ -128,18 +215,18 @@ export default function EditFormModal({ isOpen, onClose, formId }: EditFormModal
                           onChange={(e) => setEditType(e.target.value)}
                           className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
                         >
-                          <option>Text</option>
-                          <option>Email</option>
-                          <option>Phone</option>
-                          <option>Number</option>
-                          <option>Date</option>
-                          <option>Textarea</option>
+                          <option value="text">Text</option>
+                          <option value="email">Email</option>
+                          <option value="phone">Phone</option>
+                          <option value="number">Number</option>
+                          <option value="date">Date</option>
+                          <option value="textarea">Textarea</option>
                         </select>
                         <div className="flex space-x-2">
-                          <button onClick={handleSaveField} className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">
+                          <button type="button" onClick={handleSaveField} className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">
                             Save
                           </button>
-                          <button onClick={() => setEditingField(null)} className="px-2 py-1 bg-gray-300 text-gray-700 rounded text-xs hover:bg-gray-400">
+                          <button type="button" onClick={() => setEditingField(null)} className="px-2 py-1 bg-gray-300 text-gray-700 rounded text-xs hover:bg-gray-400">
                             Cancel
                           </button>
                         </div>
@@ -148,10 +235,10 @@ export default function EditFormModal({ isOpen, onClose, formId }: EditFormModal
                       <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
                         <span className="text-gray-700">{field.name} ({field.type})</span>
                         <div className="flex space-x-2">
-                          <button onClick={() => handleEditField(field)} className="text-blue-600 hover:text-blue-800">
+                          <button type="button" onClick={() => handleEditField(field)} className="text-blue-600 hover:text-blue-800">
                             Edit
                           </button>
-                          <button onClick={() => handleDeleteField(field.id)} className="text-red-600 hover:text-red-800">
+                          <button type="button" onClick={() => handleDeleteField(field.id)} className="text-red-600 hover:text-red-800">
                             Delete
                           </button>
                         </div>
@@ -160,20 +247,21 @@ export default function EditFormModal({ isOpen, onClose, formId }: EditFormModal
                   </div>
                 ))}
               </div>
-              <button onClick={handleAddField} className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium">
+              <button type="button" onClick={handleAddField} className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium">
                 <i className="ri-add-line mr-1"></i>Add Field
               </button>
             </div>
-          </div>
           
-          <div className="flex justify-end space-x-3 pt-6 border-t mt-6">
-            <button onClick={onClose} className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-              Cancel
-            </button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
-              Save Changes
-            </button>
-          </div>
+            <div className="flex justify-end space-x-3 pt-6 border-t mt-6">
+              <button type="button" onClick={onClose} className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                Cancel
+              </button>
+              <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+                {loading ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </form>
+          )}
         </div>
       </div>
     </div>

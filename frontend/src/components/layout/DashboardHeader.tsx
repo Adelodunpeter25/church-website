@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface DashboardHeaderProps {
   onMenuClick: () => void;
@@ -13,6 +14,7 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const [notifications, setNotifications] = useState<any[]>([]);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { getRecentNotifications } = useNotifications();
 
   useEffect(() => {
     fetchNotifications();
@@ -20,11 +22,11 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/settings/notifications/recent');
-      const data = await response.json();
-      setNotifications(data.slice(0, 3));
+      const data = await getRecentNotifications();
+      setNotifications(Array.isArray(data) ? data.slice(0, 3) : []);
     } catch (error) {
       console.error('Error fetching notifications:', error);
+      setNotifications([]);
     }
   };
 
