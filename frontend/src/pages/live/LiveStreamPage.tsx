@@ -16,6 +16,7 @@ export default function LiveStreamPage() {
   const [isLive, setIsLive] = useState(false);
   const [viewerCount, setViewerCount] = useState(0);
   const [currentStreamId, setCurrentStreamId] = useState<string | null>(null);
+  const [audioLevel, setAudioLevel] = useState(0);
   const [streamHistory, setStreamHistory] = useState<any[]>([]);
   const [historyPage, setHistoryPage] = useState(1);
   const [totalHistoryPages, setTotalHistoryPages] = useState(1);
@@ -41,15 +42,12 @@ export default function LiveStreamPage() {
 
   useEffect(() => {
     if (currentStreamId && isLive) {
-      console.log('Connecting WebSocket for stream:', currentStreamId);
       LivestreamWebSocket.connect(currentStreamId, (stats) => {
-        console.log('Stats received:', stats);
         setStreamStats(stats);
         setViewerCount(stats.current_viewers);
       });
 
       return () => {
-        console.log('Disconnecting WebSocket');
         LivestreamWebSocket.disconnect();
       };
     } else if (!isLive) {
@@ -158,8 +156,13 @@ export default function LiveStreamPage() {
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="text-center text-white">
                           <div className="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-6 relative">
-                            <i className="ri-mic-line text-3xl"></i>
-                            <div className="absolute -inset-2 border-4 border-red-400 rounded-full animate-ping opacity-75"></div>
+                            <i className="ri-mic-line text-3xl relative z-10"></i>
+                            {audioLevel > 10 && (
+                              <div 
+                                className="absolute border-4 border-green-400 rounded-full transition-all duration-100" 
+                                style={{ inset: `${-16 - (audioLevel / 5)}px` }}
+                              ></div>
+                            )}
                           </div>
                           <h3 className="text-2xl font-semibold mb-2">LIVE AUDIO</h3>
                           <p className="text-gray-300 mb-4">Broadcasting to {viewerCount} listeners</p>
@@ -200,19 +203,10 @@ export default function LiveStreamPage() {
                       </div>
                     )}
                     
-                    <div className="absolute bottom-4 right-4">
-                      <div className="bg-black/30 backdrop-blur-sm rounded-lg p-3">
-                        <div className="flex items-center space-x-2 text-white text-sm">
-                          <i className="ri-volume-up-line"></i>
-                          <div className="w-12 h-1 bg-white/30 rounded-full overflow-hidden">
-                            <div className="h-full bg-green-400 rounded-full animate-pulse" style={{width: '75%'}}></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+
                   </div>
                   
-                  <StreamControls isLive={isLive} onToggleLive={handleToggleLive} loading={loading} currentStreamId={currentStreamId} />
+                  <StreamControls isLive={isLive} onToggleLive={handleToggleLive} loading={loading} currentStreamId={currentStreamId} onAudioLevelChange={setAudioLevel} />
                 </div>
 
                 <div className="mt-6 bg-white shadow-sm rounded-lg p-6">

@@ -5,6 +5,7 @@ interface StreamControlsProps {
   onToggleLive: (live: boolean) => void;
   loading?: boolean;
   currentStreamId?: string | null;
+  onAudioLevelChange?: (level: number) => void;
 }
 
 function ShareStreamModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -51,7 +52,7 @@ function ShareStreamModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   );
 }
 
-export default function StreamControls({ isLive, onToggleLive, loading, currentStreamId }: StreamControlsProps) {
+export default function StreamControls({ isLive, onToggleLive, loading, currentStreamId, onAudioLevelChange }: StreamControlsProps) {
   const [isMuted, setIsMuted] = useState(false);
 
   const [inputGain, setInputGain] = useState(65);
@@ -98,6 +99,7 @@ export default function StreamControls({ isLive, onToggleLive, loading, currentS
           analyser.getByteFrequencyData(dataArray);
           const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
           setAudioLevel(average);
+          onAudioLevelChange?.(average);
           if (ctx.state === 'running') {
             requestAnimationFrame(updateLevel);
           }
@@ -160,12 +162,12 @@ export default function StreamControls({ isLive, onToggleLive, loading, currentS
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
-                  <div className="w-5 h-5 flex items-center justify-center">
+                  {!isMuted && audioLevel > 10 && (
+                    <div className="absolute inset-0 rounded-lg border-2 border-green-500 animate-pulse"></div>
+                  )}
+                  <div className="w-5 h-5 flex items-center justify-center relative z-10">
                     <i className={isMuted ? 'ri-mic-off-line' : 'ri-mic-line'}></i>
                   </div>
-                  {!isMuted && audioLevel > 10 && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                  )}
                 </button>
                 
                 <div className="flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-lg">

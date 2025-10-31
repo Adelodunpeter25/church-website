@@ -19,7 +19,6 @@ class LivestreamWebSocket {
     this.ws = new WebSocket(wsUrl);
 
     this.ws.onopen = () => {
-      console.log('LivestreamWebSocket connected');
       this.reconnectAttempts = 0;
       if (this.streamId) {
         this.send({ type: 'subscribe', streamId: this.streamId });
@@ -30,7 +29,6 @@ class LivestreamWebSocket {
       try {
         const data = JSON.parse(event.data);
         if (data.type === 'stats' && this.onStatsUpdate) {
-          console.log('Received stats:', data.stats);
           this.onStatsUpdate(data.stats);
         }
       } catch (error) {
@@ -43,14 +41,12 @@ class LivestreamWebSocket {
     };
 
     this.ws.onclose = () => {
-      console.log('LivestreamWebSocket disconnected');
       this.attemptReconnect();
     };
   }
 
   private attemptReconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max reconnection attempts reached');
       return;
     }
 
@@ -58,7 +54,6 @@ class LivestreamWebSocket {
     this.reconnectAttempts++;
 
     this.reconnectTimeout = window.setTimeout(() => {
-      console.log(`Reconnecting... Attempt ${this.reconnectAttempts}`);
       this.createConnection();
     }, delay);
   }
