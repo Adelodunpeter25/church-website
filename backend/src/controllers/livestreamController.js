@@ -71,6 +71,11 @@ export const updateLivestream = async (req, res) => {
 export const endLivestream = async (req, res) => {
   try {
     console.log('Ending livestream:', req.params.id);
+    await pool.query(
+      'UPDATE livestreams SET is_live = false, end_time = CURRENT_TIMESTAMP WHERE is_live = true AND id != $1',
+      [req.params.id]
+    );
+    
     const result = await pool.query(
       'UPDATE livestreams SET is_live = false, end_time = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *',
       [req.params.id]
