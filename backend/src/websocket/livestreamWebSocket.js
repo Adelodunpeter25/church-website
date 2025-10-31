@@ -16,6 +16,7 @@ export const initWebSocket = (server) => {
 
         if (data.type === 'subscribe-stream-status') {
           streamStatusSubscribers.add(ws);
+          console.log('Client subscribed to stream status');
         }
 
         if (data.type === 'subscribe' && data.streamId) {
@@ -163,11 +164,13 @@ export const broadcastStreamUpdate = () => {
 };
 
 export const broadcastViewersUpdate = () => {
+  console.log('Broadcasting viewers update to', streamStatusSubscribers.size, 'clients');
   const message = JSON.stringify({ type: 'viewers-update' });
   streamStatusSubscribers.forEach((client) => {
     if (client.readyState === 1) {
       try {
         client.send(message);
+        console.log('Sent viewers-update message');
       } catch (error) {
         console.error('Error broadcasting viewers update:', error.message);
       }

@@ -28,13 +28,6 @@ export default function StreamStats({ isLive, stats: streamStats }: StreamStatsP
       icon: 'ri-eye-line'
     },
     {
-      name: 'Peak Viewers Today',
-      value: streamStats.peak_viewers.toString(),
-      change: '',
-      changeType: 'offline',
-      icon: 'ri-bar-chart-line'
-    },
-    {
       name: 'Duration',
       value: formatDuration(streamStats.duration),
       change: '',
@@ -52,13 +45,12 @@ export default function StreamStats({ isLive, stats: streamStats }: StreamStatsP
 
   const iconColors = [
     { gradient: 'from-red-500 to-red-600' },
-    { gradient: 'from-blue-500 to-blue-600' },
     { gradient: 'from-purple-500 to-purple-600' },
     { gradient: 'from-green-500 to-green-600' }
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {stats.map((item, index) => (
         <div key={item.name} className="relative bg-gradient-to-br from-white to-gray-50 overflow-hidden shadow-sm rounded-xl border border-gray-200 hover:shadow-md transition-all duration-200 group">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-gray-100/30 to-transparent rounded-full -mr-12 -mt-12"></div>

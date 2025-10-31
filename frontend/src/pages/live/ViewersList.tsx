@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useLivestream } from '@/hooks/useLivestream';
+import { getInitials, getAvatarColor } from '@/utils/avatar';
 
 interface ViewersListProps {
   streamId: string | null;
@@ -24,13 +25,16 @@ export default function ViewersList({ streamId, onToggleChat, showChat }: Viewer
       const ws = new WebSocket(wsUrl);
       
       ws.onopen = () => {
+        console.log('[ViewersList] WebSocket connected');
         ws.send(JSON.stringify({ type: 'subscribe-stream-status' }));
       };
       
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          console.log('[ViewersList] Received message:', data.type);
           if (data.type === 'viewers-update') {
+            console.log('[ViewersList] Reloading viewers');
             loadViewers();
           }
         } catch (error) {
@@ -38,7 +42,14 @@ export default function ViewersList({ streamId, onToggleChat, showChat }: Viewer
         }
       };
       
-      return () => ws.close();
+      ws.onerror = (error) => {
+        console.error('[ViewersList] WebSocket error:', error);
+      };
+      
+      return () => {
+        console.log('[ViewersList] Closing WebSocket');
+        ws.close();
+      };
     }
   }, [streamId]);
 
@@ -65,21 +76,18 @@ export default function ViewersList({ streamId, onToggleChat, showChat }: Viewer
   const handleKickUser = async (userId: number) => {
     if (!streamId) return;
     await removeViewer(streamId, userId);
-    await loadViewers();
     setShowActions(null);
   };
 
   const handleBanUser = async (userId: number) => {
     if (!streamId) return;
     await banViewer(streamId, userId);
-    await loadViewers();
     setShowActions(null);
   };
 
   const handleUnbanUser = async (userId: number) => {
     if (!streamId) return;
     await unbanViewer(streamId, userId);
-    await loadViewers();
     setShowActions(null);
   };
 
@@ -119,11 +127,9 @@ export default function ViewersList({ streamId, onToggleChat, showChat }: Viewer
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="relative">
-                  <img 
-                    className="h-8 w-8 rounded-full object-top object-cover" 
-                    src={`https://readdy.ai/api/search-image?query=professional%20church%20member%20portrait%20photo%20with%20warm%20friendly%20smile%2C%20diverse%20person%20wearing%20casual%20formal%20attire%20suitable%20for%20church%20community%2C%20clean%20bright%20background%20with%20natural%20lighting&width=100&height=100&seq=viewer${viewer.id}&orientation=squarish`}
-                    alt={viewer.name}
-                  />
+                  <div className={`h-8 w-8 rounded-full ${getAvatarColor(viewer.name)} flex items-center justify-center text-white text-xs font-semibold`}>
+                    {getInitials(viewer.name)}
+                  </div>
                   <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                 </div>
                 <div>
@@ -180,11 +186,9 @@ export default function ViewersList({ streamId, onToggleChat, showChat }: Viewer
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="relative">
-                      <img 
-                        className="h-8 w-8 rounded-full object-top object-cover opacity-50" 
-                        src={`https://readdy.ai/api/search-image?query=professional%20church%20member%20portrait%20photo%20with%20warm%20friendly%20smile%2C%20diverse%20person%20wearing%20casual%20formal%20attire%20suitable%20for%20church%20community%2C%20clean%20bright%20background%20with%20natural%20lighting&width=100&height=100&seq=viewer${viewer.id}&orientation=squarish`}
-                        alt={viewer.name}
-                      />
+                      <div className={`h-8 w-8 rounded-full ${getAvatarColor(viewer.name)} flex items-center justify-center text-white text-xs font-semibold opacity-50`}>
+                        {getInitials(viewer.name)}
+                      </div>
                       <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white">
                         <i className="ri-forbid-line text-xs text-white"></i>
                       </div>
