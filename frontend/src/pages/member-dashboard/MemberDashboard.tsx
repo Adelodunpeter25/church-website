@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useMemberDashboard } from '@/hooks/useMemberDashboard';
 import { useLivestream } from '@/hooks/useLivestream';
+import { useNotifications } from '@/hooks/useNotifications';
 import { api } from '@/services/api';
 import AudioPlayer from '@/components/AudioPlayer';
 import AddPrayerRequestModal from '@/components/modals/AddPrayerRequestModal';
@@ -18,10 +19,42 @@ export default function MemberDashboard() {
   const { user } = useAuth();
   const { stats, recentSermons, upcomingEvents, loading } = useMemberDashboard(user?.id || '');
   const { getCurrentLivestream, getStreamStats } = useLivestream();
+  const { getRecentNotifications, getUnreadCount, markAsRead } = useNotifications();
   const [activeTab, setActiveTab] = useState('overview');
   const [currentStream, setCurrentStream] = useState<any>(null);
   const [streamStats, setStreamStats] = useState<any>(null);
   const [loadingStream, setLoadingStream] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchNotifications();
+      fetchUnreadCount();
+      
+      const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:5001';
+      const ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        ws.send(JSON.stringify({ type: 'subscribe-notifications', userId: user.id }));
+      };
+      
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'new-notification') {
+            fetchNotifications();
+            fetchUnreadCount();
+          }
+        } catch (error) {
+          console.error('WebSocket error:', error);
+        }
+      };
+      
+      return () => ws.close();
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     if (activeTab === 'livestream') {
@@ -94,6 +127,35 @@ export default function MemberDashboard() {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const data = await getRecentNotifications(user?.id);
+      setNotifications(Array.isArray(data) ? data.slice(0, 5) : []);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  const fetchUnreadCount = async () => {
+    try {
+      const data = await getUnreadCount(user?.id || '');
+      setUnreadCount(data.count || 0);
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  };
+
+  const handleNotificationClick = async (notification: any) => {
+    if (!notification.read) {
+      await markAsRead(notification.id);
+      fetchUnreadCount();
+    }
+    if (notification.link) {
+      setActiveTab('livestream');
+    }
+    setShowNotifications(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -108,11 +170,55 @@ export default function MemberDashboard() {
             </div>
             
             <div className="flex items-center space-x-2 sm:space-x-4">
-              <button className="p-2 text-gray-400 hover:text-gray-600 cursor-pointer">
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <i className="ri-notification-2-line"></i>
-                </div>
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="p-2 text-gray-400 hover:text-gray-600 cursor-pointer relative"
+                >
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <i className="ri-notification-2-line"></i>
+                  </div>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+                {showNotifications && (
+                  <div className="absolute right-0 z-10 mt-2 w-80 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
+                    <div className="px-4 py-2 text-sm font-medium text-gray-900 border-b">
+                      Notifications
+                    </div>
+                    {notifications.length > 0 ? (
+                      <div className="divide-y divide-gray-100">
+                        {notifications.map((notification) => (
+                          <div 
+                            key={notification.id} 
+                            className={`px-4 py-3 hover:bg-gray-50 cursor-pointer ${!notification.read ? 'bg-blue-50' : ''}`}
+                            onClick={() => handleNotificationClick(notification)}
+                          >
+                            <div className="flex items-start space-x-3">
+                              <i className="ri-notification-line text-blue-500 mt-1"></i>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-900">{notification.type}</p>
+                                <p className="text-sm text-gray-600">{notification.message}</p>
+                                <p className="text-xs text-gray-400 mt-1">{Math.round(parseFloat(notification.time))} {notification.time.includes('minutes') ? 'min' : notification.time.includes('hours') ? 'hrs' : 'days'} ago</p>
+                              </div>
+                              {!notification.read && (
+                                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                        No notifications
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               <Link to="/landing" className="text-xs sm:text-sm text-gray-600 hover:text-gray-900 cursor-pointer">
                 Sign Out
               </Link>

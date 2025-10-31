@@ -14,10 +14,7 @@ const __dirname = path.dirname(__filename);
 export const sendLivestreamStartNotification = async (livestreamId, livestreamData) => {
   try {
     const users = await pool.query(
-      `SELECT id, email, name, notification_preferences 
-       FROM users 
-       WHERE (notification_preferences->'emailNotifications'->>'sermons' = 'true' 
-       OR notification_preferences IS NULL)`
+      `SELECT id, email, name, notification_preferences FROM users`
     );
 
     const notifications = users.rows.map(user => ({
