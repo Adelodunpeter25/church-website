@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useMembers } from '@/hooks/useMembers';
 import { Member } from '@/types';
+import { getInitials, getAvatarColor } from '@/utils/avatar';
 import EditMemberModal from '@/components/modals/EditMemberModal';
 import ViewMemberModal from '@/components/modals/ViewMemberModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
@@ -21,7 +22,7 @@ export default function MemberList({ searchTerm, filterRole }: MemberListProps) 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<number | null>(null);
+  const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [memberToDelete, setMemberToDelete] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
@@ -90,11 +91,9 @@ export default function MemberList({ searchTerm, filterRole }: MemberListProps) 
                   onChange={() => toggleMember(member.id)}
                   className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
-                <img 
-                  className="h-12 w-12 rounded-full object-cover flex-shrink-0" 
-                  src={`https://readdy.ai/api/search-image?query=professional%20church%20member%20portrait%20photo&width=100&height=100&seq=member${member.id}&orientation=squarish`}
-                  alt={member.name}
-                />
+                <div className={`h-12 w-12 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 ${getAvatarColor(member.name)}`}>
+                  {getInitials(member.name)}
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -204,11 +203,9 @@ export default function MemberList({ searchTerm, filterRole }: MemberListProps) 
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    <img 
-                      className="h-10 w-10 rounded-full object-top object-cover" 
-                      src={`https://readdy.ai/api/search-image?query=professional%20church%20member%20portrait%20photo%20with%20warm%20friendly%20smile%2C%20diverse%20person%20wearing%20casual%20formal%20attire%20suitable%20for%20church%20community%2C%20clean%20bright%20background%20with%20natural%20lighting&width=100&height=100&seq=member${member.id}&orientation=squarish`}
-                      alt={member.name}
-                    />
+                    <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-bold ${getAvatarColor(member.name)}`}>
+                      {getInitials(member.name)}
+                    </div>
                     <div className="ml-4">
                       <div className="text-sm font-medium text-gray-900">{member.name}</div>
                       <div className="text-sm text-gray-500">Member since {new Date(member.dateJoined).getFullYear()}</div>

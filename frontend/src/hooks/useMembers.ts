@@ -2,22 +2,35 @@ import { api } from '@/services/api';
 import { getToken } from '@/utils/auth';
 
 export const useMembers = () => {
-  const getMembers = (params?: { search?: string; role?: string; status?: string; page?: number; limit?: number }) => {
+  const transformMember = (member: any) => ({
+    ...member,
+    membershipStatus: member.membership_status,
+    dateJoined: member.date_joined,
+    maritalStatus: member.marital_status
+  });
+
+  const getMembers = async (params?: { search?: string; role?: string; status?: string; page?: number; limit?: number }) => {
     const cleanParams = Object.fromEntries(
       Object.entries(params || {}).filter(([_, v]) => v !== undefined && v !== '')
     );
     const query = new URLSearchParams(cleanParams as any).toString();
-    return api.get(`/members${query ? `?${query}` : ''}`);
+    const response = await api.get(`/members${query ? `?${query}` : ''}`);
+    const data = response.data || response;
+    return Array.isArray(data) ? data.map(transformMember) : data;
   };
 
-  const getMember = (id: string) =>
-    api.get(`/members/${id}`);
+  const getMember = async (id: string) => {
+    const member = await api.get(`/members/${id}`);
+    return transformMember(member);
+  };
 
   const createMember = (data: any) =>
     api.post('/members', data);
 
-  const updateMember = (id: string, data: any) =>
-    api.put(`/members/${id}`, data);
+  const updateMember = async (id: string, data: any) => {
+    const result = await api.put(`/members/${id}`, data);
+    return transformMember(result);
+  };
 
   const deleteMember = (id: string) =>
     api.delete(`/members/${id}`);
