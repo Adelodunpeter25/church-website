@@ -30,6 +30,7 @@ class LivestreamWebSocket {
       try {
         const data = JSON.parse(event.data);
         if (data.type === 'stats' && this.onStatsUpdate) {
+          console.log('Received stats:', data.stats);
           this.onStatsUpdate(data.stats);
         }
       } catch (error) {

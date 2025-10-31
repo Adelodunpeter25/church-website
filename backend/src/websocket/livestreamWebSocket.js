@@ -12,21 +12,9 @@ export const initWebSocket = (server) => {
 
     ws.on('message', async (message) => {
       try {
-        if (message instanceof Buffer) {
-          console.log(`Received audio chunk: ${message.length} bytes`);
-          return;
-        }
-        
         const data = JSON.parse(message);
 
-        if (data.type === 'start_stream') {
-          ws.streamId = data.streamId;
-          ws.isAudioStream = true;
-          console.log(`Audio stream started for: ${data.streamId}`, data.settings);
-        } else if (data.type === 'stop_stream') {
-          console.log(`Audio stream stopped for: ${ws.streamId}`);
-          ws.isAudioStream = false;
-        } else if (data.type === 'subscribe' && data.streamId) {
+        if (data.type === 'subscribe' && data.streamId) {
           ws.streamId = data.streamId;
           
           if (!streamSubscriptions.has(data.streamId)) {
@@ -79,11 +67,11 @@ const getStreamStats = async (streamId) => {
 
     let duration = 0;
     if (stream.rows[0].is_live && stream.rows[0].start_time) {
-      const startTime = new Date(stream.rows[0].start_time + 'Z').getTime();
+      const startTime = Date.parse(stream.rows[0].start_time.toISOString());
       duration = Math.floor((Date.now() - startTime) / 1000);
     } else if (!stream.rows[0].is_live && stream.rows[0].start_time && stream.rows[0].end_time) {
-      const startTime = new Date(stream.rows[0].start_time + 'Z').getTime();
-      const endTime = new Date(stream.rows[0].end_time + 'Z').getTime();
+      const startTime = Date.parse(stream.rows[0].start_time.toISOString());
+      const endTime = Date.parse(stream.rows[0].end_time.toISOString());
       duration = Math.floor((endTime - startTime) / 1000);
     }
 
@@ -104,7 +92,8 @@ const startStatsBroadcast = () => {
   setInterval(async () => {
     for (const [streamId, clients] of streamSubscriptions.entries()) {
       const stats = await getStreamStats(streamId);
-      if (stats && stats.is_live) {
+      if (stats) {
+        console.log(`Broadcasting stats for ${streamId}:`, stats);
         const message = JSON.stringify({ type: 'stats', stats });
         clients.forEach((client) => {
           if (client.readyState === 1) {

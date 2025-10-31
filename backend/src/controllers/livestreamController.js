@@ -236,15 +236,6 @@ export const unbanViewer = async (req, res) => {
 
 export const streamAudio = async (req, res) => {
   try {
-    const { streamId } = req.body;
-    const audioChunk = req.files?.audio;
-
-    if (!audioChunk || !streamId) {
-      return res.status(400).json({ error: 'Missing audio or streamId' });
-    }
-
-    console.log(`Received audio chunk for stream ${streamId}: ${audioChunk.size} bytes`);
-    
     res.json({ success: true });
   } catch (error) {
     console.error('Stream audio error:', error.message);
@@ -277,7 +268,7 @@ export const getStreamStats = async (req, res) => {
 
     let duration = 0;
     if (stream.rows[0].is_live && stream.rows[0].start_time) {
-      const startTime = new Date(stream.rows[0].start_time + 'Z').getTime();
+      const startTime = Date.parse(stream.rows[0].start_time.toISOString());
       duration = Math.floor((Date.now() - startTime) / 1000);
     }
 

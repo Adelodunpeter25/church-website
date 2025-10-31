@@ -59,8 +59,6 @@ export default function StreamControls({ isLive, onToggleLive, loading, currentS
   const [showSettings, setShowSettings] = useState(false);
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [gainNode, setGainNode] = useState<GainNode | null>(null);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
-  const [audioWs, setAudioWs] = useState<WebSocket | null>(null);
   const [audioLevel, setAudioLevel] = useState(0);
   const [audioSettings, setAudioSettings] = useState({
     bitrate: 128000,
@@ -106,54 +104,14 @@ export default function StreamControls({ isLive, onToggleLive, loading, currentS
         };
         updateLevel();
         
-        const recorder = new MediaRecorder(dest.stream, {
-          mimeType: audioSettings.codec,
-          audioBitsPerSecond: audioSettings.bitrate
-        });
-        
-        const ws = new WebSocket(import.meta.env.VITE_WS_URL || 'ws://localhost:5001');
-        
-        ws.onopen = () => {
-          console.log('Audio WebSocket connected');
-          ws.send(JSON.stringify({ type: 'start_stream', streamId: currentStreamId, settings: audioSettings }));
-        };
-        
-        ws.onerror = (error) => {
-          console.error('Audio WebSocket error:', error);
-        };
-        
-        setAudioWs(ws);
-        
-        recorder.ondataavailable = async (event) => {
-          if (event.data.size > 0 && ws.readyState === WebSocket.OPEN) {
-            const reader = new FileReader();
-            reader.onload = () => {
-              ws.send(reader.result as ArrayBuffer);
-            };
-            reader.readAsArrayBuffer(event.data);
-          }
-        };
-        
-        recorder.start(1000);
-        
         setAudioContext(ctx);
         setGainNode(gain);
-        setMediaRecorder(recorder);
       } catch (error) {
         console.error('Error accessing microphone:', error);
         alert('Could not access microphone');
         return;
       }
     } else {
-      if (audioWs) {
-        audioWs.send(JSON.stringify({ type: 'stop_stream' }));
-        audioWs.close();
-        setAudioWs(null);
-      }
-      if (mediaRecorder) {
-        mediaRecorder.stop();
-        setMediaRecorder(null);
-      }
       if (audioContext) {
         audioContext.close();
         setAudioContext(null);
