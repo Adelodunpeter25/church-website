@@ -22,7 +22,7 @@ export const usePlaylists = () => {
     fetchPlaylists();
   }, []);
 
-  const getPlaylist = (id: number) =>
+  const getPlaylist = (id: string) =>
     api.get(`/playlists/${id}`);
 
   const createPlaylist = async (data: any) => {
@@ -31,27 +31,27 @@ export const usePlaylists = () => {
     return result;
   };
 
-  const updatePlaylist = async (id: number, data: any) => {
+  const updatePlaylist = async (id: string, data: any) => {
     const result = await api.put(`/playlists/${id}`, data);
     await fetchPlaylists();
     return result;
   };
 
-  const deletePlaylist = async (id: number) => {
+  const deletePlaylist = async (id: string) => {
     await api.delete(`/playlists/${id}`);
     await fetchPlaylists();
   };
 
-  const addSermonToPlaylist = (id: number, sermonId: number) =>
+  const addSermonToPlaylist = (id: string, sermonId: string) =>
     api.post(`/playlists/${id}/sermons`, { sermon_id: sermonId });
 
-  const removeSermonFromPlaylist = (id: number, sermonId: number) =>
+  const removeSermonFromPlaylist = (id: string, sermonId: string) =>
     api.delete(`/playlists/${id}/sermons/${sermonId}`);
 
-  const incrementPlays = (id: number) =>
+  const incrementPlays = (id: string) =>
     api.post(`/playlists/${id}/play`, {});
 
-  const toggleSermonBookmark = (sermonId: number, memberId: number, playlistId: number) =>
+  const toggleSermonBookmark = (sermonId: string, memberId: string, playlistId: string) =>
     api.post(`/playlists/bookmark/${sermonId}`, { member_id: memberId, playlist_id: playlistId });
 
   return { 

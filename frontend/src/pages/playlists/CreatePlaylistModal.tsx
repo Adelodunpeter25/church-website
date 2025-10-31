@@ -32,7 +32,8 @@ export default function CreatePlaylistModal({ isOpen, onClose, onSuccess }: Crea
     await createPlaylist({
       name: formData.name,
       description: formData.description,
-      member_id: 1
+      isPublic: formData.isPublic,
+      sermons: formData.selectedSermons
     });
     onClose();
     setFormData({
@@ -70,71 +71,87 @@ export default function CreatePlaylistModal({ isOpen, onClose, onSuccess }: Crea
           <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
         </div>
 
-        <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-gray-900">Create New Playlist</h3>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 cursor-pointer"
-            >
-              <i className="ri-close-line text-xl"></i>
-            </button>
+        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+          {/* Sticky Header */}
+          <div className="sticky top-0 bg-white border-b px-6 py-4 z-10">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Create New Playlist</h3>
+                <p className="text-sm text-gray-500 mt-1">Organize your favorite sermons</p>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 cursor-pointer"
+              >
+                <i className="ri-close-line text-2xl"></i>
+              </button>
+            </div>
           </div>
 
-          <form id="create-playlist-form" onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Playlist Name *
-              </label>
-              <input
-                type="text"
-                name="name"
-                required
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter playlist name"
-              />
-            </div>
+          <form id="create-playlist-form" onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
+            {/* Playlist Information */}
+            <div className="bg-gray-50 rounded-lg p-3 space-y-3">
+              <div className="flex items-center space-x-2 mb-4">
+                <i className="ri-play-list-2-line text-blue-600 text-lg"></i>
+                <h4 className="text-sm font-semibold text-gray-900">Playlist Information</h4>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                name="description"
-                rows={3}
-                maxLength={500}
-                value={formData.description}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Describe your playlist..."
-              />
-              <p className="text-xs text-gray-500 mt-1">{formData.description.length}/500 characters</p>
-            </div>
-
-            <div>
-              <div className="flex items-center">
-                <input
-                  id="is-public"
-                  name="isPublic"
-                  type="checkbox"
-                  checked={formData.isPublic}
-                  onChange={handleChange}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label htmlFor="is-public" className="ml-2 text-sm text-gray-700">
-                  Make this playlist public (others can view and listen)
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Playlist Name <span className="text-red-500">*</span>
                 </label>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter playlist name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  rows={2}
+                  maxLength={500}
+                  value={formData.description}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Describe your playlist..."
+                />
+                <p className="text-xs text-gray-500 mt-1">{formData.description.length}/500 characters</p>
+              </div>
+
+              <div>
+                <div className="flex items-center">
+                  <input
+                    id="is-public"
+                    name="isPublic"
+                    type="checkbox"
+                    checked={formData.isPublic}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="is-public" className="ml-2 text-sm text-gray-700">
+                    Make this playlist public (others can view and listen)
+                  </label>
+                </div>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Select Sermons
-              </label>
-              <div className="max-h-64 overflow-y-auto border border-gray-300 rounded-md">
+            {/* Select Sermons */}
+            <div className="bg-gray-50 rounded-lg p-3">
+              <div className="flex items-center space-x-2 mb-4">
+                <i className="ri-music-2-line text-blue-600 text-lg"></i>
+                <h4 className="text-sm font-semibold text-gray-900">Select Sermons</h4>
+              </div>
+              <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-lg bg-white">
                 {sermons && sermons.length > 0 ? (
                   sermons.map((sermon) => (
                     <div
@@ -152,7 +169,7 @@ export default function CreatePlaylistModal({ isOpen, onClose, onSuccess }: Crea
                       />
                       <div className="ml-3 flex-1">
                         <div className="text-sm font-medium text-gray-900">{sermon.title}</div>
-                        <div className="text-sm text-gray-500">{sermon.speaker} • {sermon.duration || 'N/A'}</div>
+                        <div className="text-xs text-gray-500">Speaker: {sermon.speaker}</div>
                       </div>
                     </div>
                   ))
@@ -160,25 +177,36 @@ export default function CreatePlaylistModal({ isOpen, onClose, onSuccess }: Crea
                   <div className="p-4 text-center text-gray-500 text-sm">No sermons available</div>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                {formData.selectedSermons.length} sermons selected
+              <p className="text-xs text-gray-500 mt-3">
+                {formData.selectedSermons.length} sermon{formData.selectedSermons.length !== 1 ? 's' : ''} selected
               </p>
             </div>
 
-            <div className="flex justify-end space-x-3 pt-6 border-t">
+            {/* Sticky Footer */}
+            <div className="sticky bottom-0 bg-white border-t -mx-6 px-6 py-4 flex justify-end space-x-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer whitespace-nowrap"
+                className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer whitespace-nowrap w-full sm:w-auto"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={playlistLoading}
-                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
               >
-                {playlistLoading ? 'Creating...' : 'Create Playlist'}
+                {playlistLoading ? (
+                  <>
+                    <i className="ri-loader-4-line animate-spin mr-1"></i>
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <i className="ri-add-line mr-1"></i>
+                    Create Playlist
+                  </>
+                )}
               </button>
             </div>
           </form>

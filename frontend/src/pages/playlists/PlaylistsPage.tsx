@@ -9,7 +9,7 @@ import CreatePlaylistModal from './CreatePlaylistModal';
 import { usePlaylists } from '@/hooks/usePlaylists';
 
 export default function PlaylistsPage() {
-  const { fetchPlaylists } = usePlaylists();
+  const { fetchPlaylists, loading } = usePlaylists();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -50,10 +50,20 @@ export default function PlaylistsPage() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(true)}
-                  className="block rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 cursor-pointer whitespace-nowrap"
+                  disabled={loading}
+                  className="block rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <i className="ri-add-line mr-2"></i>
-                  New Playlist
+                  {loading ? (
+                    <>
+                      <i className="ri-loader-4-line animate-spin mr-2"></i>
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <i className="ri-add-line mr-2"></i>
+                      New Playlist
+                    </>
+                  )}
                 </button>
               </div>
             </div>

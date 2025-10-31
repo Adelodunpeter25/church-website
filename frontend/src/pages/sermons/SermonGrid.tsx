@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSermons } from '@/hooks/useSermons';
+import { useSermonPlayer } from '@/hooks/useSermonPlayer';
 import { Sermon } from '@/types';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import { getMediaUrl } from '@/services/api';
@@ -71,6 +72,8 @@ export default function SermonGrid({
     }
   };
 
+  const { incrementDownloadCount } = useSermonPlayer();
+
   const downloadSermon = async (sermon: Sermon) => {
     try {
       const audioUrl = getMediaUrl(sermon.audio_url);
@@ -90,10 +93,7 @@ export default function SermonGrid({
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
 
-      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/sermons/${sermon.id}/download`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
+      await incrementDownloadCount(sermon.id);
     } catch (error) {
       console.error('Error downloading sermon:', error);
       alert('Failed to download sermon');
@@ -108,6 +108,19 @@ export default function SermonGrid({
 
   if (viewMode === 'list') {
     return (
+      <>
+      <AudioPlayer sermon={playingSermon} onClose={() => setPlayingSermon(null)} />
+      {sermonToEdit && (
+        <EditSermonModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSermonToEdit(null);
+          }}
+          onSuccess={loadSermons}
+          sermon={sermonToEdit}
+        />
+      )}
       <div className="overflow-hidden">
         <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 text-sm text-gray-600">
           Showing {filteredSermons.length} sermons
@@ -208,6 +221,7 @@ export default function SermonGrid({
           </div>
         )}
       </div>
+      </>
     );
   }
 

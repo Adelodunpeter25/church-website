@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import EditPlaylistModal from '@/components/modals/EditPlaylistModal';
 import SharePlaylistModal from '@/components/modals/SharePlaylistModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
+import PlaylistMusicPlayer from '@/components/PlaylistMusicPlayer';
 import { usePlaylists } from '@/hooks/usePlaylists';
+import { Sermon } from '@/types';
 
 interface PlaylistGridProps {
   viewMode: 'grid' | 'list';
@@ -11,32 +13,45 @@ interface PlaylistGridProps {
 }
 
 export default function PlaylistGrid({ viewMode, onRefresh, onCreateClick }: PlaylistGridProps) {
-  const { playlists, loading, deletePlaylist } = usePlaylists();
-  const [playingPlaylist, setPlayingPlaylist] = useState<number | null>(null);
+  const { playlists, loading, deletePlaylist, getPlaylist } = usePlaylists();
+  const [playingPlaylist, setPlayingPlaylist] = useState<string | null>(null);
+  const [playlistSermons, setPlaylistSermons] = useState<Sermon[]>([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [selectedPlaylist, setSelectedPlaylist] = useState<number | null>(null);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<string | null>(null);
 
-  const togglePlay = (playlistId: number) => {
+  const togglePlay = async (playlistId: string) => {
     if (playingPlaylist === playlistId) {
       setPlayingPlaylist(null);
+      setPlaylistSermons([]);
     } else {
-      setPlayingPlaylist(playlistId);
+      try {
+        const playlist = await getPlaylist(playlistId);
+        if (playlist.sermons && playlist.sermons.length > 0) {
+          setPlaylistSermons(playlist.sermons);
+          setPlayingPlaylist(playlistId);
+        } else {
+          alert('This playlist has no sermons');
+        }
+      } catch (error) {
+        console.error('Error loading playlist:', error);
+        alert('Failed to load playlist');
+      }
     }
   };
 
-  const handleEdit = (id: number) => {
+  const handleEdit = (id: string) => {
     setSelectedPlaylist(id);
     setShowEditModal(true);
   };
 
-  const handleShare = (id: number) => {
+  const handleShare = (id: string) => {
     setSelectedPlaylist(id);
     setShowShareModal(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     setSelectedPlaylist(id);
     setShowDeleteConfirm(true);
   };
@@ -56,6 +71,16 @@ export default function PlaylistGrid({ viewMode, onRefresh, onCreateClick }: Pla
 
   if (viewMode === 'list') {
     return (
+      <>
+      {playingPlaylist && playlistSermons.length > 0 && (
+        <PlaylistMusicPlayer
+          sermons={playlistSermons}
+          onClose={() => {
+            setPlayingPlaylist(null);
+            setPlaylistSermons([]);
+          }}
+        />
+      )}
       <div className="bg-white shadow-sm rounded-lg overflow-hidden">
         <div className="divide-y divide-gray-200">
           {playlists.map((playlist) => (
@@ -115,6 +140,7 @@ export default function PlaylistGrid({ viewMode, onRefresh, onCreateClick }: Pla
           ))}
         </div>
       </div>
+      </>
     );
   }
 
@@ -207,6 +233,7 @@ export default function PlaylistGrid({ viewMode, onRefresh, onCreateClick }: Pla
             isOpen={showEditModal}
             onClose={() => setShowEditModal(false)}
             playlistId={selectedPlaylist}
+            onSuccess={onRefresh}
           />
           <SharePlaylistModal
             isOpen={showShareModal}
@@ -225,6 +252,16 @@ export default function PlaylistGrid({ viewMode, onRefresh, onCreateClick }: Pla
             Create Playlist
           </button>
         </div>
+      )}
+
+      {playingPlaylist && playlistSermons.length > 0 && (
+        <PlaylistMusicPlayer
+          sermons={playlistSermons}
+          onClose={() => {
+            setPlayingPlaylist(null);
+            setPlaylistSermons([]);
+          }}
+        />
       )}
     </div>
   );

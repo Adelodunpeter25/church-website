@@ -51,14 +51,29 @@ export const getPlaylist = async (req, res) => {
 export const createPlaylist = async (req, res) => {
   try {
     console.log('Creating playlist:', req.body.name);
-    const { name, description, member_id } = req.body;
+    const { name, description, isPublic, sermons } = req.body;
 
     const result = await pool.query(
-      'INSERT INTO playlists (name, description, member_id) VALUES ($1, $2, $3) RETURNING *',
-      [name, description || null, member_id]
+      'INSERT INTO playlists (name, description, is_public) VALUES ($1, $2, $3) RETURNING *',
+      [name, description || null, isPublic || false]
     );
 
-    console.log('Playlist created:', result.rows[0].id);
+    const playlistId = result.rows[0].id;
+
+    // Add sermons if provided
+    if (sermons && Array.isArray(sermons)) {
+      for (const sermonId of sermons) {
+        if (sermonId) {
+          await pool.query(
+            'INSERT INTO playlist_sermons (playlist_id, sermon_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [playlistId, sermonId]
+          );
+        }
+      }
+      console.log(`Added ${sermons.length} sermons to playlist ${playlistId}`);
+    }
+
+    console.log('Playlist created:', playlistId);
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Create playlist error:', error.message);
@@ -69,15 +84,32 @@ export const createPlaylist = async (req, res) => {
 export const updatePlaylist = async (req, res) => {
   try {
     console.log('Updating playlist:', req.params.id);
-    const { name, description } = req.body;
+    const { name, description, isPublic, sermons } = req.body;
 
     const result = await pool.query(
-      'UPDATE playlists SET name = $1, description = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *',
-      [name, description, req.params.id]
+      'UPDATE playlists SET name = $1, description = $2, is_public = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *',
+      [name, description, isPublic !== undefined ? isPublic : false, req.params.id]
     );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Playlist not found' });
+    }
+
+    // Update sermons if provided
+    if (sermons && Array.isArray(sermons)) {
+      // Delete existing sermons
+      await pool.query('DELETE FROM playlist_sermons WHERE playlist_id = $1', [req.params.id]);
+      
+      // Add new sermons
+      for (const sermonId of sermons) {
+        if (sermonId) {
+          await pool.query(
+            'INSERT INTO playlist_sermons (playlist_id, sermon_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [req.params.id, sermonId]
+          );
+        }
+      }
+      console.log(`Updated ${sermons.length} sermons for playlist ${req.params.id}`);
     }
 
     console.log('Playlist updated:', result.rows[0].id);
