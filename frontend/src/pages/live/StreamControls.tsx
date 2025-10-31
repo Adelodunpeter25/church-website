@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface StreamControlsProps {
   isLive: boolean;
@@ -8,6 +8,7 @@ interface StreamControlsProps {
   onAudioLevelChange?: (level: number) => void;
   selectedInputDevice?: string;
   selectedOutputDevice?: string;
+  shouldResumeAudio?: boolean;
 }
 
 function ShareStreamModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -54,7 +55,7 @@ function ShareStreamModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   );
 }
 
-export default function StreamControls({ isLive, onToggleLive, loading, currentStreamId, onAudioLevelChange, selectedInputDevice, selectedOutputDevice }: StreamControlsProps) {
+export default function StreamControls({ isLive, onToggleLive, loading, currentStreamId, onAudioLevelChange, selectedInputDevice, selectedOutputDevice, shouldResumeAudio }: StreamControlsProps) {
   const [isMuted, setIsMuted] = useState(false);
 
   const [inputGain, setInputGain] = useState(65);
@@ -69,6 +70,73 @@ export default function StreamControls({ isLive, onToggleLive, loading, currentS
     channels: 2,
     codec: 'audio/webm;codecs=opus'
   });
+
+  useEffect(() => {
+    if (shouldResumeAudio && isLive && !audioContext) {
+      initializeAudio();
+    }
+  }, [shouldResumeAudio, isLive]);
+
+  const initializeAudio = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: selectedInputDevice ? {
+          deviceId: { exact: selectedInputDevice },
+          sampleRate: audioSettings.sampleRate,
+          channelCount: audioSettings.channels,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: false
+        } : {
+          sampleRate: audioSettings.sampleRate,
+          channelCount: audioSettings.channels,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: false
+        }
+      });
+      
+      const ctx = new AudioContext({ sampleRate: audioSettings.sampleRate });
+      const source = ctx.createMediaStreamSource(stream);
+      const gain = ctx.createGain();
+      gain.gain.value = inputGain / 100;
+      source.connect(gain);
+      
+      const dest = ctx.createMediaStreamDestination();
+      gain.connect(dest);
+      
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      gain.connect(analyser);
+      
+      if (selectedOutputDevice && 'setSinkId' in AudioContext.prototype) {
+        try {
+          await (ctx as any).setSinkId(selectedOutputDevice);
+        } catch (error) {
+          console.error('Error setting output device:', error);
+        }
+      }
+      
+      gain.connect(ctx.destination);
+      
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      const updateLevel = () => {
+        analyser.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+        setAudioLevel(average);
+        onAudioLevelChange?.(average);
+        if (ctx.state === 'running') {
+          requestAnimationFrame(updateLevel);
+        }
+      };
+      updateLevel();
+      
+      setAudioContext(ctx);
+      setGainNode(gain);
+    } catch (error) {
+      console.error('Error initializing audio:', error);
+    }
+  };
 
   const handleGoLive = async () => {
     if (!isLive) {
