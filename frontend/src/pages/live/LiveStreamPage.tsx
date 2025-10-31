@@ -34,11 +34,34 @@ export default function LiveStreamPage() {
     description: ''
   });
   const [loading, setLoading] = useState(false);
+  const [showAudioDeviceModal, setShowAudioDeviceModal] = useState(false);
+  const [audioDevices, setAudioDevices] = useState<{ inputDevices: MediaDeviceInfo[], outputDevices: MediaDeviceInfo[] }>({ inputDevices: [], outputDevices: [] });
+  const [selectedInputDevice, setSelectedInputDevice] = useState<string>('');
+  const [selectedOutputDevice, setSelectedOutputDevice] = useState<string>('');
+  const [audioDeviceLoading, setAudioDeviceLoading] = useState(false);
 
   useEffect(() => {
     loadCurrentStream();
     loadStreamHistory(historyPage);
+    loadAudioDevices();
   }, [historyPage]);
+
+  const loadAudioDevices = async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const inputDevices = devices.filter(device => device.kind === 'audioinput');
+      const outputDevices = devices.filter(device => device.kind === 'audiooutput');
+      setAudioDevices({ inputDevices, outputDevices });
+      if (inputDevices.length > 0 && !selectedInputDevice) {
+        setSelectedInputDevice(inputDevices[0].deviceId);
+      }
+      if (outputDevices.length > 0 && !selectedOutputDevice) {
+        setSelectedOutputDevice(outputDevices[0].deviceId);
+      }
+    } catch (error) {
+      console.error('Error loading audio devices:', error);
+    }
+  };
 
   useEffect(() => {
     if (currentStreamId && isLive) {
@@ -196,23 +219,32 @@ export default function LiveStreamPage() {
                             {viewerCount} listeners
                           </div>
                         </div>
-                        <div className="absolute bottom-4 left-4 flex items-center space-x-1 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-2">
-                          {[...Array(20)].map((_, i) => {
-                            const threshold = (i + 1) * 5;
-                            const isActive = audioLevel > threshold;
-                            let bgColor = 'bg-gray-600';
-                            if (isActive) {
-                              if (i < 12) bgColor = 'bg-green-500';
-                              else if (i < 16) bgColor = 'bg-yellow-500';
-                              else bgColor = 'bg-red-500';
-                            }
-                            return (
-                              <div
-                                key={i}
-                                className={`w-1 h-4 rounded-full transition-all duration-75 ${bgColor}`}
-                              ></div>
-                            );
-                          })}
+                        <div className="absolute bottom-4 left-4 flex items-center space-x-2">
+                          <button
+                            onClick={() => setShowAudioDeviceModal(true)}
+                            className="bg-black/50 backdrop-blur-sm rounded-lg p-2 hover:bg-black/70 transition-colors"
+                            title="Audio Device Settings"
+                          >
+                            <i className="ri-settings-3-line text-white text-sm"></i>
+                          </button>
+                          <div className="flex items-center space-x-1 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-2">
+                            {[...Array(20)].map((_, i) => {
+                              const threshold = (i + 1) * 5;
+                              const isActive = audioLevel > threshold;
+                              let bgColor = 'bg-gray-600';
+                              if (isActive) {
+                                if (i < 12) bgColor = 'bg-green-500';
+                                else if (i < 16) bgColor = 'bg-yellow-500';
+                                else bgColor = 'bg-red-500';
+                              }
+                              return (
+                                <div
+                                  key={i}
+                                  className={`w-1 h-4 rounded-full transition-all duration-75 ${bgColor}`}
+                                ></div>
+                              );
+                            })}
+                          </div>
                         </div>
                       </>
                     )}
@@ -220,7 +252,7 @@ export default function LiveStreamPage() {
 
                   </div>
                   
-                  <StreamControls isLive={isLive} onToggleLive={handleToggleLive} loading={loading} currentStreamId={currentStreamId} onAudioLevelChange={setAudioLevel} />
+                  <StreamControls isLive={isLive} onToggleLive={handleToggleLive} loading={loading} currentStreamId={currentStreamId} onAudioLevelChange={setAudioLevel} selectedInputDevice={selectedInputDevice} selectedOutputDevice={selectedOutputDevice} />
                 </div>
 
                 <div className="mt-6 bg-white shadow-sm rounded-lg p-6">
@@ -361,6 +393,64 @@ export default function LiveStreamPage() {
           </div>
         </main>
       </div>
+
+      {showAudioDeviceModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4">
+            <div className="fixed inset-0 bg-gray-500 opacity-75" onClick={() => setShowAudioDeviceModal(false)}></div>
+            <div className="relative bg-white rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-lg font-bold mb-4">Audio Device Settings</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Input Device (Microphone)</label>
+                  <select
+                    value={selectedInputDevice}
+                    onChange={(e) => setSelectedInputDevice(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  >
+                    {audioDevices.inputDevices.map(device => (
+                      <option key={device.deviceId} value={device.deviceId}>
+                        {device.label || `Microphone ${device.deviceId.slice(0, 8)}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Output Device (Speakers)</label>
+                  <select
+                    value={selectedOutputDevice}
+                    onChange={(e) => setSelectedOutputDevice(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  >
+                    {audioDevices.outputDevices.map(device => (
+                      <option key={device.deviceId} value={device.deviceId}>
+                        {device.label || `Speaker ${device.deviceId.slice(0, 8)}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="flex space-x-3 mt-6">
+                <button onClick={() => setShowAudioDeviceModal(false)} className="flex-1 px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300">
+                  Cancel
+                </button>
+                <button 
+                  onClick={async () => {
+                    setAudioDeviceLoading(true);
+                    await loadAudioDevices();
+                    setAudioDeviceLoading(false);
+                    setShowAudioDeviceModal(false);
+                  }}
+                  disabled={audioDeviceLoading}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {audioDeviceLoading ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

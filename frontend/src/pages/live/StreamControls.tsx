@@ -6,6 +6,8 @@ interface StreamControlsProps {
   loading?: boolean;
   currentStreamId?: string | null;
   onAudioLevelChange?: (level: number) => void;
+  selectedInputDevice?: string;
+  selectedOutputDevice?: string;
 }
 
 function ShareStreamModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -52,7 +54,7 @@ function ShareStreamModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   );
 }
 
-export default function StreamControls({ isLive, onToggleLive, loading, currentStreamId, onAudioLevelChange }: StreamControlsProps) {
+export default function StreamControls({ isLive, onToggleLive, loading, currentStreamId, onAudioLevelChange, selectedInputDevice, selectedOutputDevice }: StreamControlsProps) {
   const [isMuted, setIsMuted] = useState(false);
 
   const [inputGain, setInputGain] = useState(65);
@@ -72,13 +74,20 @@ export default function StreamControls({ isLive, onToggleLive, loading, currentS
     if (!isLive) {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ 
-          audio: {
+          audio: selectedInputDevice ? {
+            deviceId: { exact: selectedInputDevice },
             sampleRate: audioSettings.sampleRate,
             channelCount: audioSettings.channels,
             echoCancellation: true,
             noiseSuppression: true,
             autoGainControl: false
-          } 
+          } : {
+            sampleRate: audioSettings.sampleRate,
+            channelCount: audioSettings.channels,
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: false
+          }
         });
         
         const ctx = new AudioContext({ sampleRate: audioSettings.sampleRate });
@@ -93,6 +102,16 @@ export default function StreamControls({ isLive, onToggleLive, loading, currentS
         const analyser = ctx.createAnalyser();
         analyser.fftSize = 256;
         gain.connect(analyser);
+        
+        if (selectedOutputDevice && 'setSinkId' in AudioContext.prototype) {
+          try {
+            await (ctx as any).setSinkId(selectedOutputDevice);
+          } catch (error) {
+            console.error('Error setting output device:', error);
+          }
+        }
+        
+        gain.connect(ctx.destination);
         
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
         const updateLevel = () => {
