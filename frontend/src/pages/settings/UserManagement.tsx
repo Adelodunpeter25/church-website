@@ -9,7 +9,7 @@ import { useRoles } from '@/hooks/useRoles';
 
 export default function UserManagement() {
   const { users, loading, fetchUsers, createUser, deleteUser, getUserStats } = useUsers();
-  const { getRoles, getPermissions, getRolePermissions } = useRoles();
+  const { getRoles, getPermissions, getRolePermissions, updateRole } = useRoles();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
   const [showAddUser, setShowAddUser] = useState(false);
@@ -17,6 +17,9 @@ export default function UserManagement() {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [showAddRole, setShowAddRole] = useState(false);
   const [showPermissions, setShowPermissions] = useState<string | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editingPermissions, setEditingPermissions] = useState<string[]>([]);
+  const [savingPermissions, setSavingPermissions] = useState(false);
   const [selectedUser, setSelectedUser] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [userToDelete, setUserToDelete] = useState<{ id: number; name: string } | null>(null);
@@ -334,27 +337,18 @@ export default function UserManagement() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {roles.map((role) => (
-              <div key={role.value} className="bg-white border border-gray-200 rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
+              <div key={role.value} className="bg-white border-2 border-gray-300 rounded-md p-6 h-24 hover:border-gray-400 transition-colors">
+                <div className="flex items-center justify-between">
                   <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${roleColors[role.value] || 'bg-gray-100 text-gray-800'}`}>
                     {role.label}
                   </span>
-                  <button className="text-gray-400 hover:text-gray-600 cursor-pointer">
-                    <i className="ri-more-line"></i>
+                  <button 
+                    onClick={() => setShowPermissions(role.value)}
+                    className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                    title="Manage permissions"
+                  >
+                    <i className="ri-settings-3-line text-lg"></i>
                   </button>
-                </div>
-                <div className="space-y-2">
-                  {(rolePermissionsMap[role.value] || []).slice(0, 4).map((permission, index) => (
-                    <div key={index} className="flex items-center text-sm text-gray-600">
-                      <i className="ri-check-line text-green-500 mr-2"></i>
-                      {permission.description}
-                    </div>
-                  ))}
-                  {(rolePermissionsMap[role.value] || []).length > 4 && (
-                    <button onClick={() => setShowPermissions(role.value)} className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer">
-                      View all permissions
-                    </button>
-                  )}
                 </div>
               </div>
             ))}
@@ -538,32 +532,155 @@ export default function UserManagement() {
         </>
       )}
 
-      {/* View Permissions Modal */}
+      {/* View/Edit Permissions Modal */}
       {showPermissions && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <div className="flex justify-between items-center mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-2">
               <h3 className="text-lg font-semibold text-gray-900">
                 {roles.find(r => r.value === showPermissions)?.label} Permissions
               </h3>
-              <button onClick={() => setShowPermissions(null)} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+              <button 
+                onClick={() => {
+                  setShowPermissions(null);
+                  setEditMode(false);
+                  setEditingPermissions([]);
+                }} 
+                className="text-gray-400 hover:text-gray-600 cursor-pointer"
+              >
                 <i className="ri-close-line text-xl"></i>
               </button>
             </div>
-
-            <div className="space-y-2">
-              {(rolePermissionsMap[showPermissions] || []).map((permission, index) => (
-                <div key={index} className="flex items-center text-sm text-gray-700 p-2 bg-gray-50 rounded">
-                  <i className="ri-check-line text-green-500 mr-2"></i>
-                  {permission.description}
-                </div>
-              ))}
+            <div className="flex justify-between items-center mb-6 pb-4 border-b">
+              <p className="text-sm text-gray-500">
+                {editMode ? 'Select or deselect permissions' : 'View all permissions for this role'}
+              </p>
+              {!editMode && (
+                <button
+                  onClick={() => {
+                    setEditMode(true);
+                    setEditingPermissions(
+                      (rolePermissionsMap[showPermissions] || []).map(p => p.name)
+                    );
+                  }}
+                  className="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer whitespace-nowrap"
+                >
+                  <i className="ri-edit-line mr-1.5"></i>
+                  Edit
+                </button>
+              )}
             </div>
 
-            <div className="flex justify-end pt-4 mt-4 border-t">
-              <button onClick={() => setShowPermissions(null)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 cursor-pointer whitespace-nowrap">
-                Close
-              </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {editMode ? (
+                permissions.map((permission) => {
+                  const isSelected = editingPermissions.includes(permission.name);
+                  return (
+                    <div
+                      key={permission.id}
+                      onClick={() => {
+                        setEditingPermissions(prev =>
+                          prev.includes(permission.name)
+                            ? prev.filter(p => p !== permission.name)
+                            : [...prev, permission.name]
+                        );
+                      }}
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        isSelected
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-start">
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center mr-3 flex-shrink-0 mt-0.5 ${
+                          isSelected
+                            ? 'bg-blue-500 border-blue-500'
+                            : 'border-gray-300'
+                        }`}>
+                          {isSelected && <i className="ri-check-line text-white text-sm"></i>}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900">
+                            {permission.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                (rolePermissionsMap[showPermissions] || []).map((permission, index) => (
+                  <div
+                    key={index}
+                    className="p-4 border-2 border-gray-200 bg-white rounded-lg"
+                  >
+                    <p className="text-sm font-medium text-gray-900">
+                      {permission.description}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {(rolePermissionsMap[showPermissions] || []).length === 0 && !editMode && (
+              <div className="text-center py-8 text-gray-500">
+                <i className="ri-shield-line text-4xl mb-2"></i>
+                <p className="text-sm">No permissions assigned to this role</p>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 pt-6 mt-6 border-t">
+              {editMode ? (
+                <>
+                  <button
+                    onClick={() => {
+                      setEditMode(false);
+                      setEditingPermissions([]);
+                    }}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 cursor-pointer whitespace-nowrap"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        setSavingPermissions(true);
+                        await updateRole(showPermissions, { permissions: editingPermissions });
+                        await loadRoles();
+                        setEditMode(false);
+                        setEditingPermissions([]);
+                        setShowSuccess(true);
+                        setTimeout(() => setShowSuccess(false), 3000);
+                      } catch (error) {
+                        console.error('Error updating permissions:', error);
+                      } finally {
+                        setSavingPermissions(false);
+                      }
+                    }}
+                    disabled={savingPermissions}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer whitespace-nowrap"
+                  >
+                    {savingPermissions ? (
+                      <>
+                        <i className="ri-loader-4-line mr-2 animate-spin"></i>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <i className="ri-save-line mr-2"></i>
+                        Save Changes
+                      </>
+                    )}
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setShowPermissions(null)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 cursor-pointer whitespace-nowrap"
+                >
+                  Close
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -3,16 +3,20 @@ import pool from '../config/database.js';
 export const getRoles = async (req, res) => {
   try {
     console.log('Fetching roles...');
+    const roles = ['admin', 'pastor', 'minister', 'staff', 'member'];
     const result = await pool.query(`
+      WITH all_roles AS (
+        SELECT unnest($1::text[]) as role
+      )
       SELECT 
-        role as value,
-        role as label,
-        COUNT(DISTINCT p.id) as permission_count
-      FROM role_permissions rp
-      JOIN permissions p ON rp.permission_id = p.id
-      GROUP BY role
-      ORDER BY role
-    `);
+        ar.role as value,
+        ar.role as label,
+        COALESCE(COUNT(DISTINCT rp.permission_id), 0) as permission_count
+      FROM all_roles ar
+      LEFT JOIN role_permissions rp ON ar.role = rp.role
+      GROUP BY ar.role
+      ORDER BY ar.role
+    `, [roles]);
     console.log(`Found ${result.rows.length} roles`);
     res.json(result.rows);
   } catch (error) {
