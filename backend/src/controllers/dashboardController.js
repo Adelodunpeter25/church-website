@@ -11,18 +11,26 @@ export const getDashboardStats = async (req, res) => {
       WHERE date_joined >= CURRENT_DATE - INTERVAL '7 days' AND role = 'member'
     `);
 
-    const thisWeekAttendance = await pool.query(`
-      SELECT COUNT(DISTINCT user_id) as count FROM attendance 
-      WHERE date >= CURRENT_DATE - INTERVAL '7 days' AND present = true
-    `);
-    const lastWeekAttendance = await pool.query(`
-      SELECT COUNT(DISTINCT user_id) as count FROM attendance 
-      WHERE date >= CURRENT_DATE - INTERVAL '14 days' 
-      AND date < CURRENT_DATE - INTERVAL '7 days' AND present = true
-    `);
-    const attendanceChange = lastWeekAttendance.rows[0].count > 0 
-      ? Math.round(((thisWeekAttendance.rows[0].count - lastWeekAttendance.rows[0].count) / lastWeekAttendance.rows[0].count) * 100)
-      : 0;
+    let thisWeekAttendance = { rows: [{ count: 0 }] };
+    let lastWeekAttendance = { rows: [{ count: 0 }] };
+    let attendanceChange = 0;
+    
+    try {
+      thisWeekAttendance = await pool.query(`
+        SELECT COUNT(DISTINCT user_id) as count FROM attendance 
+        WHERE date >= CURRENT_DATE - INTERVAL '7 days' AND present = true
+      `);
+      lastWeekAttendance = await pool.query(`
+        SELECT COUNT(DISTINCT user_id) as count FROM attendance 
+        WHERE date >= CURRENT_DATE - INTERVAL '14 days' 
+        AND date < CURRENT_DATE - INTERVAL '7 days' AND present = true
+      `);
+      attendanceChange = lastWeekAttendance.rows[0].count > 0 
+        ? Math.round(((thisWeekAttendance.rows[0].count - lastWeekAttendance.rows[0].count) / lastWeekAttendance.rows[0].count) * 100)
+        : 0;
+    } catch (err) {
+      console.log('attendance table does not exist yet');
+    }
 
     const sermonDownloads = await pool.query(`
       SELECT COALESCE(SUM(downloads), 0) as count FROM sermons

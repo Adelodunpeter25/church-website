@@ -8,8 +8,6 @@ export const initWebSocket = (server) => {
   wss = new WebSocketServer({ server });
 
   wss.on('connection', (ws) => {
-    console.log('WebSocket client connected');
-
     ws.on('message', async (message) => {
       try {
         const data = JSON.parse(message);
@@ -22,10 +20,31 @@ export const initWebSocket = (server) => {
           }
           streamSubscriptions.get(data.streamId).add(ws);
           
-          console.log(`Client subscribed to stream: ${data.streamId}`);
-          
           const stats = await getStreamStats(data.streamId);
-          ws.send(JSON.stringify({ type: 'stats', stats }));
+          if (ws.readyState === 1) {
+            ws.send(JSON.stringify({ type: 'stats', stats }));
+          }
+        }
+
+        if (data.type === 'chat-message' && data.streamId) {
+          const result = await pool.query(
+            'INSERT INTO chat_messages (livestream_id, user_id, user_name, text) VALUES ($1, $2, $3, $4) RETURNING *',
+            [data.streamId, data.userId || null, data.userName, data.text]
+          );
+          
+          const clients = streamSubscriptions.get(data.streamId);
+          if (clients) {
+            const messageData = JSON.stringify({ type: 'new-message', message: result.rows[0] });
+            clients.forEach((client) => {
+              if (client.readyState === 1) {
+                try {
+                  client.send(messageData);
+                } catch (error) {
+                  console.error('Error sending message:', error.message);
+                }
+              }
+            });
+          }
         }
       } catch (error) {
         console.error('WebSocket message error:', error);
@@ -39,7 +58,10 @@ export const initWebSocket = (server) => {
           streamSubscriptions.delete(ws.streamId);
         }
       }
-      console.log('WebSocket client disconnected');
+    });
+
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error.message);
     });
   });
 
@@ -92,11 +114,14 @@ const startStatsBroadcast = () => {
     for (const [streamId, clients] of streamSubscriptions.entries()) {
       const stats = await getStreamStats(streamId);
       if (stats) {
-        console.log(`Broadcasting stats for ${streamId}:`, stats);
         const message = JSON.stringify({ type: 'stats', stats });
         clients.forEach((client) => {
           if (client.readyState === 1) {
-            client.send(message);
+            try {
+              client.send(message);
+            } catch (error) {
+              console.error('Error sending to client:', error.message);
+            }
           }
         });
       }

@@ -1,6 +1,3 @@
-
-
-
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/layout/Sidebar';
 import DashboardHeader from '@/components/layout/DashboardHeader';
@@ -9,6 +6,7 @@ import ViewersList from './ViewersList';
 import StreamStats from './StreamStats';
 import { useLivestream } from '@/hooks/useLivestream';
 import LivestreamWebSocket from '@/services/LivestreamWebSocket';
+import LiveStreamChat from './LiveStreamChat';
 
 export default function LiveStreamPage() {
   const { getCurrentLivestream, createLivestream, endLivestream, getStreamHistory, getStreamStats } = useLivestream();
@@ -39,6 +37,7 @@ export default function LiveStreamPage() {
   const [selectedInputDevice, setSelectedInputDevice] = useState<string>('');
   const [selectedOutputDevice, setSelectedOutputDevice] = useState<string>('');
   const [audioDeviceLoading, setAudioDeviceLoading] = useState(false);
+  const [showChat, setShowChat] = useState(true);
 
   useEffect(() => {
     loadCurrentStream();
@@ -172,7 +171,7 @@ export default function LiveStreamPage() {
             <StreamStats isLive={isLive} stats={streamStats} />
 
             <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-2 space-y-6">
                 <div className="bg-white shadow-sm rounded-lg overflow-hidden">
                   <div className="aspect-video bg-gradient-to-br from-blue-900 to-purple-900 relative">
                     {isLive ? (
@@ -255,7 +254,7 @@ export default function LiveStreamPage() {
                   <StreamControls isLive={isLive} onToggleLive={handleToggleLive} loading={loading} currentStreamId={currentStreamId} onAudioLevelChange={setAudioLevel} selectedInputDevice={selectedInputDevice} selectedOutputDevice={selectedOutputDevice} shouldResumeAudio={!!currentStreamId} />
                 </div>
 
-                <div className="mt-6 bg-white shadow-sm rounded-lg p-6">
+                <div className="bg-white shadow-sm rounded-lg p-6">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Audio Stream Settings</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -330,64 +329,68 @@ export default function LiveStreamPage() {
                     />
                   </div>
                 </div>
+
+                <ViewersList streamId={currentStreamId} onToggleChat={() => setShowChat(!showChat)} showChat={showChat} />
               </div>
               
-              <div className="space-y-6">
-                <ViewersList streamId={currentStreamId} />
-                
-                <div className="bg-white shadow-sm rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-medium text-gray-900">Stream History</h3>
-                  </div>
-                  <div className="space-y-3">
-                    {streamHistory.length > 0 ? (
-                      streamHistory.slice(0, 5).map((stream) => {
-                        const durationSeconds = stream.end_time && stream.start_time 
-                          ? Math.floor((new Date(stream.end_time).getTime() - new Date(stream.start_time).getTime()) / 1000)
-                          : 0;
-                        const hours = Math.floor(durationSeconds / 3600);
-                        const minutes = Math.floor((durationSeconds % 3600) / 60);
-                        const seconds = durationSeconds % 60;
-                        const durationStr = `${hours}h ${minutes}m ${seconds}s`;
-                        
-                        return (
-                          <div key={stream.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div>
-                              <div className="text-sm font-medium">{stream.title}</div>
-                              <div className="text-xs text-gray-500">
-                                {new Date(stream.start_time).toLocaleDateString()} • {durationStr}
-                              </div>
+              <div className="lg:col-span-1 space-y-6">
+                {showChat && <LiveStreamChat streamId={currentStreamId} isLive={isLive} />}
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <div className="bg-white shadow-sm rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">Stream History</h3>
+                </div>
+                <div className="space-y-3">
+                  {streamHistory.length > 0 ? (
+                    streamHistory.slice(0, 5).map((stream) => {
+                      const durationSeconds = stream.end_time && stream.start_time 
+                        ? Math.floor((new Date(stream.end_time).getTime() - new Date(stream.start_time).getTime()) / 1000)
+                        : 0;
+                      const hours = Math.floor(durationSeconds / 3600);
+                      const minutes = Math.floor((durationSeconds % 3600) / 60);
+                      const seconds = durationSeconds % 60;
+                      const durationStr = `${hours}h ${minutes}m ${seconds}s`;
+                      
+                      return (
+                        <div key={stream.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div>
+                            <div className="text-sm font-medium">{stream.title}</div>
+                            <div className="text-xs text-gray-500">
+                              {new Date(stream.start_time).toLocaleDateString()} • {durationStr}
                             </div>
-                            <div className="text-sm text-gray-500">{stream.viewers || 0} viewers</div>
                           </div>
-                        );
-                      })
-                    ) : (
-                      <div className="text-center py-4 text-gray-500 text-sm">No stream history yet</div>
-                    )}
-                  </div>
-                  {totalHistoryPages > 1 && (
-                    <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                      <button
-                        onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
-                        disabled={historyPage === 1}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Previous
-                      </button>
-                      <span className="text-sm text-gray-600">
-                        Page {historyPage} of {totalHistoryPages}
-                      </span>
-                      <button
-                        onClick={() => setHistoryPage(p => Math.min(totalHistoryPages, p + 1))}
-                        disabled={historyPage === totalHistoryPages}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Next
-                      </button>
-                    </div>
+                          <div className="text-sm text-gray-500">{stream.viewers || 0} viewers</div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-4 text-gray-500 text-sm">No stream history yet</div>
                   )}
                 </div>
+                {totalHistoryPages > 1 && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                    <button
+                      onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
+                      disabled={historyPage === 1}
+                      className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Previous
+                    </button>
+                    <span className="text-sm text-gray-600">
+                      Page {historyPage} of {totalHistoryPages}
+                    </span>
+                    <button
+                      onClick={() => setHistoryPage(p => Math.min(totalHistoryPages, p + 1))}
+                      disabled={historyPage === totalHistoryPages}
+                      className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

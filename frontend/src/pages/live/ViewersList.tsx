@@ -6,9 +6,11 @@ import { useLivestream } from '@/hooks/useLivestream';
 
 interface ViewersListProps {
   streamId: string | null;
+  onToggleChat?: () => void;
+  showChat?: boolean;
 }
 
-export default function ViewersList({ streamId }: ViewersListProps) {
+export default function ViewersList({ streamId, onToggleChat, showChat }: ViewersListProps) {
   const { getViewers, removeViewer, banViewer, unbanViewer } = useLivestream();
   const [viewerList, setViewerList] = useState<any[]>([]);
   const [showActions, setShowActions] = useState<number | null>(null);
@@ -67,10 +69,22 @@ export default function ViewersList({ streamId }: ViewersListProps) {
   return (
     <div className="bg-white shadow-sm rounded-lg">
       <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900">Connected Listeners</h3>
-        <p className="text-sm text-gray-500">
-          {activeViewers.length} active • {bannedViewers.length} banned
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-medium text-gray-900">Connected Listeners</h3>
+            <p className="text-sm text-gray-500">
+              {activeViewers.length} active • {bannedViewers.length} banned
+            </p>
+          </div>
+          {onToggleChat && (
+            <button
+              onClick={onToggleChat}
+              className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer"
+            >
+              {showChat ? 'Hide Chat' : 'Show Chat'}
+            </button>
+          )}
+        </div>
       </div>
       
       <div className="max-h-96 overflow-y-auto">

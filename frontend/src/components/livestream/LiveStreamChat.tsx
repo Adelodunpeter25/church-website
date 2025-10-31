@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLivestream } from '@/hooks/useLivestream';
 import { useAuth } from '@/context/AuthContext';
 
@@ -15,15 +15,37 @@ interface LiveStreamChatProps {
 
 export default function LiveStreamChat({ streamId }: LiveStreamChatProps) {
   const { user } = useAuth();
-  const { getChatMessages, sendChatMessage } = useLivestream();
+  const { getChatMessages } = useLivestream();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     if (streamId) {
       loadMessages();
-      const interval = setInterval(loadMessages, 3000);
-      return () => clearInterval(interval);
+      
+      const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:5001';
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+      
+      ws.onopen = () => {
+        ws.send(JSON.stringify({ type: 'subscribe', streamId }));
+      };
+      
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'new-message') {
+            setMessages(prev => [...prev, data.message]);
+          }
+        } catch (error) {
+          console.error('Error parsing message:', error);
+        }
+      };
+      
+      return () => {
+        ws.close();
+      };
     }
   }, [streamId]);
 
@@ -39,15 +61,16 @@ export default function LiveStreamChat({ streamId }: LiveStreamChatProps) {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() && streamId && user) {
+    if (newMessage.trim() && streamId && user && wsRef.current) {
       try {
-        await sendChatMessage(streamId, {
-          user_id: user.id,
-          user_name: user.name,
-          text: newMessage
-        });
+        wsRef.current.send(JSON.stringify({
+          type: 'chat-message',
+          streamId: streamId,
+          userId: user.id,
+          userName: user.name,
+          text: newMessage.trim()
+        }));
         setNewMessage('');
-        loadMessages();
       } catch (error) {
         console.error('Error sending message:', error);
       }
