@@ -243,98 +243,83 @@ export default function SermonGrid({
       <div className="mb-4 text-sm text-gray-600">
         Showing {filteredSermons.length} sermons
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="space-y-2 max-w-md w-full">
         {filteredSermons.map((sermon) => (
-          <div key={sermon.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-            <div className="relative">
+          <div key={sermon.id} className="bg-white hover:bg-gray-50 rounded-lg p-6 flex items-center gap-3 sm:gap-4 group transition-colors border border-gray-200">
+            <div className="relative w-20 h-20 sm:w-28 sm:h-28 flex-shrink-0">
               <img 
-                className="w-full h-48 object-top object-cover" 
-                src={getMediaUrl(sermon.thumbnail_url) || `https://readdy.ai/api/search-image?query=modern%20church%20sermon%20artwork&width=400&height=300&seq=${sermon.id}&orientation=landscape`}
+                className="w-full h-full object-cover rounded-md" 
+                src={getMediaUrl(sermon.thumbnail_url) || `https://readdy.ai/api/search-image?query=modern%20church%20sermon%20artwork&width=200&height=200&seq=${sermon.id}&orientation=squarish`}
                 alt={sermon.title}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
               <button
                 onClick={() => togglePlay(sermon)}
-                className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-md"
               >
-                <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors">
-                  <i className={`${playingSermon?.id === sermon.id ? 'ri-pause-fill' : 'ri-play-fill'} text-white text-2xl`}></i>
+                <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                  <i className={`${playingSermon?.id === sermon.id ? 'ri-pause-fill' : 'ri-play-fill'} text-gray-900 text-sm ml-0.5`}></i>
                 </div>
               </button>
-              <div className="absolute bottom-4 left-4 right-4">
-                {sermon.series_name ? (
-                  <span className="inline-flex px-2 py-1 text-xs bg-blue-600 text-white rounded-full">
-                    {sermon.series_name}
-                  </span>
-                ) : (
-                  <span className="inline-flex px-2 py-1 text-xs bg-gray-600 text-white rounded-full">
-                    Standalone
-                  </span>
-                )}
+            </div>
+            
+            <div className="flex-1 min-w-0 max-w-xs">
+              <h3 className="text-sm font-semibold text-gray-900 truncate">{sermon.title}</h3>
+              <p className="text-xs text-gray-500 truncate">{sermon.speaker}</p>
+            </div>
+            
+            {sermon.series_name && (
+              <span className="hidden lg:inline-flex px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-md flex-shrink-0">
+                {sermon.series_name}
+              </span>
+            )}
+            
+            <div className="hidden md:flex items-center text-xs text-gray-500 gap-4 flex-shrink-0">
+              <span>{sermon.duration}</span>
+              <div className="flex items-center">
+                <i className="ri-headphone-line mr-1"></i>
+                {sermon.plays}
               </div>
             </div>
             
-            <div className="p-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{sermon.title}</h3>
-              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{sermon.description}</p>
-              
-              <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                <span className="truncate">{sermon.speaker}</span>
-                <span>{sermon.duration}</span>
-              </div>
-              
-              <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-                <span>{new Date(sermon.date.split('T')[0] + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}</span>
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center">
-                    <i className="ri-play-line mr-1"></i>
-                    {sermon.plays}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={() => togglePlay(sermon)}
-                  className={`flex items-center px-3 py-1 rounded-md text-sm cursor-pointer whitespace-nowrap ${
-                    playingSermon?.id === sermon.id 
-                      ? 'bg-red-100 text-red-700' 
-                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                  }`}
-                >
-                  <i className={`${playingSermon?.id === sermon.id ? 'ri-pause-line' : 'ri-play-line'} mr-1`}></i>
-                  {playingSermon?.id === sermon.id ? 'Playing' : 'Play'}
-                </button>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => downloadSermon(sermon)}
-                    className="p-2 text-gray-400 hover:text-blue-600 cursor-pointer"
-                    title="Download"
-                  >
-                    <i className="ri-download-line"></i>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSermonToEdit(sermon);
-                      setShowEditModal(true);
-                    }}
-                    className="p-2 text-gray-400 hover:text-green-600 cursor-pointer"
-                    title="Edit"
-                  >
-                    <i className="ri-edit-line"></i>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSermonToDelete({ id: sermon.id, title: sermon.title });
-                      setShowDeleteConfirm(true);
-                    }}
-                    className="p-2 text-gray-400 hover:text-red-600 cursor-pointer"
-                    title="Delete"
-                  >
-                    <i className="ri-delete-bin-line"></i>
-                  </button>
-                </div>
-              </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => togglePlay(sermon)}
+                className={`p-2 rounded-full cursor-pointer transition-colors ${
+                  playingSermon?.id === sermon.id 
+                    ? 'bg-red-500 text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                title={playingSermon?.id === sermon.id ? 'Pause' : 'Play'}
+              >
+                <i className={`${playingSermon?.id === sermon.id ? 'ri-pause-fill' : 'ri-play-fill'} text-lg`}></i>
+              </button>
+              <button
+                onClick={() => downloadSermon(sermon)}
+                className="p-2 text-gray-400 hover:text-blue-600 cursor-pointer transition-colors"
+                title="Download"
+              >
+                <i className="ri-download-line text-lg"></i>
+              </button>
+              <button
+                onClick={() => {
+                  setSermonToEdit(sermon);
+                  setShowEditModal(true);
+                }}
+                className="p-2 text-gray-400 hover:text-green-600 cursor-pointer transition-colors"
+                title="Edit"
+              >
+                <i className="ri-edit-line text-lg"></i>
+              </button>
+              <button
+                onClick={() => {
+                  setSermonToDelete({ id: sermon.id, title: sermon.title });
+                  setShowDeleteConfirm(true);
+                }}
+                className="p-2 text-gray-400 hover:text-red-600 cursor-pointer transition-colors"
+                title="Delete"
+              >
+                <i className="ri-delete-bin-line text-lg"></i>
+              </button>
             </div>
           </div>
         ))}
