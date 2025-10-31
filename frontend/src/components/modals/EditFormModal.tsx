@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForms } from '@/hooks/useForms';
+import FormBuilderModal from '@/components/modals/FormBuilderModal';
 
 interface EditFormModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export default function EditFormModal({ isOpen, onClose, formId, onSuccess }: Ed
   const { getForm, updateForm } = useForms();
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
+  const [showBuilder, setShowBuilder] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -27,9 +29,6 @@ export default function EditFormModal({ isOpen, onClose, formId, onSuccess }: Ed
     is_public: true
   });
   const [fields, setFields] = useState<FormField[]>([]);
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [editName, setEditName] = useState('');
-  const [editType, setEditType] = useState('');
 
   useEffect(() => {
     if (isOpen && formId) {
@@ -76,31 +75,7 @@ export default function EditFormModal({ isOpen, onClose, formId, onSuccess }: Ed
     }
   };
 
-  const handleAddField = () => {
-    const newField = { id: Date.now().toString(), name: 'New Field', type: 'text' };
-    setFields([...fields, newField]);
-    setEditingField(newField.id);
-    setEditName(newField.name);
-    setEditType(newField.type);
-  };
 
-  const handleEditField = (field: FormField) => {
-    setEditingField(field.id);
-    setEditName(field.name);
-    setEditType(field.type);
-  };
-
-  const handleSaveField = () => {
-    setFields(fields.map(f => 
-      f.id === editingField ? { ...f, name: editName, type: editType } : f
-    ));
-    setEditingField(null);
-  };
-
-  const handleDeleteField = (id: string) => {
-    setFields(fields.filter(f => f.id !== id));
-    if (editingField === id) setEditingField(null);
-  };
 
   if (!isOpen) return null;
 
@@ -197,59 +172,32 @@ export default function EditFormModal({ isOpen, onClose, formId, onSuccess }: Ed
             </div>
             
             <div className="border-t pt-4 mt-6">
-              <h4 className="text-sm font-medium text-gray-900 mb-3">Form Fields</h4>
-              <div className="space-y-2 text-sm">
-                {fields.map((field) => (
-                  <div key={field.id}>
-                    {editingField === field.id ? (
-                      <div className="p-2 bg-blue-50 rounded space-y-2">
-                        <input
-                          type="text"
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                          placeholder="Field name"
-                        />
-                        <select
-                          value={editType}
-                          onChange={(e) => setEditType(e.target.value)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                        >
-                          <option value="text">Text</option>
-                          <option value="email">Email</option>
-                          <option value="phone">Phone</option>
-                          <option value="number">Number</option>
-                          <option value="date">Date</option>
-                          <option value="textarea">Textarea</option>
-                        </select>
-                        <div className="flex space-x-2">
-                          <button type="button" onClick={handleSaveField} className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">
-                            Save
-                          </button>
-                          <button type="button" onClick={() => setEditingField(null)} className="px-2 py-1 bg-gray-300 text-gray-700 rounded text-xs hover:bg-gray-400">
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                        <span className="text-gray-700">{field.name} ({field.type})</span>
-                        <div className="flex space-x-2">
-                          <button type="button" onClick={() => handleEditField(field)} className="text-blue-600 hover:text-blue-800">
-                            Edit
-                          </button>
-                          <button type="button" onClick={() => handleDeleteField(field.id)} className="text-red-600 hover:text-red-800">
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-medium text-gray-900">Form Fields</h4>
+                <button
+                  type="button"
+                  onClick={() => setShowBuilder(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
+                >
+                  <i className="ri-layout-grid-line mr-1"></i>Open Form Builder
+                </button>
               </div>
-              <button type="button" onClick={handleAddField} className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium">
-                <i className="ri-add-line mr-1"></i>Add Field
-              </button>
+              {fields.length > 0 ? (
+                <div className="p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-600 mb-2">{fields.length} field{fields.length !== 1 ? 's' : ''} configured</p>
+                  <div className="space-y-1">
+                    {fields.map((field, index) => (
+                      <div key={field.id} className="text-xs text-gray-500">
+                        {index + 1}. {field.name} ({field.type})
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 bg-gray-50 rounded-md text-center">
+                  <p className="text-sm text-gray-500">No fields configured yet</p>
+                </div>
+              )}
             </div>
           
             <div className="flex justify-end space-x-3 pt-6 border-t mt-6">
@@ -264,6 +212,12 @@ export default function EditFormModal({ isOpen, onClose, formId, onSuccess }: Ed
           )}
         </div>
       </div>
+      <FormBuilderModal
+        isOpen={showBuilder}
+        onClose={() => setShowBuilder(false)}
+        initialFields={fields}
+        onSave={setFields}
+      />
     </div>
   );
 }

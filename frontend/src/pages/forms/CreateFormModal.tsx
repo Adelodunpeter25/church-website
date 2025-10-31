@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { useForms } from '@/hooks/useForms';
+import FormBuilderModal from '@/components/modals/FormBuilderModal';
 
 interface CreateFormModalProps {
   isOpen: boolean;
@@ -13,6 +14,8 @@ interface CreateFormModalProps {
 export default function CreateFormModal({ isOpen, onClose, onSuccess }: CreateFormModalProps) {
   const { createForm } = useForms();
   const [loading, setLoading] = useState(false);
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [fields, setFields] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -30,19 +33,20 @@ export default function CreateFormModal({ isOpen, onClose, onSuccess }: CreateFo
     e.preventDefault();
     setLoading(true);
     try {
-      await createForm(formData);
+      await createForm({ ...formData, fields });
       onSuccess?.();
       onClose();
-    setFormData({
-      title: '',
-      description: '',
-      type: 'registration',
-      isPublic: true,
-      deadline: '',
-      allowMultiple: false,
-      requireLogin: true,
-      template: 'blank'
-    });
+      setFormData({
+        title: '',
+        description: '',
+        type: 'registration',
+        isPublic: true,
+        deadline: '',
+        allowMultiple: false,
+        requireLogin: true,
+        template: 'blank'
+      });
+      setFields([]);
     } catch (error) {
       console.error('Error creating form:', error);
       alert('Failed to create form');
@@ -148,6 +152,24 @@ export default function CreateFormModal({ isOpen, onClose, onSuccess }: CreateFo
 
 
             <div className="border-t pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-sm font-medium text-gray-900">Form Fields</h4>
+                <button
+                  type="button"
+                  onClick={() => setShowBuilder(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700"
+                >
+                  <i className="ri-layout-grid-line mr-1"></i>Open Form Builder
+                </button>
+              </div>
+              {fields.length > 0 && (
+                <div className="mb-4 p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm text-gray-600">{fields.length} field{fields.length !== 1 ? 's' : ''} configured</p>
+                </div>
+              )}
+            </div>
+
+            <div className="border-t pt-6">
               <h4 className="text-sm font-medium text-gray-900 mb-4">Form Settings</h4>
               <div className="space-y-4">
                 <div className="flex items-center">
@@ -213,6 +235,12 @@ export default function CreateFormModal({ isOpen, onClose, onSuccess }: CreateFo
           </form>
         </div>
       </div>
+      <FormBuilderModal
+        isOpen={showBuilder}
+        onClose={() => setShowBuilder(false)}
+        initialFields={fields}
+        onSave={setFields}
+      />
     </div>
   );
 }
