@@ -1,6 +1,3 @@
-
-
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -8,14 +5,12 @@ import { useMemberDashboard } from '@/hooks/useMemberDashboard';
 import { useLivestream } from '@/hooks/useLivestream';
 import { api } from '@/services/api';
 import AudioPlayer from '@/components/AudioPlayer';
-import EventRegistrationModal from '@/components/modals/EventRegistrationModal';
-import EventDetailsModal from '@/components/modals/EventDetailsModal';
-import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import AddPrayerRequestModal from '@/components/modals/AddPrayerRequestModal';
 import PrayerRequestDetailsModal from '@/components/modals/PrayerRequestDetailsModal';
 import LiveStreamPlayer from '@/components/livestream/LiveStreamPlayer';
 import LiveStreamInfo from '@/components/livestream/LiveStreamInfo';
 import LiveStreamChat from '@/components/livestream/LiveStreamChat';
+import MemberEvents from './MemberEvents';
 
 export default function MemberDashboard() {
   const { user } = useAuth();
@@ -51,12 +46,8 @@ export default function MemberDashboard() {
       setLoadingStream(false);
     }
   };
-  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showPrayerModal, setShowPrayerModal] = useState(false);
   const [showPrayerDetailsModal, setShowPrayerDetailsModal] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [selectedPrayerRequest, setSelectedPrayerRequest] = useState<any>(null);
   const [sermonSearchTerm, setSermonSearchTerm] = useState('');
   const [sermons, setSermons] = useState<any[]>([]);
@@ -348,103 +339,7 @@ export default function MemberDashboard() {
               </div>
             )}
 
-            {activeTab === 'events' && (
-              <div>
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900">Events</h3>
-                  <div className="flex space-x-2">
-                    <button className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer whitespace-nowrap">
-                      Registered
-                    </button>
-                    <button className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer whitespace-nowrap">
-                      All Events
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {[
-                    { title: 'Youth Spring Retreat', date: 'March 15-17, 2025', location: 'Mountain View Camp', status: 'Registered', type: 'Retreat' },
-                    { title: 'Community Food Drive', date: 'March 22, 2025', location: 'Church Main Hall', status: 'Registered', type: 'Service' },
-                    { title: 'Easter Celebration Service', date: 'March 31, 2025', location: 'Main Sanctuary', status: 'Available', type: 'Worship' },
-                    { title: 'Marriage Enrichment Seminar', date: 'April 5-6, 2025', location: 'Fellowship Hall', status: 'Available', type: 'Seminar' }
-                  ].map((event, index) => (
-                    <div key={index} className="bg-white border border-gray-200 rounded-lg p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <div className="flex items-center mb-2">
-                            <h4 className="font-semibold text-gray-900">{event.title}</h4>
-                            <span className={`ml-3 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              event.status === 'Registered' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-blue-100 text-blue-800'
-                            }`}>
-                              {event.status}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-600 mb-1">
-                            <i className="ri-calendar-line mr-2"></i>
-                            {event.date}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            <i className="ri-map-pin-line mr-2"></i>
-                            {event.location}
-                          </p>
-                        </div>
-                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-                          {event.type}
-                        </span>
-                      </div>
-                      <div className="flex space-x-3">
-                        {event.status === 'Registered' ? (
-                          <>
-                            <button 
-                              onClick={() => {
-                                setSelectedEvent(event);
-                                setShowDetailsModal(true);
-                              }}
-                              className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer whitespace-nowrap"
-                            >
-                              View Details
-                            </button>
-                            <button 
-                              onClick={() => {
-                                setSelectedEvent(event);
-                                setShowCancelConfirm(true);
-                              }}
-                              className="text-red-600 hover:text-red-800 text-sm cursor-pointer whitespace-nowrap"
-                            >
-                              Cancel Registration
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button 
-                              onClick={() => {
-                                setSelectedEvent(event);
-                                setShowRegistrationModal(true);
-                              }}
-                              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm cursor-pointer whitespace-nowrap"
-                            >
-                              Register
-                            </button>
-                            <button 
-                              onClick={() => {
-                                setSelectedEvent(event);
-                                setShowDetailsModal(true);
-                              }}
-                              className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer whitespace-nowrap"
-                            >
-                              Learn More
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {activeTab === 'events' && <MemberEvents />}
 
             {activeTab === 'giving' && (
               <div>
@@ -606,34 +501,6 @@ export default function MemberDashboard() {
           </div>
         </div>
       </div>
-
-      {selectedEvent && (
-        <>
-          <EventRegistrationModal
-            isOpen={showRegistrationModal}
-            onClose={() => setShowRegistrationModal(false)}
-            eventTitle={selectedEvent.title}
-          />
-          
-          <EventDetailsModal
-            isOpen={showDetailsModal}
-            onClose={() => setShowDetailsModal(false)}
-            event={selectedEvent}
-          />
-
-          <ConfirmDialog
-            isOpen={showCancelConfirm}
-            onClose={() => setShowCancelConfirm(false)}
-            onConfirm={() => {
-              console.log('Cancelling registration for:', selectedEvent.title);
-            }}
-            title="Cancel Registration"
-            message={`Are you sure you want to cancel your registration for "${selectedEvent.title}"?`}
-            confirmText="Cancel Registration"
-            type="warning"
-          />
-        </>
-      )}
 
       <AddPrayerRequestModal
         isOpen={showPrayerModal}

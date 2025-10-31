@@ -1,6 +1,3 @@
-
-
-
 import { useState, useEffect } from 'react';
 import { useEvents } from '@/hooks/useEvents';
 import { Event } from '@/types';
