@@ -19,6 +19,26 @@ export default function ViewersList({ streamId, onToggleChat, showChat }: Viewer
   useEffect(() => {
     if (streamId) {
       loadViewers();
+      
+      const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:5001';
+      const ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        ws.send(JSON.stringify({ type: 'subscribe-stream-status' }));
+      };
+      
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'viewers-update') {
+            loadViewers();
+          }
+        } catch (error) {
+          console.error('Error parsing message:', error);
+        }
+      };
+      
+      return () => ws.close();
     }
   }, [streamId]);
 

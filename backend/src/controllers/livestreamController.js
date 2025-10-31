@@ -1,5 +1,5 @@
 import pool from '../config/database.js';
-import { broadcastStreamStatusChange, broadcastStreamUpdate } from '../websocket/livestreamWebSocket.js';
+import { broadcastStreamStatusChange, broadcastStreamUpdate, broadcastViewersUpdate } from '../websocket/livestreamWebSocket.js';
 
 export const getLivestreams = async (req, res) => {
   try {
@@ -230,11 +230,25 @@ export const getViewers = async (req, res) => {
 
 export const addViewer = async (req, res) => {
   try {
-    const { name, location } = req.body;
+    const { name, location, user_id } = req.body;
+    
+    if (user_id) {
+      const existing = await pool.query(
+        'SELECT id FROM stream_viewers WHERE livestream_id = $1 AND user_id = $2 AND status = $3',
+        [req.params.id, user_id, 'active']
+      );
+      
+      if (existing.rows.length > 0) {
+        return res.json(existing.rows[0]);
+      }
+    }
+    
     const result = await pool.query(
-      'INSERT INTO stream_viewers (livestream_id, name, location, status) VALUES ($1, $2, $3, $4) RETURNING *',
-      [req.params.id, name, location || null, 'active']
+      'INSERT INTO stream_viewers (livestream_id, name, location, status, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [req.params.id, name, location || null, 'active', user_id || null]
     );
+    
+    broadcastViewersUpdate();
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Add viewer error:', error.message);
@@ -245,6 +259,7 @@ export const addViewer = async (req, res) => {
 export const removeViewer = async (req, res) => {
   try {
     await pool.query('DELETE FROM stream_viewers WHERE id = $1', [req.params.viewerId]);
+    broadcastViewersUpdate();
     res.json({ message: 'Viewer removed' });
   } catch (error) {
     console.error('Remove viewer error:', error.message);
@@ -258,6 +273,7 @@ export const banViewer = async (req, res) => {
       'UPDATE stream_viewers SET status = $1 WHERE id = $2 RETURNING *',
       ['banned', req.params.viewerId]
     );
+    broadcastViewersUpdate();
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Ban viewer error:', error.message);
@@ -271,6 +287,7 @@ export const unbanViewer = async (req, res) => {
       'UPDATE stream_viewers SET status = $1 WHERE id = $2 RETURNING *',
       ['active', req.params.viewerId]
     );
+    broadcastViewersUpdate();
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Unban viewer error:', error.message);
