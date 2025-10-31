@@ -333,7 +333,7 @@ export default function LiveStreamPage() {
               </div>
               
               <div className="lg:col-span-1 space-y-6">
-                {showChat && <LiveStreamChat streamId={currentStreamId} isLive={isLive} />}
+                {showChat && <LiveStreamChat streamId={currentStreamId} isLive={isLive} showDeleteButton={true} />}
                 <ViewersList streamId={currentStreamId} onToggleChat={() => setShowChat(!showChat)} showChat={showChat} />
               </div>
             </div>

@@ -1,4 +1,5 @@
 import pool from '../config/database.js';
+import { broadcastStreamStatusChange } from '../websocket/livestreamWebSocket.js';
 
 export const getLivestreams = async (req, res) => {
   try {
@@ -39,6 +40,7 @@ export const createLivestream = async (req, res) => {
     );
 
     console.log('Livestream created:', result.rows[0].id);
+    broadcastStreamStatusChange();
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Create livestream error:', error.message);
@@ -87,6 +89,7 @@ export const endLivestream = async (req, res) => {
     );
 
     console.log('Livestream ended:', result.rows[0].id);
+    broadcastStreamStatusChange();
     res.json(result.rows[0]);
   } catch (error) {
     console.error('End livestream error:', error.message);

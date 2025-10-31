@@ -4,7 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import pool from './config/database.js';
 import { serveFiles } from './services/storageService.js';
-import { initWebSocket } from './websocket/livestreamWebSocket.js';
+import { initWebSocket, broadcastStreamStatusChange } from './websocket/livestreamWebSocket.js';
 import healthRoutes from './routes/healthRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
@@ -66,6 +66,8 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/permissions', permissionRoutes);
 
 initWebSocket(httpServer);
+
+export { broadcastStreamStatusChange };
 
 httpServer.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);

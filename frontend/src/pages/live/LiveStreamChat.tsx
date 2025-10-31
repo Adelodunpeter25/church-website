@@ -5,9 +5,10 @@ import { useAuth } from '@/context/AuthContext';
 interface LiveStreamChatProps {
   streamId: string | null;
   isLive: boolean;
+  showDeleteButton?: boolean;
 }
 
-export default function LiveStreamChat({ streamId, isLive }: LiveStreamChatProps) {
+export default function LiveStreamChat({ streamId, isLive, showDeleteButton = false }: LiveStreamChatProps) {
   const { getChatMessages, deleteChatMessage } = useLivestream();
   const { user } = useAuth();
   const [messages, setMessages] = useState<any[]>([]);
@@ -68,6 +69,7 @@ export default function LiveStreamChat({ streamId, isLive }: LiveStreamChatProps
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !streamId || !user || !wsRef.current) return;
+    if (wsRef.current.readyState !== WebSocket.OPEN) return;
 
     setSending(true);
     try {
@@ -131,13 +133,15 @@ export default function LiveStreamChat({ streamId, isLive }: LiveStreamChatProps
               </div>
               <p className="text-sm text-gray-700 break-words">{message.text}</p>
             </div>
-            <button
-              onClick={() => handleDeleteMessage(message.id)}
-              className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-opacity"
-              title="Delete message"
-            >
-              <i className="ri-delete-bin-line text-sm"></i>
-            </button>
+            {showDeleteButton && (
+              <button
+                onClick={() => handleDeleteMessage(message.id)}
+                className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-opacity"
+                title="Delete message"
+              >
+                <i className="ri-delete-bin-line text-sm"></i>
+              </button>
+            )}
           </div>
         ))}
       </div>

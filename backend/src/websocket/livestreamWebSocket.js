@@ -4,6 +4,8 @@ import pool from '../config/database.js';
 let wss = null;
 const streamSubscriptions = new Map();
 
+const streamStatusSubscribers = new Set();
+
 export const initWebSocket = (server) => {
   wss = new WebSocketServer({ server });
 
@@ -11,6 +13,10 @@ export const initWebSocket = (server) => {
     ws.on('message', async (message) => {
       try {
         const data = JSON.parse(message);
+
+        if (data.type === 'subscribe-stream-status') {
+          streamStatusSubscribers.add(ws);
+        }
 
         if (data.type === 'subscribe' && data.streamId) {
           ws.streamId = data.streamId;
@@ -52,6 +58,7 @@ export const initWebSocket = (server) => {
     });
 
     ws.on('close', () => {
+      streamStatusSubscribers.delete(ws);
       if (ws.streamId && streamSubscriptions.has(ws.streamId)) {
         streamSubscriptions.get(ws.streamId).delete(ws);
         if (streamSubscriptions.get(ws.streamId).size === 0) {
@@ -129,4 +136,17 @@ const startStatsBroadcast = () => {
   }, 3000);
 };
 
-export default { initWebSocket };
+export const broadcastStreamStatusChange = () => {
+  const message = JSON.stringify({ type: 'stream-status-change' });
+  streamStatusSubscribers.forEach((client) => {
+    if (client.readyState === 1) {
+      try {
+        client.send(message);
+      } catch (error) {
+        console.error('Error broadcasting stream status:', error.message);
+      }
+    }
+  });
+};
+
+export default { initWebSocket, broadcastStreamStatusChange };

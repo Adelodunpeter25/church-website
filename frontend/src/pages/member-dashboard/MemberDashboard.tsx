@@ -9,7 +9,7 @@ import AddPrayerRequestModal from '@/components/modals/AddPrayerRequestModal';
 import PrayerRequestDetailsModal from '@/components/modals/PrayerRequestDetailsModal';
 import LiveStreamPlayer from '@/components/livestream/LiveStreamPlayer';
 import LiveStreamInfo from '@/components/livestream/LiveStreamInfo';
-import LiveStreamChat from '@/components/livestream/LiveStreamChat';
+import LiveStreamChat from '@/pages/live/LiveStreamChat';
 import MemberEvents from './MemberEvents';
 import MemberGiving from './MemberGiving';
 import MemberPrayer from './MemberPrayer';
@@ -26,6 +26,26 @@ export default function MemberDashboard() {
   useEffect(() => {
     if (activeTab === 'livestream') {
       loadLivestream();
+      
+      const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:5001';
+      const ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        ws.send(JSON.stringify({ type: 'subscribe-stream-status' }));
+      };
+      
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'stream-status-change') {
+            loadLivestream();
+          }
+        } catch (error) {
+          console.error('Error parsing message:', error);
+        }
+      };
+      
+      return () => ws.close();
     }
   }, [activeTab]);
 
@@ -254,7 +274,7 @@ export default function MemberDashboard() {
                       />
                     </div>
                     <div>
-                      <LiveStreamChat streamId={currentStream?.id} />
+                      <LiveStreamChat streamId={currentStream?.id} isLive={currentStream?.is_live || false} showDeleteButton={false} />
                     </div>
                   </div>
                 )}
