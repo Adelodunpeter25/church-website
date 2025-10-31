@@ -308,16 +308,7 @@ export default function StreamControls({ isLive, onToggleLive, loading, currentS
         </div>
       </div>
       
-      {isLive && (
-        <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
-          <div className="flex items-center">
-            <i className="ri-information-line text-green-600 mr-2"></i>
-            <span className="text-sm text-green-800">
-              Your audio stream is live and broadcasting to the congregation. Stream URL has been shared automatically.
-            </span>
-          </div>
-        </div>
-      )}
+
       <ShareStreamModal isOpen={showShareModal} onClose={() => setShowShareModal(false)} />
       <StreamSettingsModal 
         isOpen={showSettings} 

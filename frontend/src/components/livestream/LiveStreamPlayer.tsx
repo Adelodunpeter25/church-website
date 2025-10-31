@@ -1,15 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLivestream } from '@/hooks/useLivestream';
+import { useAuth } from '@/context/AuthContext';
 
 interface LiveStreamPlayerProps {
   isLive: boolean;
   title?: string;
+  description?: string;
   streamUrl?: string;
+  streamId?: string;
 }
 
-export default function LiveStreamPlayer({ isLive, title, streamUrl }: LiveStreamPlayerProps) {
+export default function LiveStreamPlayer({ isLive, title, description, streamUrl, streamId }: LiveStreamPlayerProps) {
+  const { addViewer } = useLivestream();
+  const { user } = useAuth();
   const [volume, setVolume] = useState(70);
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasJoined, setHasJoined] = useState(false);
+
+  const handlePlay = async () => {
+    if (!isPlaying && !hasJoined && streamId && user) {
+      try {
+        await addViewer(streamId, { name: user.name, location: 'Online' });
+        setHasJoined(true);
+      } catch (error) {
+        console.error('Error adding viewer:', error);
+      }
+    }
+    setIsPlaying(!isPlaying);
+  };
 
   return (
     <div className="bg-white rounded-lg shadow">
@@ -22,8 +41,8 @@ export default function LiveStreamPlayer({ isLive, title, streamUrl }: LiveStrea
             </div>
             <div className="text-white text-center">
               <i className="ri-radio-line text-6xl mb-4"></i>
-              <p className="text-xl font-semibold">Audio Stream Active</p>
-              <p className="text-sm mt-2 text-blue-100">{title || 'Sunday Morning Service'}</p>
+              <p className="text-xl font-semibold">{title || 'Audio Stream Active'}</p>
+              {description && <p className="text-sm mt-2 text-blue-100">{description}</p>}
             </div>
           </>
         ) : (
@@ -38,7 +57,7 @@ export default function LiveStreamPlayer({ isLive, title, streamUrl }: LiveStrea
       {isLive && (
         <div className="p-4 flex items-center gap-4 border-t">
           <button 
-            onClick={() => setIsPlaying(!isPlaying)}
+            onClick={handlePlay}
             className="text-blue-600 hover:text-blue-800"
           >
             <i className={`${isPlaying ? 'ri-pause-fill' : 'ri-play-fill'} text-2xl`}></i>

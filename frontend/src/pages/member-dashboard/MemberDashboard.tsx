@@ -266,7 +266,9 @@ export default function MemberDashboard() {
                       <LiveStreamPlayer 
                         isLive={currentStream?.is_live || false} 
                         title={currentStream?.title}
+                        description={currentStream?.description}
                         streamUrl={currentStream?.stream_url}
+                        streamId={currentStream?.id}
                       />
                       <LiveStreamInfo 
                         isLive={currentStream?.is_live || false} 
