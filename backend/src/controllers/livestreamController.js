@@ -71,19 +71,20 @@ export const updateLivestream = async (req, res) => {
 export const endLivestream = async (req, res) => {
   try {
     console.log('Ending livestream:', req.params.id);
-    await pool.query(
-      'UPDATE livestreams SET is_live = false, end_time = CURRENT_TIMESTAMP WHERE is_live = true AND id != $1',
-      [req.params.id]
-    );
     
     const result = await pool.query(
-      'UPDATE livestreams SET is_live = false, end_time = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *',
+      'UPDATE livestreams SET is_live = false, end_time = CURRENT_TIMESTAMP WHERE id = $1 AND is_live = true RETURNING *',
       [req.params.id]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Livestream not found' });
+      return res.status(404).json({ error: 'Livestream not found or already ended' });
     }
+
+    await pool.query(
+      'UPDATE stream_viewers SET status = $1 WHERE livestream_id = $2 AND status = $3',
+      ['inactive', req.params.id, 'active']
+    );
 
     console.log('Livestream ended:', result.rows[0].id);
     res.json(result.rows[0]);
@@ -273,8 +274,17 @@ export const getStreamStats = async (req, res) => {
 
     let duration = 0;
     if (stream.rows[0].is_live && stream.rows[0].start_time) {
-      const startTime = Date.parse(stream.rows[0].start_time.toISOString());
-      duration = Math.floor((Date.now() - startTime) / 1000);
+      const durationResult = await pool.query(
+        'SELECT EXTRACT(EPOCH FROM (NOW() - start_time))::INTEGER as duration FROM livestreams WHERE id = $1',
+        [streamId]
+      );
+      duration = durationResult.rows[0]?.duration || 0;
+    } else if (!stream.rows[0].is_live && stream.rows[0].start_time && stream.rows[0].end_time) {
+      const durationResult = await pool.query(
+        'SELECT EXTRACT(EPOCH FROM (end_time - start_time))::INTEGER as duration FROM livestreams WHERE id = $1',
+        [streamId]
+      );
+      duration = durationResult.rows[0]?.duration || 0;
     }
 
     res.json({

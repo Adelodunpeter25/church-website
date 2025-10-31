@@ -41,15 +41,19 @@ export default function LiveStreamPage() {
 
   useEffect(() => {
     if (currentStreamId && isLive) {
+      console.log('Connecting WebSocket for stream:', currentStreamId);
       LivestreamWebSocket.connect(currentStreamId, (stats) => {
+        console.log('Stats received:', stats);
         setStreamStats(stats);
         setViewerCount(stats.current_viewers);
       });
 
       return () => {
+        console.log('Disconnecting WebSocket');
         LivestreamWebSocket.disconnect();
       };
     } else if (!isLive) {
+      LivestreamWebSocket.disconnect();
       setStreamStats({
         current_viewers: 0,
         peak_viewers: 0,
@@ -66,7 +70,6 @@ export default function LiveStreamPage() {
         setIsLive(true);
         setViewerCount(stream.viewers || 0);
         setCurrentStreamId(stream.id);
-        loadStreamStats();
       } else {
         setIsLive(false);
         setCurrentStreamId(null);
@@ -102,18 +105,26 @@ export default function LiveStreamPage() {
         });
         setCurrentStreamId(stream.id);
         setIsLive(true);
+        setStreamStats({
+          current_viewers: 0,
+          peak_viewers: 0,
+          duration: 0,
+          chat_messages: 0
+        });
       } else {
         if (currentStreamId) {
+          LivestreamWebSocket.disconnect();
           await endLivestream(currentStreamId);
           setCurrentStreamId(null);
           setIsLive(false);
+          setViewerCount(0);
           setStreamStats({
             current_viewers: 0,
             peak_viewers: 0,
             duration: 0,
             chat_messages: 0
           });
-          loadStreamHistory();
+          await loadStreamHistory(1);
         }
       }
     } finally {
@@ -291,13 +302,13 @@ export default function LiveStreamPage() {
                   <div className="space-y-3">
                     {streamHistory.length > 0 ? (
                       streamHistory.slice(0, 5).map((stream) => {
-                        const duration = stream.end_time && stream.start_time 
-                          ? new Date(stream.end_time).getTime() - new Date(stream.start_time).getTime()
+                        const durationSeconds = stream.end_time && stream.start_time 
+                          ? Math.floor((new Date(stream.end_time).getTime() - new Date(stream.start_time).getTime()) / 1000)
                           : 0;
-                        const hours = Math.floor(duration / 3600000);
-                        const minutes = Math.floor((duration % 3600000) / 60000);
-                        const seconds = Math.floor((duration % 60000) / 1000);
-                        const durationStr = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                        const hours = Math.floor(durationSeconds / 3600);
+                        const minutes = Math.floor((durationSeconds % 3600) / 60);
+                        const seconds = durationSeconds % 60;
+                        const durationStr = `${hours}h ${minutes}m ${seconds}s`;
                         
                         return (
                           <div key={stream.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">

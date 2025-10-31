@@ -49,7 +49,7 @@ export const initWebSocket = (server) => {
 const getStreamStats = async (streamId) => {
   try {
     const stream = await pool.query('SELECT * FROM livestreams WHERE id = $1', [streamId]);
-    if (stream.rows.length === 0) return null;
+    if (stream.rows.length === 0 || !stream.rows[0].is_live) return null;
 
     const viewers = await pool.query(
       'SELECT COUNT(*) as current_viewers FROM stream_viewers WHERE livestream_id = $1 AND status = $2',
@@ -67,12 +67,11 @@ const getStreamStats = async (streamId) => {
 
     let duration = 0;
     if (stream.rows[0].is_live && stream.rows[0].start_time) {
-      const startTime = Date.parse(stream.rows[0].start_time.toISOString());
-      duration = Math.floor((Date.now() - startTime) / 1000);
-    } else if (!stream.rows[0].is_live && stream.rows[0].start_time && stream.rows[0].end_time) {
-      const startTime = Date.parse(stream.rows[0].start_time.toISOString());
-      const endTime = Date.parse(stream.rows[0].end_time.toISOString());
-      duration = Math.floor((endTime - startTime) / 1000);
+      const durationResult = await pool.query(
+        'SELECT EXTRACT(EPOCH FROM (NOW() - start_time))::INTEGER as duration FROM livestreams WHERE id = $1',
+        [streamId]
+      );
+      duration = durationResult.rows[0]?.duration || 0;
     }
 
     return {
