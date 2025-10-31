@@ -1,5 +1,5 @@
 import express from 'express';
-import { getLivestreams, getCurrentLivestream, createLivestream, updateLivestream, endLivestream, getChatMessages, sendChatMessage, updateViewerCount, getStreamHistory, getViewers, addViewer, removeViewer, banViewer, unbanViewer, getStreamStats } from '../controllers/livestreamController.js';
+import { getLivestreams, getCurrentLivestream, createLivestream, updateLivestream, endLivestream, getChatMessages, sendChatMessage, updateViewerCount, getStreamHistory, getViewers, addViewer, removeViewer, banViewer, unbanViewer, getStreamStats, streamAudio } from '../controllers/livestreamController.js';
 
 const router = express.Router();
 
@@ -18,5 +18,6 @@ router.delete('/:id/viewers/:viewerId', removeViewer);
 router.post('/:id/viewers/:viewerId/ban', banViewer);
 router.post('/:id/viewers/:viewerId/unban', unbanViewer);
 router.get('/:id/stats', getStreamStats);
+router.post('/stream', streamAudio);
 
 export default router;

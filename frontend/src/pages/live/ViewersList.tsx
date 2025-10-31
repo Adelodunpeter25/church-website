@@ -1,23 +1,34 @@
 
 
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLivestream } from '@/hooks/useLivestream';
 
 interface ViewersListProps {
-  streamId: number | null;
+  streamId: string | null;
 }
 
 export default function ViewersList({ streamId }: ViewersListProps) {
   const { getViewers, removeViewer, banViewer, unbanViewer } = useLivestream();
   const [viewerList, setViewerList] = useState<any[]>([]);
   const [showActions, setShowActions] = useState<number | null>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (streamId) {
       loadViewers();
     }
   }, [streamId]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (actionsRef.current && !actionsRef.current.contains(event.target as Node)) {
+        setShowActions(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const loadViewers = async () => {
     if (!streamId) return;
@@ -88,7 +99,7 @@ export default function ViewersList({ streamId }: ViewersListProps) {
                 <div className="text-xs text-gray-500">
                   {new Date(viewer.joined_at).toLocaleTimeString()}
                 </div>
-                <div className="relative">
+                <div className="relative" ref={showActions === viewer.id ? actionsRef : null}>
                   <button
                     onClick={() => setShowActions(showActions === viewer.id ? null : viewer.id)}
                     className="p-1 text-gray-400 hover:text-gray-600 cursor-pointer"

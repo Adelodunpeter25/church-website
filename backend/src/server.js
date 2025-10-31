@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import pool from './config/database.js';
 import { serveFiles } from './services/storageService.js';
 import { initializeSocket } from './config/socket.js';
+import { initWebSocket } from './websocket/livestreamWebSocket.js';
 import healthRoutes from './routes/healthRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
@@ -66,10 +67,12 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/permissions', permissionRoutes);
 
 initializeSocket(httpServer);
+initWebSocket(httpServer);
 
 httpServer.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
   console.log('WebSocket server ready');
+  console.log('Livestream WebSocket ready');
   try {
     const result = await pool.query('SELECT NOW()');
     console.log('Database connected successfully at:', result.rows[0].now);

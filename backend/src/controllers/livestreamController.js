@@ -138,11 +138,31 @@ export const updateViewerCount = async (req, res) => {
 export const getStreamHistory = async (req, res) => {
   try {
     console.log('Fetching stream history...');
-    const result = await pool.query(
-      'SELECT * FROM livestreams WHERE is_live = false AND end_time IS NOT NULL ORDER BY start_time DESC LIMIT 10'
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const offset = (page - 1) * limit;
+
+    const countResult = await pool.query(
+      'SELECT COUNT(*) FROM livestreams WHERE is_live = false AND end_time IS NOT NULL'
     );
+    const totalItems = parseInt(countResult.rows[0].count);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const result = await pool.query(
+      'SELECT * FROM livestreams WHERE is_live = false AND end_time IS NOT NULL ORDER BY start_time DESC LIMIT $1 OFFSET $2',
+      [limit, offset]
+    );
+    
     console.log(`Found ${result.rows.length} past streams`);
-    res.json(result.rows);
+    res.json({
+      data: result.rows,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit
+      }
+    });
   } catch (error) {
     console.error('Get stream history error:', error.message);
     res.status(500).json({ error: error.message });
@@ -214,12 +234,27 @@ export const unbanViewer = async (req, res) => {
   }
 };
 
+export const streamAudio = async (req, res) => {
+  try {
+    const { streamId } = req.body;
+    const audioChunk = req.files?.audio;
+
+    if (!audioChunk || !streamId) {
+      return res.status(400).json({ error: 'Missing audio or streamId' });
+    }
+
+    console.log(`Received audio chunk for stream ${streamId}: ${audioChunk.size} bytes`);
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Stream audio error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const getStreamStats = async (req, res) => {
   try {
-    const streamId = parseInt(req.params.id);
-    if (isNaN(streamId)) {
-      return res.status(400).json({ error: 'Invalid stream ID' });
-    }
+    const streamId = req.params.id;
 
     const stream = await pool.query('SELECT * FROM livestreams WHERE id = $1', [streamId]);
     if (stream.rows.length === 0) {
@@ -240,14 +275,16 @@ export const getStreamStats = async (req, res) => {
       [streamId]
     );
 
-    const duration = stream.rows[0].is_live && stream.rows[0].start_time
-      ? Date.now() - new Date(stream.rows[0].start_time).getTime()
-      : 0;
+    let duration = 0;
+    if (stream.rows[0].is_live && stream.rows[0].start_time) {
+      const startTime = new Date(stream.rows[0].start_time + 'Z').getTime();
+      duration = Math.floor((Date.now() - startTime) / 1000);
+    }
 
     res.json({
       current_viewers: parseInt(viewers.rows[0].current_viewers),
       peak_viewers: parseInt(peakViewers.rows[0].peak_viewers) || 0,
-      duration: Math.floor(duration / 1000),
+      duration: duration,
       chat_messages: parseInt(chatCount.rows[0].chat_messages),
       is_live: stream.rows[0].is_live
     });

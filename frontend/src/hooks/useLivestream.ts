@@ -7,8 +7,8 @@ export const useLivestream = () => {
   const getCurrentLivestream = () =>
     api.get('/livestreams/current');
 
-  const getStreamHistory = () =>
-    api.get('/livestreams/history');
+  const getStreamHistory = (page = 1, limit = 5) =>
+    api.get(`/livestreams/history?page=${page}&limit=${limit}`);
 
   const createLivestream = (data: any) =>
     api.post('/livestreams', data);
@@ -16,35 +16,51 @@ export const useLivestream = () => {
   const updateLivestream = (id: string, data: any) =>
     api.put(`/livestreams/${id}`, data);
 
-  const endLivestream = (id: number) =>
+  const endLivestream = (id: string) =>
     api.post(`/livestreams/${id}/end`, {});
 
-  const updateViewerCount = (id: number, viewers: number) =>
+  const updateViewerCount = (id: string, viewers: number) =>
     api.put(`/livestreams/${id}/viewers`, { viewers });
 
-  const getChatMessages = (id: number, limit?: number) =>
+  const getChatMessages = (id: string, limit?: number) =>
     api.get(`/livestreams/${id}/chat${limit ? `?limit=${limit}` : ''}`);
 
-  const sendChatMessage = (id: number, data: any) =>
+  const sendChatMessage = (id: string, data: any) =>
     api.post(`/livestreams/${id}/chat`, data);
 
-  const getViewers = (id: number) =>
+  const getViewers = (id: string) =>
     api.get(`/livestreams/${id}/viewers`);
 
-  const addViewer = (id: number, data: any) =>
+  const addViewer = (id: string, data: any) =>
     api.post(`/livestreams/${id}/viewers`, data);
 
-  const removeViewer = (id: number, viewerId: number) =>
+  const removeViewer = (id: string, viewerId: number) =>
     api.delete(`/livestreams/${id}/viewers/${viewerId}`);
 
-  const banViewer = (id: number, viewerId: number) =>
+  const banViewer = (id: string, viewerId: number) =>
     api.post(`/livestreams/${id}/viewers/${viewerId}/ban`, {});
 
-  const unbanViewer = (id: number, viewerId: number) =>
+  const unbanViewer = (id: string, viewerId: number) =>
     api.post(`/livestreams/${id}/viewers/${viewerId}/unban`, {});
 
-  const getStreamStats = (id: number) =>
+  const getStreamStats = (id: string) =>
     api.get(`/livestreams/${id}/stats`);
 
-  return { getLivestreams, getCurrentLivestream, getStreamHistory, createLivestream, updateLivestream, endLivestream, updateViewerCount, getChatMessages, sendChatMessage, getViewers, addViewer, removeViewer, banViewer, unbanViewer, getStreamStats };
+  return { 
+    getLivestreams, 
+    getCurrentLivestream, 
+    getStreamHistory, 
+    createLivestream, 
+    updateLivestream, 
+    endLivestream, 
+    updateViewerCount, 
+    getChatMessages, 
+    sendChatMessage, 
+    getViewers, 
+    addViewer, 
+    removeViewer, 
+    banViewer, 
+    unbanViewer, 
+    getStreamStats 
+  };
 };

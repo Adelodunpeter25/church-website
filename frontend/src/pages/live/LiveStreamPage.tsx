@@ -8,14 +8,17 @@ import StreamControls from './StreamControls';
 import ViewersList from './ViewersList';
 import StreamStats from './StreamStats';
 import { useLivestream } from '@/hooks/useLivestream';
+import LivestreamWebSocket from '@/services/LivestreamWebSocket';
 
 export default function LiveStreamPage() {
-  const { getCurrentLivestream, createLivestream, endLivestream, getStreamHistory } = useLivestream();
+  const { getCurrentLivestream, createLivestream, endLivestream, getStreamHistory, getStreamStats } = useLivestream();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLive, setIsLive] = useState(false);
   const [viewerCount, setViewerCount] = useState(0);
-  const [currentStreamId, setCurrentStreamId] = useState<number | null>(null);
+  const [currentStreamId, setCurrentStreamId] = useState<string | null>(null);
   const [streamHistory, setStreamHistory] = useState<any[]>([]);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [totalHistoryPages, setTotalHistoryPages] = useState(1);
   const [streamStats, setStreamStats] = useState({
     current_viewers: 0,
     peak_viewers: 0,
@@ -33,13 +36,26 @@ export default function LiveStreamPage() {
 
   useEffect(() => {
     loadCurrentStream();
-    loadStreamHistory();
-  }, []);
+    loadStreamHistory(historyPage);
+  }, [historyPage]);
 
   useEffect(() => {
     if (currentStreamId && isLive) {
-      const interval = setInterval(loadStreamStats, 5000);
-      return () => clearInterval(interval);
+      LivestreamWebSocket.connect(currentStreamId, (stats) => {
+        setStreamStats(stats);
+        setViewerCount(stats.current_viewers);
+      });
+
+      return () => {
+        LivestreamWebSocket.disconnect();
+      };
+    } else if (!isLive) {
+      setStreamStats({
+        current_viewers: 0,
+        peak_viewers: 0,
+        duration: 0,
+        chat_messages: 0
+      });
     }
   }, [currentStreamId, isLive]);
 
@@ -61,25 +77,19 @@ export default function LiveStreamPage() {
     }
   };
 
-  const loadStreamHistory = async () => {
+  const loadStreamHistory = async (page = 1) => {
     try {
-      const history = await getStreamHistory();
-      setStreamHistory(history);
+      const response = await getStreamHistory(page, 5);
+      setStreamHistory(response.data || response);
+      if (response.pagination) {
+        setTotalHistoryPages(response.pagination.totalPages);
+      }
     } catch (error) {
       console.error('Error loading stream history:', error);
     }
   };
 
-  const loadStreamStats = async () => {
-    if (!currentStreamId) return;
-    try {
-      const stats = await useLivestream().getStreamStats(currentStreamId);
-      setStreamStats(stats);
-      setViewerCount(stats.current_viewers);
-    } catch (error) {
-      console.error('Error loading stream stats:', error);
-    }
-  };
+
 
   const handleToggleLive = async (live: boolean) => {
     setLoading(true);
@@ -92,12 +102,17 @@ export default function LiveStreamPage() {
         });
         setCurrentStreamId(stream.id);
         setIsLive(true);
-        loadStreamStats();
       } else {
         if (currentStreamId) {
           await endLivestream(currentStreamId);
           setCurrentStreamId(null);
           setIsLive(false);
+          setStreamStats({
+            current_viewers: 0,
+            peak_viewers: 0,
+            duration: 0,
+            chat_messages: 0
+          });
           loadStreamHistory();
         }
       }
@@ -140,11 +155,7 @@ export default function LiveStreamPage() {
                           <div className="flex items-center justify-center space-x-6 text-sm">
                             <div className="flex items-center">
                               <i className="ri-headphone-line mr-2"></i>
-                              Audio Quality: High
-                            </div>
-                            <div className="flex items-center">
-                              <i className="ri-signal-wifi-3-line mr-2"></i>
-                              Strong Signal
+                              {streamSettings.quality === 'high' ? 'High Quality (128kbps)' : streamSettings.quality === 'standard' ? 'Standard (96kbps)' : 'Low Bandwidth (64kbps)'}
                             </div>
                           </div>
                         </div>
@@ -158,11 +169,7 @@ export default function LiveStreamPage() {
                           <div className="flex items-center justify-center space-x-6 text-sm">
                             <div className="flex items-center">
                               <i className="ri-headphone-line mr-2"></i>
-                              Audio Ready
-                            </div>
-                            <div className="flex items-center">
-                              <i className="ri-signal-wifi-3-line mr-2"></i>
-                              Connection Ready
+                              {streamSettings.quality === 'high' ? 'High Quality (128kbps)' : streamSettings.quality === 'standard' ? 'Standard (96kbps)' : 'Low Bandwidth (64kbps)'}
                             </div>
                           </div>
                         </div>
@@ -194,7 +201,7 @@ export default function LiveStreamPage() {
                     </div>
                   </div>
                   
-                  <StreamControls isLive={isLive} onToggleLive={handleToggleLive} loading={loading} />
+                  <StreamControls isLive={isLive} onToggleLive={handleToggleLive} loading={loading} currentStreamId={currentStreamId} />
                 </div>
 
                 <div className="mt-6 bg-white shadow-sm rounded-lg p-6">
@@ -278,10 +285,12 @@ export default function LiveStreamPage() {
                 <ViewersList streamId={currentStreamId} />
                 
                 <div className="bg-white shadow-sm rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Stream History</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium text-gray-900">Stream History</h3>
+                  </div>
                   <div className="space-y-3">
                     {streamHistory.length > 0 ? (
-                      streamHistory.map((stream) => {
+                      streamHistory.slice(0, 5).map((stream) => {
                         const duration = stream.end_time && stream.start_time 
                           ? new Date(stream.end_time).getTime() - new Date(stream.start_time).getTime()
                           : 0;
@@ -306,6 +315,27 @@ export default function LiveStreamPage() {
                       <div className="text-center py-4 text-gray-500 text-sm">No stream history yet</div>
                     )}
                   </div>
+                  {totalHistoryPages > 1 && (
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                      <button
+                        onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
+                        disabled={historyPage === 1}
+                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Previous
+                      </button>
+                      <span className="text-sm text-gray-600">
+                        Page {historyPage} of {totalHistoryPages}
+                      </span>
+                      <button
+                        onClick={() => setHistoryPage(p => Math.min(totalHistoryPages, p + 1))}
+                        disabled={historyPage === totalHistoryPages}
+                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

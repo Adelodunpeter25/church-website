@@ -16,7 +16,7 @@ export default function StreamStats({ isLive, stats: streamStats }: StreamStatsP
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
-    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    return `${h}h ${m}m ${s}s`;
   };
 
   const stats = [
@@ -35,7 +35,7 @@ export default function StreamStats({ isLive, stats: streamStats }: StreamStatsP
       icon: 'ri-bar-chart-line'
     },
     {
-      name: 'Stream Duration',
+      name: 'Duration',
       value: formatDuration(streamStats.duration),
       change: '',
       changeType: isLive ? 'live' : 'offline',
