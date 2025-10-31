@@ -174,7 +174,14 @@ export const incrementPlays = async (req, res) => {
 
 export const incrementDownloads = async (req, res) => {
   try {
+    const userId = req.user?.userId;
     await pool.query('UPDATE sermons SET downloads = downloads + 1 WHERE id = $1', [req.params.id]);
+    if (userId) {
+      await pool.query(
+        'INSERT INTO sermon_downloads (sermon_id, user_id) VALUES ($1, $2) ON CONFLICT (sermon_id, user_id) DO NOTHING',
+        [req.params.id, userId]
+      );
+    }
     res.json({ message: 'Download count incremented' });
   } catch (error) {
     console.error('Increment downloads error:', error.message);

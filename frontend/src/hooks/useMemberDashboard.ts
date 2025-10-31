@@ -3,7 +3,7 @@ import { api } from '@/services/api';
 
 export const useMemberDashboard = (userId: string) => {
   const [stats, setStats] = useState({
-    attendanceThisYear: 0,
+    downloadedSermons: 0,
     totalGiving: 0,
     eventsAttended: 0
   });

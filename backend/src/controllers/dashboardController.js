@@ -109,10 +109,9 @@ export const getMemberStats = async (req, res) => {
   try {
     console.log('Fetching member stats:', req.params.memberId);
     
-    const attendanceCount = await pool.query(
-      `SELECT COUNT(*) as count FROM attendance 
-       WHERE user_id = $1 AND present = true 
-       AND EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)`,
+    const downloadedSermons = await pool.query(
+      `SELECT COUNT(DISTINCT sermon_id) as count FROM sermon_downloads 
+       WHERE user_id = $1`,
       [req.params.memberId]
     );
     
@@ -130,7 +129,7 @@ export const getMemberStats = async (req, res) => {
     );
 
     res.json({
-      attendanceThisYear: parseInt(attendanceCount.rows[0].count),
+      downloadedSermons: parseInt(downloadedSermons.rows[0]?.count || 0),
       totalGiving: parseFloat(givingTotal.rows[0].total),
       eventsAttended: parseInt(eventsCount.rows[0].count)
     });

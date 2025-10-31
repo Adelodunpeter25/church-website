@@ -6,6 +6,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useMemberDashboard } from '@/hooks/useMemberDashboard';
 import { useLivestream } from '@/hooks/useLivestream';
+import { api } from '@/services/api';
+import AudioPlayer from '@/components/AudioPlayer';
 import EventRegistrationModal from '@/components/modals/EventRegistrationModal';
 import EventDetailsModal from '@/components/modals/EventDetailsModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
@@ -57,20 +59,29 @@ export default function MemberDashboard() {
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [selectedPrayerRequest, setSelectedPrayerRequest] = useState<any>(null);
   const [sermonSearchTerm, setSermonSearchTerm] = useState('');
+  const [sermons, setSermons] = useState<any[]>([]);
+  const [loadingSermons, setLoadingSermons] = useState(false);
+  const [currentSermon, setCurrentSermon] = useState<any>(null);
 
-  const sermons = [
-    { title: 'Walking in Faith - Part 3', speaker: 'Pastor John', date: 'Jan 14, 2025', duration: '42 min', plays: 156 },
-    { title: 'The Power of Prayer', speaker: 'Pastor Sarah', date: 'Jan 7, 2025', duration: '38 min', plays: 203 },
-    { title: 'Love Your Neighbor', speaker: 'Pastor John', date: 'Dec 31, 2023', duration: '45 min', plays: 189 },
-    { title: 'Hope in Difficult Times', speaker: 'Pastor David', date: 'Dec 24, 2023', duration: '35 min', plays: 245 }
-  ];
+  useEffect(() => {
+    if (activeTab === 'sermons') {
+      loadSermons();
+    }
+  }, [activeTab, sermonSearchTerm]);
 
-  const filteredSermons = sermons.filter(sermon => {
-    const search = sermonSearchTerm.toLowerCase();
-    return sermon.title.toLowerCase().includes(search) ||
-           sermon.speaker.toLowerCase().includes(search) ||
-           sermon.date.toLowerCase().includes(search);
-  });
+  const loadSermons = async () => {
+    setLoadingSermons(true);
+    try {
+      const params: any = { limit: 20 };
+      if (sermonSearchTerm) params.search = sermonSearchTerm;
+      const response = await api.get(`/sermons?${new URLSearchParams(params).toString()}`);
+      setSermons(response.data || response);
+    } catch (error) {
+      console.error('Error loading sermons:', error);
+    } finally {
+      setLoadingSermons(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -147,11 +158,11 @@ export default function MemberDashboard() {
                       <div className="bg-blue-50 rounded-lg p-6">
                         <div className="flex items-center">
                           <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <i className="ri-calendar-check-line text-blue-600 text-xl"></i>
+                            <i className="ri-download-cloud-line text-blue-600 text-xl"></i>
                           </div>
                           <div className="ml-4">
-                            <p className="text-sm font-medium text-blue-600">Attendance This Year</p>
-                            <p className="text-2xl font-bold text-blue-900">{stats.attendanceThisYear} Services</p>
+                            <p className="text-sm font-medium text-blue-600">Total Downloaded Sermons</p>
+                            <p className="text-2xl font-bold text-blue-900">{stats.attendanceThisYear} Sermons</p>
                           </div>
                         </div>
                       </div>
@@ -193,8 +204,11 @@ export default function MemberDashboard() {
                                 <p className="text-sm text-gray-500">{new Date(sermon.date).toLocaleDateString()}</p>
                               </div>
                               <div className="flex items-center space-x-2">
-                                <span className="text-xs text-gray-500">{sermon.duration}</span>
-                                <button className="text-blue-600 hover:text-blue-800 cursor-pointer">
+                                {sermon.duration && <span className="text-xs text-gray-500">{sermon.duration}</span>}
+                                <button 
+                                  onClick={() => setCurrentSermon(sermon)}
+                                  className="text-blue-600 hover:text-blue-800 cursor-pointer"
+                                >
                                   <i className="ri-play-line"></i>
                                 </button>
                               </div>
@@ -272,39 +286,55 @@ export default function MemberDashboard() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                  {filteredSermons.length > 0 ? filteredSermons.map((sermon, index) => (
-                    <div key={index} className="bg-white border border-gray-200 rounded-lg p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900 mb-2">{sermon.title}</h4>
-                          <p className="text-sm text-gray-600 mb-1">by {sermon.speaker}</p>
-                          <p className="text-sm text-gray-500">{sermon.date} • {sermon.duration}</p>
-                        </div>
-                        <button className="text-blue-600 hover:text-blue-800 cursor-pointer">
-                          <i className="ri-bookmark-line"></i>
-                        </button>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500">{sermon.plays} plays</span>
-                        <div className="flex space-x-2">
-                          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm cursor-pointer whitespace-nowrap">
-                            <i className="ri-play-line mr-2"></i>
-                            Play
-                          </button>
-                          <button className="text-gray-600 hover:text-gray-800 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer">
-                            <i className="ri-download-line"></i>
+                {loadingSermons ? (
+                  <div className="text-center py-12">Loading sermons...</div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    {sermons.length > 0 ? sermons.map((sermon) => (
+                      <div key={sermon.id} className="bg-white border border-gray-200 rounded-lg p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900 mb-2">{sermon.title}</h4>
+                            <p className="text-sm text-gray-600 mb-1">by {sermon.speaker}</p>
+                            <p className="text-sm text-gray-500">{new Date(sermon.date).toLocaleDateString()} • {sermon.duration}</p>
+                          </div>
+                          <button className="text-blue-600 hover:text-blue-800 cursor-pointer">
+                            <i className="ri-bookmark-line"></i>
                           </button>
                         </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500">{sermon.plays || 0} plays</span>
+                          <div className="flex space-x-2">
+                            <button 
+                              onClick={() => currentSermon?.id === sermon.id ? setCurrentSermon(null) : setCurrentSermon(sermon)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm cursor-pointer whitespace-nowrap"
+                            >
+                              <i className={`${currentSermon?.id === sermon.id ? 'ri-pause-line' : 'ri-play-line'} mr-2`}></i>
+                              {currentSermon?.id === sermon.id ? 'Pause' : 'Play'}
+                            </button>
+                            <button 
+                              onClick={async () => {
+                                await api.post(`/sermons/${sermon.id}/download`, {});
+                                const link = document.createElement('a');
+                                link.href = `${import.meta.env.VITE_API_URL?.replace('/api', '')}${sermon.audio_url}`;
+                                link.download = `${sermon.title}.mp3`;
+                                link.click();
+                              }}
+                              className="text-gray-600 hover:text-gray-800 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer"
+                            >
+                              <i className="ri-download-line"></i>
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  )) : (
-                    <div className="col-span-2 text-center py-12">
-                      <i className="ri-search-line text-4xl text-gray-300 mb-2"></i>
-                      <p className="text-gray-500">No sermons found matching "{sermonSearchTerm}"</p>
-                    </div>
-                  )}
-                </div>
+                    )) : (
+                      <div className="col-span-2 text-center py-12">
+                        <i className="ri-search-line text-4xl text-gray-300 mb-2"></i>
+                        <p className="text-gray-500">{sermonSearchTerm ? `No sermons found matching "${sermonSearchTerm}"` : 'No sermons available'}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -604,6 +634,11 @@ export default function MemberDashboard() {
         isOpen={showPrayerDetailsModal}
         onClose={() => setShowPrayerDetailsModal(false)}
         request={selectedPrayerRequest}
+      />
+
+      <AudioPlayer 
+        sermon={currentSermon} 
+        onClose={() => setCurrentSermon(null)} 
       />
     </div>
   );
