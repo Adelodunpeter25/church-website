@@ -20,14 +20,27 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMember
     address: '',
     birthday: '',
     gender: 'male' as 'male' | 'female',
-    maritalStatus: 'single' as 'single' | 'married' | 'divorced' | 'widowed'
+    maritalStatus: 'single' as 'single' | 'married' | 'divorced' | 'widowed',
+    password: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await createMember(formData);
+      await createMember({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address || null,
+        birthday: formData.birthday || null,
+        gender: formData.gender || null,
+        marital_status: formData.maritalStatus || null,
+        password: formData.password,
+        role: 'member',
+        membership_status: 'active',
+        status: 'active'
+      });
       onClose();
       onSuccess?.();
       setFormData({
@@ -37,7 +50,8 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMember
         address: '',
         birthday: '',
         gender: 'male',
-        maritalStatus: 'single'
+        maritalStatus: 'single',
+        password: ''
       });
     } catch (error) {
       console.error('Error adding member:', error);
@@ -175,6 +189,26 @@ export default function AddMemberModal({ isOpen, onClose, onSuccess }: AddMember
                   onChange={handleChange}
                   className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
                   placeholder="Street address, city, state, zip code"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Password *
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i className="ri-lock-line text-gray-400"></i>
+                </div>
+                <input
+                  type="password"
+                  name="password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="Enter password"
                 />
               </div>
             </div>

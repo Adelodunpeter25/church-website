@@ -59,7 +59,8 @@ export default function EditMemberModal({ isOpen, onClose, memberId }: EditMembe
         membership_status: formData.membershipStatus,
         birthday: formData.birthday || null,
         gender: formData.gender || null,
-        marital_status: formData.maritalStatus || null
+        marital_status: formData.maritalStatus || null,
+        status: 'active'
       });
       onClose();
       window.location.reload();

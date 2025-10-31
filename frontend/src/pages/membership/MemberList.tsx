@@ -32,9 +32,8 @@ export default function MemberList({ searchTerm, filterRole }: MemberListProps) 
   const fetchMembers = async () => {
     try {
       setLoading(true);
-      const params: any = {};
+      const params: any = { role: 'member' };
       if (searchTerm) params.search = searchTerm;
-      if (filterRole !== 'all') params.role = filterRole;
       const data = await getMembers(params);
       setMembers(Array.isArray(data) ? data : []);
     } catch (error) {

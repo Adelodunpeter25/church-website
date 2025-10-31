@@ -10,7 +10,6 @@ export default function MembershipPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterRole, setFilterRole] = useState('all');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -57,16 +56,6 @@ export default function MembershipPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
-                    <select
-                      value={filterRole}
-                      onChange={(e) => setFilterRole(e.target.value)}
-                      className="pr-8 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="all">All Roles</option>
-                      <option value="member">Member</option>
-                      <option value="leader">Leader</option>
-                      <option value="volunteer">Volunteer</option>
-                    </select>
                     <button 
                       onClick={() => setShowExportModal(true)}
                       className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer whitespace-nowrap"
@@ -79,7 +68,7 @@ export default function MembershipPage() {
                 </div>
               </div>
               
-              <MemberList searchTerm={searchTerm} filterRole={filterRole} />
+              <MemberList searchTerm={searchTerm} filterRole="member" />
             </div>
           </div>
         </main>
@@ -95,7 +84,7 @@ export default function MembershipPage() {
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
         searchTerm={searchTerm}
-        filterRole={filterRole}
+        filterRole="member"
       />
     </div>
   );

@@ -9,8 +9,7 @@ export const getUserStats = async (req, res) => {
       SELECT 
         COUNT(*) as total_users,
         COUNT(*) FILTER (WHERE status = 'active') as active_users,
-        COUNT(*) FILTER (WHERE role IN ('admin', 'pastor', 'minister', 'staff')) as staff_members,
-        COUNT(*) FILTER (WHERE role = 'member') as volunteers
+        COUNT(*) FILTER (WHERE role IN ('admin', 'pastor', 'minister', 'staff')) as staff_members
       FROM users
     `;
     
@@ -20,8 +19,7 @@ export const getUserStats = async (req, res) => {
     res.json({
       totalUsers: parseInt(stats.total_users),
       activeUsers: parseInt(stats.active_users),
-      staffMembers: parseInt(stats.staff_members),
-      volunteers: parseInt(stats.volunteers)
+      staffMembers: parseInt(stats.staff_members)
     });
   } catch (error) {
     console.error('Get user stats error:', error.message);
@@ -33,9 +31,9 @@ export const getUserStats = async (req, res) => {
 export const getUsers = async (req, res) => {
   try {
     console.log('Fetching users...');
-    const { search, role, status, page = 1, limit = 10 } = req.query;
+    const { search, role, status, membership_status, page = 1, limit = 10 } = req.query;
     
-    let query = 'SELECT id, name, email, role, phone, status, created_at FROM users WHERE 1=1';
+    let query = 'SELECT id, name, email, role, phone, address, date_joined, membership_status, birthday, gender, marital_status, status, created_at FROM users WHERE 1=1';
     let countQuery = 'SELECT COUNT(*) FROM users WHERE 1=1';
     const params = [];
     let paramCount = 1;
@@ -61,6 +59,14 @@ export const getUsers = async (req, res) => {
       query += statusCondition;
       countQuery += statusCondition;
       params.push(status);
+      paramCount++;
+    }
+
+    if (membership_status) {
+      const membershipCondition = ` AND membership_status = $${paramCount}`;
+      query += membershipCondition;
+      countQuery += membershipCondition;
+      params.push(membership_status);
       paramCount++;
     }
 
@@ -110,14 +116,15 @@ export const getUser = async (req, res) => {
 export const createUser = async (req, res) => {
   try {
     console.log('Creating user:', req.body.email);
-    const { name, email, password, role, phone, status } = req.body;
+    const { name, email, password, role, phone, address, membership_status, birthday, gender, marital_status, status } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
-      `INSERT INTO users (name, email, password, role, phone, status)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, email, role, phone, status, created_at`,
-      [name, email, hashedPassword, role || 'member', phone || null, status || 'active']
+      `INSERT INTO users (name, email, password, role, phone, address, membership_status, birthday, gender, marital_status, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
+       RETURNING id, name, email, role, phone, address, date_joined, membership_status, birthday, gender, marital_status, status, created_at`,
+      [name, email, hashedPassword, role || 'member', phone || null, address || null, membership_status || 'active', birthday || null, gender || null, marital_status || null, status || 'active']
     );
 
     console.log('User created:', result.rows[0].id);
@@ -131,13 +138,13 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     console.log('Updating user:', req.params.id);
-    const { name, email, role, phone, status } = req.body;
+    const { name, email, role, phone, address, membership_status, birthday, gender, marital_status, status } = req.body;
 
     const result = await pool.query(
       `UPDATE users 
-       SET name = $1, email = $2, role = $3, phone = $4, status = $5, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $6 RETURNING id, name, email, role, phone, status, created_at`,
-      [name, email, role, phone, status, req.params.id]
+       SET name = $1, email = $2, role = $3, phone = $4, address = $5, membership_status = $6, birthday = $7, gender = $8, marital_status = $9, status = $10, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $11 RETURNING id, name, email, role, phone, address, date_joined, membership_status, birthday, gender, marital_status, status, created_at`,
+      [name, email, role, phone, address, membership_status, birthday, gender, marital_status, status, req.params.id]
     );
 
     if (result.rows.length === 0) {
