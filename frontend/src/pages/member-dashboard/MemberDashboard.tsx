@@ -314,11 +314,21 @@ export default function MemberDashboard() {
                             </button>
                             <button 
                               onClick={async () => {
-                                await api.post(`/sermons/${sermon.id}/download`, {});
-                                const link = document.createElement('a');
-                                link.href = `${import.meta.env.VITE_API_URL?.replace('/api', '')}${sermon.audio_url}`;
-                                link.download = `${sermon.title}.mp3`;
-                                link.click();
+                                try {
+                                  await api.post(`/sermons/${sermon.id}/download`, {});
+                                  const response = await fetch(`${import.meta.env.VITE_API_URL?.replace('/api', '')}${sermon.audio_url}`);
+                                  const blob = await response.blob();
+                                  const url = window.URL.createObjectURL(blob);
+                                  const link = document.createElement('a');
+                                  link.href = url;
+                                  link.download = `${sermon.title}.mp3`;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                  window.URL.revokeObjectURL(url);
+                                } catch (error) {
+                                  console.error('Download error:', error);
+                                }
                               }}
                               className="text-gray-600 hover:text-gray-800 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer"
                             >
