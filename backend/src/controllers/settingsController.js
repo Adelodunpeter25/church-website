@@ -67,18 +67,51 @@ export const getSecurityStats = async (req, res) => {
 
 export const getRecentNotifications = async (req, res) => {
   try {
-    const result = await pool.query(
-      `SELECT id, type, message, status, 
+    const userId = req.query.user_id;
+    let query = `SELECT id, type, message, status, read, link,
        CASE 
          WHEN created_at > NOW() - INTERVAL '1 hour' THEN EXTRACT(EPOCH FROM (NOW() - created_at))/60 || ' minutes ago'
          WHEN created_at > NOW() - INTERVAL '24 hours' THEN EXTRACT(EPOCH FROM (NOW() - created_at))/3600 || ' hours ago'
          ELSE EXTRACT(EPOCH FROM (NOW() - created_at))/86400 || ' days ago'
        END as time
-       FROM notifications ORDER BY created_at DESC LIMIT 10`
-    );
+       FROM notifications`;
+    
+    const params = [];
+    if (userId) {
+      query += ' WHERE recipient_id = $1';
+      params.push(userId);
+    }
+    
+    query += ' ORDER BY created_at DESC LIMIT 10';
+    
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (error) {
     console.error('Get recent notifications error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const markNotificationRead = async (req, res) => {
+  try {
+    await pool.query('UPDATE notifications SET read = true WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Mark notification read error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getUnreadCount = async (req, res) => {
+  try {
+    const userId = req.query.user_id;
+    const result = await pool.query(
+      'SELECT COUNT(*) as count FROM notifications WHERE recipient_id = $1 AND read = false',
+      [userId]
+    );
+    res.json({ count: parseInt(result.rows[0].count) });
+  } catch (error) {
+    console.error('Get unread count error:', error.message);
     res.status(500).json({ error: error.message });
   }
 };

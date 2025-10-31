@@ -1,4 +1,4 @@
-import { getToken } from '@/utils/auth';
+import { getToken, removeToken } from '@/utils/auth';
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
@@ -25,6 +25,10 @@ const request = async (endpoint: string, options: RequestInit = {}) => {
   const data = await response.json();
 
   if (!response.ok) {
+    if (response.status === 401) {
+      removeToken();
+      window.location.href = '/login';
+    }
     throw new Error(data.error || 'Request failed');
   }
 

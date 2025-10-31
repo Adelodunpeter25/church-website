@@ -1,5 +1,6 @@
 import pool from '../config/database.js';
 import { broadcastStreamStatusChange, broadcastStreamUpdate, broadcastViewersUpdate, broadcastViewerKicked } from '../websocket/livestreamWebSocket.js';
+import { sendLivestreamStartNotification } from '../services/notificationService.js';
 
 export const getLivestreams = async (req, res) => {
   try {
@@ -41,6 +42,11 @@ export const createLivestream = async (req, res) => {
 
     console.log('Livestream created:', result.rows[0].id);
     broadcastStreamStatusChange();
+    
+    sendLivestreamStartNotification(result.rows[0].id, result.rows[0]).catch(err => 
+      console.error('Failed to send notifications:', err)
+    );
+    
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Create livestream error:', error.message);

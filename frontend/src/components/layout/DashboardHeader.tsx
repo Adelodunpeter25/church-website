@@ -12,22 +12,67 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const [showProfile, setShowProfile] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { getRecentNotifications } = useNotifications();
+  const { getRecentNotifications, getUnreadCount, markAsRead } = useNotifications();
 
   useEffect(() => {
-    fetchNotifications();
-  }, []);
+    if (user?.id) {
+      fetchNotifications();
+      fetchUnreadCount();
+      
+      const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:5001';
+      const ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        ws.send(JSON.stringify({ type: 'subscribe-notifications', userId: user.id }));
+      };
+      
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'new-notification') {
+            fetchNotifications();
+            fetchUnreadCount();
+          }
+        } catch (error) {
+          console.error('WebSocket error:', error);
+        }
+      };
+      
+      return () => ws.close();
+    }
+  }, [user?.id]);
 
   const fetchNotifications = async () => {
     try {
-      const data = await getRecentNotifications();
-      setNotifications(Array.isArray(data) ? data.slice(0, 3) : []);
+      const data = await getRecentNotifications(user?.id);
+      setNotifications(Array.isArray(data) ? data.slice(0, 5) : []);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       setNotifications([]);
     }
+  };
+
+  const fetchUnreadCount = async () => {
+    try {
+      const data = await getUnreadCount(user?.id || '');
+      setUnreadCount(data.count || 0);
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  };
+
+  const handleNotificationClick = async (notification: any) => {
+    if (!notification.read) {
+      await markAsRead(notification.id);
+      fetchUnreadCount();
+    }
+    if (notification.link) {
+      navigate(notification.link);
+    }
+    setShowNotifications(false);
   };
 
   const getInitials = (name: string) => {
@@ -85,10 +130,15 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
           <div className="relative">
             <button
               type="button"
-              className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500 cursor-pointer"
+              className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500 cursor-pointer relative"
               onClick={() => setShowNotifications(!showNotifications)}
             >
               <i className="ri-notification-2-line text-xl"></i>
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </button>
             {showNotifications && (
               <div className="absolute right-0 z-10 mt-2 w-80 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
@@ -98,7 +148,11 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                 {notifications.length > 0 ? (
                   <div className="divide-y divide-gray-100">
                     {notifications.map((notification) => (
-                      <div key={notification.id} className="px-4 py-3 hover:bg-gray-50">
+                      <div 
+                        key={notification.id} 
+                        className={`px-4 py-3 hover:bg-gray-50 cursor-pointer ${!notification.read ? 'bg-blue-50' : ''}`}
+                        onClick={() => handleNotificationClick(notification)}
+                      >
                         <div className="flex items-start space-x-3">
                           <i className="ri-notification-line text-blue-500 mt-1"></i>
                           <div className="flex-1">
@@ -106,6 +160,9 @@ export default function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                             <p className="text-sm text-gray-600">{notification.message}</p>
                             <p className="text-xs text-gray-400 mt-1">{Math.round(parseFloat(notification.time))} {notification.time.includes('minutes') ? 'min' : notification.time.includes('hours') ? 'hrs' : 'days'} ago</p>
                           </div>
+                          {!notification.read && (
+                            <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                          )}
                         </div>
                       </div>
                     ))}
