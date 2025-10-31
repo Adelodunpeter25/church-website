@@ -115,9 +115,14 @@ export const endLivestream = async (req, res) => {
   try {
     console.log('Ending livestream:', req.params.id);
     
+    const viewerCount = await pool.query(
+      'SELECT COUNT(*) as count FROM stream_viewers WHERE livestream_id = $1 AND status = $2',
+      [req.params.id, 'active']
+    );
+    
     const result = await pool.query(
-      'UPDATE livestreams SET is_live = false, end_time = CURRENT_TIMESTAMP WHERE id = $1 AND is_live = true RETURNING *',
-      [req.params.id]
+      'UPDATE livestreams SET is_live = false, end_time = CURRENT_TIMESTAMP, viewers = $1 WHERE id = $2 AND is_live = true RETURNING *',
+      [parseInt(viewerCount.rows[0].count), req.params.id]
     );
 
     if (result.rows.length === 0) {
