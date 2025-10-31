@@ -49,6 +49,9 @@ export const useLivestream = () => {
   const getStreamStats = (id: string) =>
     api.get(`/livestreams/${id}/stats`);
 
+  const bulkViewerAction = (id: string, viewerIds: number[], action: 'disconnect' | 'ban', note?: string) =>
+    api.post(`/livestreams/${id}/viewers/bulk-action`, { viewer_ids: viewerIds, action, note });
+
   return { 
     getLivestreams, 
     getCurrentLivestream, 
@@ -65,6 +68,7 @@ export const useLivestream = () => {
     removeViewer, 
     banViewer, 
     unbanViewer, 
-    getStreamStats 
+    getStreamStats,
+    bulkViewerAction
   };
 };

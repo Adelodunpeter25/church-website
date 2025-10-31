@@ -1,5 +1,5 @@
 import express from 'express';
-import { getLivestreams, getCurrentLivestream, createLivestream, updateLivestream, endLivestream, getChatMessages, sendChatMessage, deleteChatMessage, updateViewerCount, getStreamHistory, getViewers, addViewer, removeViewer, banViewer, unbanViewer, getStreamStats, streamAudio } from '../controllers/livestreamController.js';
+import { getLivestreams, getCurrentLivestream, createLivestream, updateLivestream, endLivestream, getChatMessages, sendChatMessage, deleteChatMessage, updateViewerCount, getStreamHistory, getViewers, addViewer, removeViewer, banViewer, unbanViewer, getStreamStats, streamAudio, bulkViewerAction } from '../controllers/livestreamController.js';
 
 const router = express.Router();
 
@@ -15,6 +15,7 @@ router.post('/:id/chat', sendChatMessage);
 router.delete('/:id/chat/:messageId', deleteChatMessage);
 router.get('/:id/viewers', getViewers);
 router.post('/:id/viewers', addViewer);
+router.post('/:id/viewers/bulk-action', bulkViewerAction);
 router.delete('/:id/viewers/:viewerId', removeViewer);
 router.post('/:id/viewers/:viewerId/ban', banViewer);
 router.post('/:id/viewers/:viewerId/unban', unbanViewer);

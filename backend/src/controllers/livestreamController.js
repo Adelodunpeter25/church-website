@@ -1,5 +1,5 @@
 import pool from '../config/database.js';
-import { broadcastStreamStatusChange, broadcastStreamUpdate, broadcastViewersUpdate } from '../websocket/livestreamWebSocket.js';
+import { broadcastStreamStatusChange, broadcastStreamUpdate, broadcastViewersUpdate, broadcastViewerKicked } from '../websocket/livestreamWebSocket.js';
 
 export const getLivestreams = async (req, res) => {
   try {
@@ -258,7 +258,12 @@ export const addViewer = async (req, res) => {
 
 export const removeViewer = async (req, res) => {
   try {
+    const viewer = await pool.query('SELECT user_id FROM stream_viewers WHERE id = $1', [req.params.viewerId]);
     await pool.query('DELETE FROM stream_viewers WHERE id = $1', [req.params.viewerId]);
+    
+    if (viewer.rows.length > 0 && viewer.rows[0].user_id) {
+      broadcastViewerKicked(viewer.rows[0].user_id);
+    }
     broadcastViewersUpdate();
     res.json({ message: 'Viewer removed' });
   } catch (error) {
@@ -311,6 +316,58 @@ export const streamAudio = async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Stream audio error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const bulkViewerAction = async (req, res) => {
+  try {
+    const { viewer_ids, action, note } = req.body;
+    
+    if (!viewer_ids || !Array.isArray(viewer_ids) || viewer_ids.length === 0) {
+      return res.status(400).json({ error: 'viewer_ids array is required' });
+    }
+    
+    if (action === 'disconnect') {
+      const viewers = await pool.query(
+        'SELECT user_id FROM stream_viewers WHERE id = ANY($1)',
+        [viewer_ids]
+      );
+      
+      await pool.query('DELETE FROM stream_viewers WHERE id = ANY($1)', [viewer_ids]);
+      
+      if (note) {
+        await pool.query(
+          'INSERT INTO moderation_logs (action, viewer_ids, note, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)',
+          ['disconnect', viewer_ids, note]
+        );
+      }
+      
+      viewers.rows.forEach(viewer => {
+        if (viewer.user_id) {
+          broadcastViewerKicked(viewer.user_id);
+        }
+      });
+    } else if (action === 'ban') {
+      await pool.query(
+        'UPDATE stream_viewers SET status = $1 WHERE id = ANY($2)',
+        ['banned', viewer_ids]
+      );
+      
+      if (note) {
+        await pool.query(
+          'INSERT INTO moderation_logs (action, viewer_ids, note, created_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)',
+          ['ban', viewer_ids, note]
+        );
+      }
+    } else {
+      return res.status(400).json({ error: 'Invalid action' });
+    }
+    
+    broadcastViewersUpdate();
+    res.json({ message: `${action} completed for ${viewer_ids.length} viewers` });
+  } catch (error) {
+    console.error('Bulk viewer action error:', error.message);
     res.status(500).json({ error: error.message });
   }
 };

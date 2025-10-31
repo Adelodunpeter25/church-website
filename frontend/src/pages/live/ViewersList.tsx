@@ -1,6 +1,3 @@
-
-
-
 import { useState, useEffect, useRef } from 'react';
 import { useLivestream } from '@/hooks/useLivestream';
 import { getInitials, getAvatarColor } from '@/utils/avatar';
@@ -12,9 +9,12 @@ interface ViewersListProps {
 }
 
 export default function ViewersList({ streamId, onToggleChat, showChat }: ViewersListProps) {
-  const { getViewers, removeViewer, banViewer, unbanViewer } = useLivestream();
+  const { getViewers, removeViewer, banViewer, unbanViewer, bulkViewerAction } = useLivestream();
   const [viewerList, setViewerList] = useState<any[]>([]);
   const [showActions, setShowActions] = useState<number | null>(null);
+  const [selectedViewers, setSelectedViewers] = useState<Set<number>>(new Set());
+  const [showBulkModal, setShowBulkModal] = useState<'disconnect' | 'ban' | null>(null);
+  const [bulkNote, setBulkNote] = useState('');
   const actionsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -25,16 +25,13 @@ export default function ViewersList({ streamId, onToggleChat, showChat }: Viewer
       const ws = new WebSocket(wsUrl);
       
       ws.onopen = () => {
-        console.log('[ViewersList] WebSocket connected');
         ws.send(JSON.stringify({ type: 'subscribe-stream-status' }));
       };
       
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          console.log('[ViewersList] Received message:', data.type);
           if (data.type === 'viewers-update') {
-            console.log('[ViewersList] Reloading viewers');
             loadViewers();
           }
         } catch (error) {
@@ -42,14 +39,7 @@ export default function ViewersList({ streamId, onToggleChat, showChat }: Viewer
         }
       };
       
-      ws.onerror = (error) => {
-        console.error('[ViewersList] WebSocket error:', error);
-      };
-      
-      return () => {
-        console.log('[ViewersList] Closing WebSocket');
-        ws.close();
-      };
+      return () => ws.close();
     }
   }, [streamId]);
 
@@ -91,10 +81,42 @@ export default function ViewersList({ streamId, onToggleChat, showChat }: Viewer
     setShowActions(null);
   };
 
+  const toggleSelectViewer = (viewerId: number) => {
+    const newSelected = new Set(selectedViewers);
+    if (newSelected.has(viewerId)) {
+      newSelected.delete(viewerId);
+    } else {
+      newSelected.add(viewerId);
+    }
+    setSelectedViewers(newSelected);
+  };
+
+  const selectAllActive = () => {
+    setSelectedViewers(new Set(activeViewers.map(v => v.id)));
+  };
+
+  const clearSelection = () => {
+    setSelectedViewers(new Set());
+  };
+
+  const handleBulkAction = async () => {
+    if (!streamId || selectedViewers.size === 0 || !showBulkModal) return;
+    
+    try {
+      await bulkViewerAction(streamId, Array.from(selectedViewers), showBulkModal, bulkNote);
+      setSelectedViewers(new Set());
+      setBulkNote('');
+      setShowBulkModal(null);
+    } catch (error) {
+      console.error('Bulk action error:', error);
+    }
+  };
+
   const activeViewers = viewerList.filter(v => v.status === 'active');
   const bannedViewers = viewerList.filter(v => v.status === 'banned');
 
   return (
+    <>
     <div className="bg-white shadow-sm rounded-lg">
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
@@ -102,6 +124,7 @@ export default function ViewersList({ streamId, onToggleChat, showChat }: Viewer
             <h3 className="text-lg font-medium text-gray-900">Connected Listeners</h3>
             <p className="text-sm text-gray-500">
               {activeViewers.length} active • {bannedViewers.length} banned
+              {selectedViewers.size > 0 && ` • ${selectedViewers.size} selected`}
             </p>
           </div>
           {onToggleChat && (
@@ -113,12 +136,42 @@ export default function ViewersList({ streamId, onToggleChat, showChat }: Viewer
             </button>
           )}
         </div>
+        {selectedViewers.size > 0 && (
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={() => setShowBulkModal('disconnect')}
+              className="px-3 py-1.5 text-sm bg-orange-100 text-orange-700 rounded hover:bg-orange-200"
+            >
+              <i className="ri-logout-box-line mr-1"></i>
+              Disconnect ({selectedViewers.size})
+            </button>
+            <button
+              onClick={() => setShowBulkModal('ban')}
+              className="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+            >
+              <i className="ri-forbid-line mr-1"></i>
+              Ban ({selectedViewers.size})
+            </button>
+            <button
+              onClick={clearSelection}
+              className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+            >
+              Clear
+            </button>
+          </div>
+        )}
       </div>
       
       <div className="max-h-96 overflow-y-auto">
         {activeViewers.length > 0 && (
-          <div className="px-6 py-3 bg-gray-50 border-b border-gray-100">
+          <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
             <h4 className="text-sm font-medium text-gray-700">Active Listeners</h4>
+            <button
+              onClick={selectAllActive}
+              className="text-xs text-blue-600 hover:text-blue-800"
+            >
+              Select All
+            </button>
           </div>
         )}
         
@@ -126,6 +179,12 @@ export default function ViewersList({ streamId, onToggleChat, showChat }: Viewer
           <div key={viewer.id} className="px-6 py-3 hover:bg-gray-50 relative">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  checked={selectedViewers.has(viewer.id)}
+                  onChange={() => toggleSelectViewer(viewer.id)}
+                  className="h-4 w-4 text-blue-600 rounded border-gray-300"
+                />
                 <div className="relative">
                   <div className={`h-8 w-8 rounded-full ${getAvatarColor(viewer.name)} flex items-center justify-center text-white text-xs font-semibold`}>
                     {getInitials(viewer.name)}
@@ -209,13 +268,62 @@ export default function ViewersList({ streamId, onToggleChat, showChat }: Viewer
             ))}
           </>
         )}
+
+        {activeViewers.length === 0 && bannedViewers.length === 0 && (
+          <div className="px-6 py-8 text-center text-gray-500 text-sm">
+            No listeners connected yet
+          </div>
+        )}
       </div>
-      
-      {activeViewers.length === 0 && bannedViewers.length === 0 && (
-        <div className="px-6 py-8 text-center text-gray-500 text-sm">
-          No listeners connected yet
-        </div>
-      )}
     </div>
+
+    {showBulkModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            {showBulkModal === 'disconnect' ? 'Bulk Disconnect' : 'Bulk Ban'} ({selectedViewers.size} users)
+          </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            {showBulkModal === 'disconnect' 
+              ? 'Disconnect selected users from the stream. They can rejoin immediately.'
+              : 'Ban selected users from the stream. They will not be able to rejoin until unbanned.'}
+          </p>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Note (optional)
+            </label>
+            <textarea
+              value={bulkNote}
+              onChange={(e) => setBulkNote(e.target.value)}
+              placeholder="Add a reason for this action..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={3}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => {
+                setShowBulkModal(null);
+                setBulkNote('');
+              }}
+              className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded hover:bg-gray-200"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleBulkAction}
+              className={`px-4 py-2 text-sm text-white rounded ${
+                showBulkModal === 'disconnect'
+                  ? 'bg-orange-600 hover:bg-orange-700'
+                  : 'bg-red-600 hover:bg-red-700'
+              }`}
+            >
+              {showBulkModal === 'disconnect' ? 'Disconnect' : 'Ban'} Users
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

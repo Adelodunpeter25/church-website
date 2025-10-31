@@ -19,12 +19,31 @@ export default function LiveStreamPlayer({ isLive, title, description, streamUrl
   const [hasJoined, setHasJoined] = useState(false);
 
   useEffect(() => {
-    return () => {
-      if (hasJoined && streamId) {
-        // Cleanup when component unmounts
+    if (!streamId || !isLive) return;
+    
+    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:5001';
+    const ws = new WebSocket(wsUrl);
+    
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ type: 'subscribe-stream-status' }));
+    };
+    
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'viewer-kicked' && data.userId === user?.id) {
+          setIsPlaying(false);
+          setHasJoined(false);
+          delete (window as any).currentViewerId;
+          alert('You have been disconnected from the stream');
+        }
+      } catch (error) {
+        console.error('Error parsing message:', error);
       }
     };
-  }, [hasJoined, streamId]);
+    
+    return () => ws.close();
+  }, [streamId, isLive, user]);
 
   const handlePlay = async () => {
     const newPlayingState = !isPlaying;
