@@ -1,5 +1,5 @@
 import pool from '../config/database.js';
-import { broadcastStreamStatusChange } from '../websocket/livestreamWebSocket.js';
+import { broadcastStreamStatusChange, broadcastStreamUpdate } from '../websocket/livestreamWebSocket.js';
 
 export const getLivestreams = async (req, res) => {
   try {
@@ -53,16 +53,51 @@ export const updateLivestream = async (req, res) => {
     console.log('Updating livestream:', req.params.id);
     const { title, description, stream_url, is_live, viewers } = req.body;
 
-    const result = await pool.query(
-      'UPDATE livestreams SET title = $1, description = $2, stream_url = $3, is_live = $4, viewers = $5 WHERE id = $6 RETURNING *',
-      [title, description, stream_url, is_live, viewers, req.params.id]
-    );
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (title !== undefined) {
+      updates.push(`title = $${paramCount}`);
+      values.push(title);
+      paramCount++;
+    }
+    if (description !== undefined) {
+      updates.push(`description = $${paramCount}`);
+      values.push(description);
+      paramCount++;
+    }
+    if (stream_url !== undefined) {
+      updates.push(`stream_url = $${paramCount}`);
+      values.push(stream_url);
+      paramCount++;
+    }
+    if (is_live !== undefined) {
+      updates.push(`is_live = $${paramCount}`);
+      values.push(is_live);
+      paramCount++;
+    }
+    if (viewers !== undefined) {
+      updates.push(`viewers = $${paramCount}`);
+      values.push(viewers);
+      paramCount++;
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    values.push(req.params.id);
+    const query = `UPDATE livestreams SET ${updates.join(', ')} WHERE id = $${paramCount} RETURNING *`;
+    
+    const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Livestream not found' });
     }
 
     console.log('Livestream updated:', result.rows[0].id);
+    broadcastStreamUpdate();
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Update livestream error:', error.message);

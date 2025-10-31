@@ -18,16 +18,44 @@ export default function LiveStreamPlayer({ isLive, title, description, streamUrl
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
 
+  useEffect(() => {
+    return () => {
+      if (hasJoined && streamId) {
+        // Cleanup when component unmounts
+      }
+    };
+  }, [hasJoined, streamId]);
+
   const handlePlay = async () => {
-    if (!isPlaying && !hasJoined && streamId && user) {
+    const newPlayingState = !isPlaying;
+    setIsPlaying(newPlayingState);
+    
+    if (newPlayingState && !hasJoined && streamId && user) {
       try {
-        await addViewer(streamId, { name: user.name, location: 'Online' });
+        const result = await addViewer(streamId, { name: user.name, location: 'Online' });
         setHasJoined(true);
+        // Store viewer ID for later removal
+        if (result?.id) {
+          (window as any).currentViewerId = result.id;
+        }
       } catch (error) {
         console.error('Error adding viewer:', error);
       }
+    } else if (!newPlayingState && hasJoined && streamId) {
+      try {
+        const viewerId = (window as any).currentViewerId;
+        if (viewerId) {
+          await fetch(`${import.meta.env.VITE_API_URL}/livestreams/${streamId}/viewers/${viewerId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          });
+          setHasJoined(false);
+          delete (window as any).currentViewerId;
+        }
+      } catch (error) {
+        console.error('Error removing viewer:', error);
+      }
     }
-    setIsPlaying(!isPlaying);
   };
 
   return (
@@ -41,8 +69,8 @@ export default function LiveStreamPlayer({ isLive, title, description, streamUrl
             </div>
             <div className="text-white text-center">
               <i className="ri-radio-line text-6xl mb-4"></i>
-              <p className="text-xl font-semibold">{title || 'Audio Stream Active'}</p>
-              {description && <p className="text-sm mt-2 text-blue-100">{description}</p>}
+              <p className="text-2xl font-bold mb-2">{title || 'Live Audio Stream'}</p>
+              {description && <p className="text-base text-blue-100 max-w-2xl mx-auto">{description}</p>}
             </div>
           </>
         ) : (

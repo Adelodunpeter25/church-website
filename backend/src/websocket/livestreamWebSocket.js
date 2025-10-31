@@ -149,4 +149,17 @@ export const broadcastStreamStatusChange = () => {
   });
 };
 
-export default { initWebSocket, broadcastStreamStatusChange };
+export const broadcastStreamUpdate = () => {
+  const message = JSON.stringify({ type: 'stream-update' });
+  streamStatusSubscribers.forEach((client) => {
+    if (client.readyState === 1) {
+      try {
+        client.send(message);
+      } catch (error) {
+        console.error('Error broadcasting stream update:', error.message);
+      }
+    }
+  });
+};
+
+export default { initWebSocket, broadcastStreamStatusChange, broadcastStreamUpdate };

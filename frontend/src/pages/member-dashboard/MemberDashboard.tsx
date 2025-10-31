@@ -37,7 +37,7 @@ export default function MemberDashboard() {
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          if (data.type === 'stream-status-change') {
+          if (data.type === 'stream-status-change' || data.type === 'stream-update') {
             loadLivestream();
           }
         } catch (error) {
@@ -272,7 +272,6 @@ export default function MemberDashboard() {
                       />
                       <LiveStreamInfo 
                         isLive={currentStream?.is_live || false} 
-                        viewers={streamStats?.current_viewers || 0} 
                       />
                     </div>
                     <div>

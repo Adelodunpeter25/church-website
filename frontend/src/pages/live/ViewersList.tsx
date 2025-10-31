@@ -88,9 +88,11 @@ export default function ViewersList({ streamId, onToggleChat, showChat }: Viewer
       </div>
       
       <div className="max-h-96 overflow-y-auto">
-        <div className="px-6 py-3 bg-gray-50 border-b border-gray-100">
-          <h4 className="text-sm font-medium text-gray-700">Active Listeners</h4>
-        </div>
+        {activeViewers.length > 0 && (
+          <div className="px-6 py-3 bg-gray-50 border-b border-gray-100">
+            <h4 className="text-sm font-medium text-gray-700">Active Listeners</h4>
+          </div>
+        )}
         
         {activeViewers.map((viewer) => (
           <div key={viewer.id} className="px-6 py-3 hover:bg-gray-50 relative">
@@ -185,7 +187,7 @@ export default function ViewersList({ streamId, onToggleChat, showChat }: Viewer
         )}
       </div>
       
-      {viewerList.length === 0 && (
+      {activeViewers.length === 0 && bannedViewers.length === 0 && (
         <div className="px-6 py-8 text-center text-gray-500 text-sm">
           No listeners connected yet
         </div>

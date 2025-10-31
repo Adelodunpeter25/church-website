@@ -9,7 +9,7 @@ import LivestreamWebSocket from '@/services/LivestreamWebSocket';
 import LiveStreamChat from './LiveStreamChat';
 
 export default function LiveStreamPage() {
-  const { getCurrentLivestream, createLivestream, endLivestream, getStreamHistory, getStreamStats } = useLivestream();
+  const { getCurrentLivestream, createLivestream, endLivestream, getStreamHistory, getStreamStats, updateLivestream } = useLivestream();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLive, setIsLive] = useState(false);
   const [viewerCount, setViewerCount] = useState(0);
@@ -90,6 +90,11 @@ export default function LiveStreamPage() {
         setIsLive(true);
         setViewerCount(stream.viewers || 0);
         setCurrentStreamId(stream.id);
+        setStreamSettings(prev => ({
+          ...prev,
+          title: stream.title || prev.title,
+          description: stream.description || prev.description
+        }));
       } else {
         setIsLive(false);
         setCurrentStreamId(null);
@@ -255,7 +260,30 @@ export default function LiveStreamPage() {
                 </div>
 
                 <div className="bg-white shadow-sm rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Audio Stream Settings</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium text-gray-900">Audio Stream Settings</h3>
+                    {isLive && (
+                      <button
+                        onClick={async () => {
+                          if (currentStreamId) {
+                            try {
+                              await updateLivestream(currentStreamId, {
+                                title: streamSettings.title,
+                                description: streamSettings.description
+                              });
+                              alert('Stream settings updated!');
+                            } catch (error) {
+                              console.error('Error updating stream:', error);
+                              alert('Failed to update stream settings');
+                            }
+                          }
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm cursor-pointer"
+                      >
+                        Save Changes
+                      </button>
+                    )}
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
