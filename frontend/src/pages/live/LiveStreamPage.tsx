@@ -157,12 +157,6 @@ export default function LiveStreamPage() {
                         <div className="text-center text-white">
                           <div className="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-6 relative">
                             <i className="ri-mic-line text-3xl relative z-10"></i>
-                            {audioLevel > 10 && (
-                              <div 
-                                className="absolute border-4 border-green-400 rounded-full transition-all duration-100" 
-                                style={{ inset: `${-16 - (audioLevel / 5)}px` }}
-                              ></div>
-                            )}
                           </div>
                           <h3 className="text-2xl font-semibold mb-2">LIVE AUDIO</h3>
                           <p className="text-gray-300 mb-4">Broadcasting to {viewerCount} listeners</p>
@@ -191,16 +185,36 @@ export default function LiveStreamPage() {
                     )}
                     
                     {isLive && (
-                      <div className="absolute top-4 left-4 flex items-center space-x-2">
-                        <div className="flex items-center bg-red-600 text-white px-3 py-2 rounded-full text-sm font-medium">
-                          <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
-                          LIVE AUDIO
+                      <>
+                        <div className="absolute top-4 left-4 flex items-center space-x-2">
+                          <div className="flex items-center bg-red-600 text-white px-3 py-2 rounded-full text-sm font-medium">
+                            <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
+                            LIVE AUDIO
+                          </div>
+                          <div className="bg-black/50 text-white px-3 py-2 rounded-full text-sm">
+                            <i className="ri-headphone-line mr-1"></i>
+                            {viewerCount} listeners
+                          </div>
                         </div>
-                        <div className="bg-black/50 text-white px-3 py-2 rounded-full text-sm">
-                          <i className="ri-headphone-line mr-1"></i>
-                          {viewerCount} listeners
+                        <div className="absolute bottom-4 left-4 flex items-center space-x-1 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-2">
+                          {[...Array(20)].map((_, i) => {
+                            const threshold = (i + 1) * 5;
+                            const isActive = audioLevel > threshold;
+                            let bgColor = 'bg-gray-600';
+                            if (isActive) {
+                              if (i < 12) bgColor = 'bg-green-500';
+                              else if (i < 16) bgColor = 'bg-yellow-500';
+                              else bgColor = 'bg-red-500';
+                            }
+                            return (
+                              <div
+                                key={i}
+                                className={`w-1 h-4 rounded-full transition-all duration-75 ${bgColor}`}
+                              ></div>
+                            );
+                          })}
                         </div>
-                      </div>
+                      </>
                     )}
                     
 
