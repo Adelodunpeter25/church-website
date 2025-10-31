@@ -55,34 +55,24 @@ export default function AnnouncementsPage() {
                       All Announcements
                     </button>
                     <button
-                      onClick={() => setFilterStatus('active')}
+                      onClick={() => setFilterStatus('published')}
                       className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm cursor-pointer ${
-                        filterStatus === 'active'
+                        filterStatus === 'published'
                           ? 'border-blue-500 text-blue-600'
                           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                       }`}
                     >
-                      Active
+                      Published
                     </button>
                     <button
-                      onClick={() => setFilterStatus('scheduled')}
+                      onClick={() => setFilterStatus('draft')}
                       className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm cursor-pointer ${
-                        filterStatus === 'scheduled'
+                        filterStatus === 'draft'
                           ? 'border-blue-500 text-blue-600'
                           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                       }`}
                     >
-                      Scheduled
-                    </button>
-                    <button
-                      onClick={() => setFilterStatus('expired')}
-                      className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm cursor-pointer ${
-                        filterStatus === 'expired'
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      Expired
+                      Draft
                     </button>
                   </nav>
                 </div>

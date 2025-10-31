@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { Announcement } from '@/types';
 import EditAnnouncementModal from '@/components/modals/EditAnnouncementModal';
+import ViewAnnouncementModal from '@/components/modals/ViewAnnouncementModal';
 
 interface AnnouncementListProps {
   filterStatus: string;
@@ -11,9 +12,9 @@ export default function AnnouncementList({ filterStatus }: AnnouncementListProps
   const { getAnnouncements } = useAnnouncements();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedAnnouncement, setExpandedAnnouncement] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<string | null>(null);
 
   useEffect(() => {
@@ -25,8 +26,8 @@ export default function AnnouncementList({ filterStatus }: AnnouncementListProps
       setLoading(true);
       const params: any = {};
       if (filterStatus !== 'all') params.status = filterStatus;
-      const data = await getAnnouncements(params);
-      setAnnouncements(Array.isArray(data) ? data : []);
+      const response = await getAnnouncements(params);
+      setAnnouncements(response.data || []);
     } catch (error) {
       console.error('Error fetching announcements:', error);
       setAnnouncements([]);
@@ -100,11 +101,12 @@ const oldAnnouncements = [
     setShowShareModal(true);
   };
 
-  const filteredAnnouncements = announcements;
-
-  const toggleExpanded = (id: string) => {
-    setExpandedAnnouncement(expandedAnnouncement === id ? null : id);
+  const handleViewDetails = (id: string) => {
+    setSelectedAnnouncement(id);
+    setShowDetailsModal(true);
   };
+
+  const filteredAnnouncements = announcements;
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -143,33 +145,28 @@ const oldAnnouncements = [
                 </div>
 
                 <div className="flex items-center space-x-4 text-sm text-gray-500 mb-4">
-                  <div className="flex items-center">
-                    <i className="ri-user-line mr-1"></i>
-                    {announcement.author}
-                  </div>
+                  {announcement.created_by_name && (
+                    <div className="flex items-center">
+                      <i className="ri-user-line mr-1"></i>
+                      {announcement.created_by_name}
+                    </div>
+                  )}
                   <div className="flex items-center">
                     <i className="ri-calendar-line mr-1"></i>
-                    {new Date(announcement.publishDate).toLocaleDateString()}
+                    {new Date(announcement.publish_date).toLocaleDateString()}
                   </div>
-                  <div className="flex items-center">
-                    <i className="ri-eye-line mr-1"></i>
-                    {announcement.views} views
-                  </div>
-                  <span className="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
-                    {announcement.category}
-                  </span>
                 </div>
 
-                <p className={`text-gray-700 ${expandedAnnouncement === announcement.id ? '' : 'line-clamp-2'}`}>
+                <p className="text-gray-700 line-clamp-2">
                   {announcement.content}
                 </p>
 
                 <div className="mt-4 flex items-center justify-between">
                   <button
-                    onClick={() => toggleExpanded(announcement.id)}
+                    onClick={() => handleViewDetails(announcement.id)}
                     className="text-sm font-medium text-blue-600 hover:text-blue-500 cursor-pointer whitespace-nowrap"
                   >
-                    {expandedAnnouncement === announcement.id ? 'Show less' : 'Read more'}
+                    View Details
                   </button>
                   
                   <div className="flex items-center space-x-3">
@@ -194,10 +191,10 @@ const oldAnnouncements = [
                   </div>
                 </div>
 
-                {announcement.status === 'active' && (
+                {announcement.expiry_date && (
                   <div className="mt-3 text-sm text-gray-500">
                     <i className="ri-time-line mr-1"></i>
-                    Expires on {new Date(announcement.expiryDate).toLocaleDateString()}
+                    Expires on {new Date(announcement.expiry_date).toLocaleDateString()}
                   </div>
                 )}
               </div>
@@ -225,6 +222,16 @@ const oldAnnouncements = [
           isOpen={showEditModal}
           onClose={() => setShowEditModal(false)}
           announcementId={selectedAnnouncement}
+          announcement={announcements.find(a => a.id === selectedAnnouncement)!}
+          onSuccess={fetchAnnouncements}
+        />
+      )}
+
+      {/* Details Modal */}
+      {showDetailsModal && selectedAnnouncement && (
+        <ViewAnnouncementModal
+          isOpen={showDetailsModal}
+          onClose={() => setShowDetailsModal(false)}
           announcement={announcements.find(a => a.id === selectedAnnouncement)!}
         />
       )}
@@ -255,12 +262,12 @@ const oldAnnouncements = [
                     SMS
                   </button>
                   <button className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
-                    <i className="ri-facebook-fill mr-2"></i>
-                    Facebook
+                    <i className="ri-whatsapp-line mr-2"></i>
+                    WhatsApp
                   </button>
                   <button className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
-                    <i className="ri-twitter-fill mr-2"></i>
-                    Twitter
+                    <i className="ri-telegram-line mr-2"></i>
+                    Telegram
                   </button>
                 </div>
               </div>
