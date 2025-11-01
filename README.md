@@ -143,7 +143,6 @@ church-website/
 - Notification delivery
 
 ### Database
-- 28 migration files covering all features
 - PostgreSQL with proper indexing
 - Relational data structure
 
