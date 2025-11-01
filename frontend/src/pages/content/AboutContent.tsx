@@ -7,6 +7,7 @@ export default function AboutContent() {
   const [scriptureText, setScriptureText] = useState('');
   const [historyText, setHistoryText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingContent, setLoadingContent] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
@@ -21,6 +22,8 @@ export default function AboutContent() {
       setHistoryText(data.history_text || '');
     } catch (error) {
       console.error('Error loading content:', error);
+    } finally {
+      setLoadingContent(false);
     }
   };
 
@@ -36,6 +39,14 @@ export default function AboutContent() {
       setLoading(false);
     }
   };
+
+  if (loadingContent) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div>

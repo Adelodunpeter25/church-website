@@ -11,6 +11,7 @@ export default function ContactContent() {
   const [serviceTime1, setServiceTime1] = useState('');
   const [serviceTime2, setServiceTime2] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingContent, setLoadingContent] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
@@ -29,6 +30,8 @@ export default function ContactContent() {
       setServiceTime2(data.service_time2 || 'Sundays @ 8:30am');
     } catch (error) {
       console.error('Error loading content:', error);
+    } finally {
+      setLoadingContent(false);
     }
   };
 
@@ -48,6 +51,14 @@ export default function ContactContent() {
       setLoading(false);
     }
   };
+
+  if (loadingContent) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div>
