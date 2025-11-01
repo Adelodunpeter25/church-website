@@ -96,7 +96,7 @@ export default function LandingPage() {
               <p className="text-sm text-gray-500 mt-1">Please check back later for updated service schedules</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className={`grid gap-8 ${services.length === 1 ? 'grid-cols-1 max-w-md mx-auto' : services.length === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
               {services.map((service, index) => {
                 const colors = [
                   { bg: 'bg-blue-100', text: 'text-blue-600', icon: 'ri-sun-line' },
@@ -113,7 +113,7 @@ export default function LandingPage() {
                   return `${hour12}:${minutes} ${ampm}`;
                 };
                 return (
-                  <div key={service.id} className="flex items-start space-x-4 p-6 bg-white rounded-lg shadow-md border border-gray-200">
+                  <div key={service.id} className="flex items-start space-x-4 p-8 bg-white rounded-lg shadow-md border border-gray-200 min-h-[200px]">
                     <div className={`w-12 h-12 ${color.bg} rounded-lg flex items-center justify-center flex-shrink-0`}>
                       <i className={`${color.icon} ${color.text} text-xl`}></i>
                     </div>
