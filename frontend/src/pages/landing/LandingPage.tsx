@@ -69,7 +69,7 @@ export default function LandingPage() {
           
           <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-gray-100">
             <div className="space-y-6 text-gray-700 text-lg leading-relaxed">
-              <p className="first-letter:text-5xl first-letter:font-bold first-letter:text-blue-600 first-letter:mr-2 first-letter:float-left">
+              <p className="first-letter:text-5xl first-letter:font-bold first-letter:text-blue-600 first-letter:mr-2 first-letter:float-left whitespace-pre-line">
                 {content.about_text}
               </p>
             </div>
