@@ -1,9 +1,12 @@
 import pool from '../config/database.js';
+import { HTTP_STATUS } from '../config/constants.js';
+import { parsePaginationParams, formatPaginationResponse } from '../utils/pagination.js';
 
 export const getSermons = async (req, res) => {
   try {
     console.log('Fetching sermons...');
-    const { search, series, speaker, page = 1, limit = 10 } = req.query;
+    const { search, series, speaker } = req.query;
+    const { page, limit } = parsePaginationParams(req.query);
     
     let query = 'SELECT s.*, ss.name as series_name FROM sermons s LEFT JOIN sermon_series ss ON s.series_id = ss.id WHERE 1=1';
     let countQuery = 'SELECT COUNT(*) FROM sermons s WHERE 1=1';
@@ -19,45 +22,33 @@ export const getSermons = async (req, res) => {
     }
 
     if (series) {
-      const seriesCondition = ` AND s.series_id = $${paramCount}`;
-      query += seriesCondition;
-      countQuery += seriesCondition.replace(/s\./g, '');
+      query += ` AND s.series_id = $${paramCount}`;
+      countQuery += ` AND series_id = $${paramCount}`;
       params.push(series);
       paramCount++;
     }
 
     if (speaker) {
-      const speakerCondition = ` AND s.speaker ILIKE $${paramCount}`;
-      query += speakerCondition;
-      countQuery += speakerCondition.replace(/s\./g, '');
+      query += ` AND s.speaker ILIKE $${paramCount}`;
+      countQuery += ` AND speaker ILIKE $${paramCount}`;
       params.push(`%${speaker}%`);
       paramCount++;
     }
 
     const offset = (page - 1) * limit;
     query += ` ORDER BY s.date DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
-    params.push(limit, offset);
+    const queryParams = [...params, limit, offset];
 
     const [result, countResult] = await Promise.all([
-      pool.query(query, params),
-      pool.query(countQuery, params.slice(0, paramCount - 1))
+      pool.query(query, queryParams),
+      pool.query(countQuery, params)
     ]);
 
-    const total = parseInt(countResult.rows[0].count);
-    console.log(`Found ${result.rows.length} sermons (page ${page} of ${Math.ceil(total / limit)})`);
-    
-    res.json({
-      data: result.rows,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
-    });
+    console.log(`Found ${result.rows.length} sermons (page ${page})`);
+    res.json(formatPaginationResponse(result.rows, countResult.rows[0].count, page, limit));
   } catch (error) {
     console.error('Get sermons error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -70,13 +61,13 @@ export const getSermon = async (req, res) => {
     );
     
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Sermon not found' });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Sermon not found' });
     }
 
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Get sermon error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -88,7 +79,7 @@ export const createSermon = async (req, res) => {
     const { title, speaker, date, duration, description, series_id, tags } = req.body;
 
     if (!title || !speaker || !date) {
-      return res.status(400).json({ error: 'Title, speaker, and date are required' });
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: 'Title, speaker, and date are required' });
     }
 
     const audio_url = req.files?.audio ? `/uploads/sermons/audio/${req.files.audio[0].filename}` : null;
@@ -107,10 +98,10 @@ export const createSermon = async (req, res) => {
     }
 
     console.log('Sermon created:', result.rows[0].id);
-    res.status(201).json(result.rows[0]);
+    res.status(HTTP_STATUS.CREATED).json(result.rows[0]);
   } catch (error) {
     console.error('Create sermon error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -128,14 +119,14 @@ export const updateSermon = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Sermon not found' });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Sermon not found' });
     }
 
     console.log('Sermon updated:', result.rows[0].id);
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Update sermon error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -145,7 +136,7 @@ export const deleteSermon = async (req, res) => {
     const sermon = await pool.query('SELECT series_id FROM sermons WHERE id = $1', [req.params.id]);
     
     if (sermon.rows.length === 0) {
-      return res.status(404).json({ error: 'Sermon not found' });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Sermon not found' });
     }
 
     await pool.query('DELETE FROM sermons WHERE id = $1', [req.params.id]);
@@ -158,7 +149,7 @@ export const deleteSermon = async (req, res) => {
     res.json({ message: 'Sermon deleted successfully' });
   } catch (error) {
     console.error('Delete sermon error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -168,7 +159,7 @@ export const incrementPlays = async (req, res) => {
     res.json({ message: 'Play count incremented' });
   } catch (error) {
     console.error('Increment plays error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -185,6 +176,6 @@ export const incrementDownloads = async (req, res) => {
     res.json({ message: 'Download count incremented' });
   } catch (error) {
     console.error('Increment downloads error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };

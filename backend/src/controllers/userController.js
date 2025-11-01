@@ -1,6 +1,7 @@
 import pool from '../config/database.js';
 import bcrypt from 'bcryptjs';
-import { HTTP_STATUS, PAGINATION } from '../config/constants.js';
+import { HTTP_STATUS } from '../config/constants.js';
+import { parsePaginationParams, formatPaginationResponse } from '../utils/pagination.js';
 
 export const getUserStats = async (req, res) => {
   try {
@@ -32,7 +33,8 @@ export const getUserStats = async (req, res) => {
 export const getUsers = async (req, res) => {
   try {
     console.log('Fetching users...');
-    const { search, role, status, membership_status, page = PAGINATION.DEFAULT_PAGE, limit = PAGINATION.DEFAULT_LIMIT } = req.query;
+    const { search, role, status, membership_status } = req.query;
+    const { page, limit } = parsePaginationParams(req.query);
     
     let query = 'SELECT id, name, email, role, phone, address, date_joined, membership_status, birthday, gender, marital_status, status, created_at FROM users WHERE 1=1';
     let countQuery = 'SELECT COUNT(*) FROM users WHERE 1=1';
@@ -48,50 +50,37 @@ export const getUsers = async (req, res) => {
     }
 
     if (role) {
-      const roleCondition = ` AND role = $${paramCount}`;
-      query += roleCondition;
-      countQuery += roleCondition;
+      query += ` AND role = $${paramCount}`;
+      countQuery += ` AND role = $${paramCount}`;
       params.push(role);
       paramCount++;
     }
 
     if (status) {
-      const statusCondition = ` AND status = $${paramCount}`;
-      query += statusCondition;
-      countQuery += statusCondition;
+      query += ` AND status = $${paramCount}`;
+      countQuery += ` AND status = $${paramCount}`;
       params.push(status);
       paramCount++;
     }
 
     if (membership_status) {
-      const membershipCondition = ` AND membership_status = $${paramCount}`;
-      query += membershipCondition;
-      countQuery += membershipCondition;
+      query += ` AND membership_status = $${paramCount}`;
+      countQuery += ` AND membership_status = $${paramCount}`;
       params.push(membership_status);
       paramCount++;
     }
 
     const offset = (page - 1) * limit;
     query += ` ORDER BY created_at DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
-    params.push(limit, offset);
+    const queryParams = [...params, limit, offset];
 
     const [result, countResult] = await Promise.all([
-      pool.query(query, params),
-      pool.query(countQuery, params.slice(0, paramCount - 1))
+      pool.query(query, queryParams),
+      pool.query(countQuery, params)
     ]);
 
-    const total = parseInt(countResult.rows[0].count);
-    console.log(`Found ${result.rows.length} users (page ${page} of ${Math.ceil(total / limit)})`);
-    
-    res.json({
-      data: result.rows,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
-    });
+    console.log(`Found ${result.rows.length} users (page ${page})`);
+    res.json(formatPaginationResponse(result.rows, countResult.rows[0].count, page, limit));
   } catch (error) {
     console.error('Get users error:', error.message);
     res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
