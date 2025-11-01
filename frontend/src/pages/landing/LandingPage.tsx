@@ -1,72 +1,11 @@
-
-
-
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import PublicNavbar from '@/components/layout/PublicNavbar';
+import PublicFooter from '@/components/layout/PublicFooter';
 
 export default function LandingPage() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link to="/" className="text-2xl font-bold text-blue-600" style={{ fontFamily: "Pacifico, serif" }}>
-                Bibleway
-              </Link>
-            </div>
-            
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-8">
-                <Link to="/" className="text-gray-900 hover:text-blue-600 px-3 py-2 text-sm font-medium">Home</Link>
-                <Link to="/about" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">About</Link>
-                <a href="#services" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Services</a>
-                <Link to="/contact" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Contact</Link>
-              </div>
-            </div>
-
-            <div className="hidden md:flex items-center space-x-4">
-              <Link to="/login" className="text-gray-700 hover:text-blue-600 px-4 py-2 text-sm font-medium cursor-pointer whitespace-nowrap">
-                Login
-              </Link>
-              <Link to="/signup" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium cursor-pointer whitespace-nowrap">
-                Sign Up
-              </Link>
-            </div>
-
-            <div className="md:hidden">
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-gray-700 hover:text-blue-600 p-2 cursor-pointer"
-              >
-                <div className="w-6 h-6 flex items-center justify-center">
-                  <i className={isMenuOpen ? "ri-close-line" : "ri-menu-line"}></i>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
-              <Link to="/" className="block px-3 py-2 text-gray-900 hover:text-blue-600">Home</Link>
-              <Link to="/about" className="block px-3 py-2 text-gray-700 hover:text-blue-600">About</Link>
-              <a href="#services" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Services</a>
-              <Link to="/contact" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Contact</Link>
-              <Link to="/login" className="block px-3 py-2 text-gray-700 hover:text-blue-600">
-                Login
-              </Link>
-              <Link to="/signup" className="block px-3 py-2 bg-blue-600 text-white rounded-lg">
-                Sign Up
-              </Link>
-            </div>
-          </div>
-        )}
-      </nav>
+      <PublicNavbar />
 
       {/* Hero Section */}
       <section id="home" className="relative bg-cover bg-center min-h-screen flex items-center" style={{
@@ -369,75 +308,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="md:col-span-2">
-              <div className="text-2xl font-bold text-blue-400 mb-4" style={{ fontFamily: "Pacifico, serif" }}>
-                Bibleway
-              </div>
-              <p className="text-gray-300 mb-4 max-w-md">
-                Building a community of faith, hope, and love. Join us as we grow together in our relationship with God and serve others.
-              </p>
-              <div className="flex space-x-4">
-                <a to="#" className="text-gray-400 hover:text-white cursor-pointer">
-                  <div className="w-6 h-6 flex items-center justify-center">
-                    <i className="ri-facebook-fill"></i>
-                  </div>
-                </a>
-                <a to="#" className="text-gray-400 hover:text-white cursor-pointer">
-                  <div className="w-6 h-6 flex items-center justify-center">
-                    <i className="ri-twitter-fill"></i>
-                  </div>
-                </a>
-                <a to="#" className="text-gray-400 hover:text-white cursor-pointer">
-                  <div className="w-6 h-6 flex items-center justify-center">
-                    <i className="ri-instagram-line"></i>
-                  </div>
-                </a>
-                <a to="#" className="text-gray-400 hover:text-white cursor-pointer">
-                  <div className="w-6 h-6 flex items-center justify-center">
-                    <i className="ri-youtube-fill"></i>
-                  </div>
-                </a>
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-              <ul className="space-y-2">
-                <li><a to="#about" className="text-gray-300 hover:text-white cursor-pointer">About Us</a></li>
-                <li><a to="#services" className="text-gray-300 hover:text-white cursor-pointer">Services</a></li>
-                <li><a to="#events" className="text-gray-300 hover:text-white cursor-pointer">Events</a></li>
-                <li><Link to="/dashboard" className="text-gray-300 hover:text-white cursor-pointer">Member Portal</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Contact Info</h3>
-              <ul className="space-y-2 text-gray-300">
-                <li className="flex items-center">
-                  <i className="ri-map-pin-line mr-2"></i>
-                  123 Faith Street, CC 12345
-                </li>
-                <li className="flex items-center">
-                  <i className="ri-phone-line mr-2"></i>
-                  (555) 123-PRAY
-                </li>
-                <li className="flex items-center">
-                  <i className="ri-mail-line mr-2"></i>
-                  info@ourchurch.com
-                </li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-700 pt-8 mt-8 text-center text-gray-400">
-            <p>&copy; 2025 Our Church Community. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }
