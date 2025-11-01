@@ -12,9 +12,20 @@ export const initWebSocket = (server) => {
   setupNotificationWebSocket(wss);
 
   wss.on('connection', (ws) => {
+    ws.isAlive = true;
+    
+    ws.on('pong', () => {
+      ws.isAlive = true;
+    });
+
     ws.on('message', async (message) => {
       try {
         const data = JSON.parse(message);
+
+        if (data.type === 'ping') {
+          ws.send(JSON.stringify({ type: 'pong' }));
+          return;
+        }
 
         if (data.type === 'subscribe-stream-status') {
           streamStatusSubscribers.add(ws);
@@ -79,6 +90,19 @@ export const initWebSocket = (server) => {
   });
 
   startStatsBroadcast();
+  startHeartbeat();
+};
+
+const startHeartbeat = () => {
+  setInterval(() => {
+    wss.clients.forEach((ws) => {
+      if (ws.isAlive === false) {
+        return ws.terminate();
+      }
+      ws.isAlive = false;
+      ws.ping();
+    });
+  }, 30000);
 };
 
 const getStreamStats = async (streamId, retries = 3) => {
