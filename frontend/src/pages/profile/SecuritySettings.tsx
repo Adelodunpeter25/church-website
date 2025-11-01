@@ -21,6 +21,8 @@ export default function SecuritySettings() {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     if (user?.id) {
@@ -220,26 +222,52 @@ export default function SecuritySettings() {
               <i className="ri-loader-4-line text-2xl text-blue-600 animate-spin"></i>
             </div>
           ) : loginHistory.length > 0 ? (
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              {loginHistory.map((login: any) => (
-                <div key={login.id} className="p-4 border-b border-gray-200 last:border-b-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                        login.event === 'Successful Login' ? 'bg-green-400' : 'bg-red-400'
-                      }`}></div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{login.device || 'Unknown Device'}</p>
-                        <p className="text-xs text-gray-500">{login.event}</p>
+            <>
+              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                {loginHistory.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((login: any) => (
+                  <div key={login.id} className="p-4 border-b border-gray-200 last:border-b-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                          login.event === 'Successful Login' ? 'bg-green-400' : 'bg-red-400'
+                        }`}></div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{login.device || 'Unknown Device'}</p>
+                          <p className="text-xs text-gray-500">{login.event}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-500">{new Date(login.login_time).toLocaleString()}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500">{new Date(login.login_time).toLocaleString()}</p>
-                    </div>
                   </div>
+                ))}
+              </div>
+              
+              {loginHistory.length > itemsPerPage && (
+                <div className="flex items-center justify-between mt-4">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <i className="ri-arrow-left-s-line mr-1"></i>
+                    Previous
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    Page {currentPage} of {Math.ceil(loginHistory.length / itemsPerPage)}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(Math.ceil(loginHistory.length / itemsPerPage), prev + 1))}
+                    disabled={currentPage === Math.ceil(loginHistory.length / itemsPerPage)}
+                    className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                    <i className="ri-arrow-right-s-line ml-1"></i>
+                  </button>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           ) : (
             <p className="text-sm text-gray-500">No login history available</p>
           )}

@@ -7,10 +7,7 @@ export default function NotificationSettings() {
   const { getSettings, updateBulkSettings, getRecentNotifications, testEmail } = useSettings();
   const [settings, setSettings] = useState({
     emailEnabled: true,
-    smsEnabled: false,
     pushEnabled: true,
-    slackEnabled: false,
-    webhooksEnabled: false,
     resend_api_key: '',
     resend_from_email: ''
   });
@@ -20,6 +17,8 @@ export default function NotificationSettings() {
   const [loadingData, setLoadingData] = useState(true);
   const [recentNotifications, setRecentNotifications] = useState<any[]>([]);
   const [activeSection, setActiveSection] = useState('general');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     loadSettings();
@@ -31,10 +30,7 @@ export default function NotificationSettings() {
       const data = await getSettings('notifications');
       setSettings({
         emailEnabled: data.emailEnabled ?? true,
-        smsEnabled: data.smsEnabled ?? false,
         pushEnabled: data.pushEnabled ?? true,
-        slackEnabled: data.slackEnabled ?? false,
-        webhooksEnabled: data.webhooksEnabled ?? false,
         resend_api_key: data.resend_api_key || '',
         resend_from_email: data.resend_from_email || ''
       });
@@ -124,84 +120,42 @@ export default function NotificationSettings() {
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">General Settings</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                <div>
-                  <h4 className="font-medium text-gray-900">Email Notifications</h4>
-                  <p className="text-sm text-gray-500">Send notifications via email</p>
-                </div>
-                <button
-                  onClick={() => handleToggle('', 'emailEnabled')}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                    settings.emailEnabled ? 'bg-green-600' : 'bg-gray-200'
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      settings.emailEnabled ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
+            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+              <div>
+                <h4 className="font-medium text-gray-900">Email Notifications</h4>
+                <p className="text-sm text-gray-500">Send notifications via email</p>
               </div>
-
-              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                <div>
-                  <h4 className="font-medium text-gray-900">SMS Notifications</h4>
-                  <p className="text-sm text-gray-500">Send notifications via SMS</p>
-                </div>
-                <button
-                  onClick={() => handleToggle('', 'smsEnabled')}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                    settings.smsEnabled ? 'bg-green-600' : 'bg-gray-200'
+              <button
+                onClick={() => handleToggle('', 'emailEnabled')}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                  settings.emailEnabled ? 'bg-green-600' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    settings.emailEnabled ? 'translate-x-5' : 'translate-x-0'
                   }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      settings.smsEnabled ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
+                />
+              </button>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                <div>
-                  <h4 className="font-medium text-gray-900">Push Notifications</h4>
-                  <p className="text-sm text-gray-500">Browser push notifications</p>
-                </div>
-                <button
-                  onClick={() => handleToggle('', 'pushEnabled')}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                    settings.pushEnabled ? 'bg-green-600' : 'bg-gray-200'
-                  }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      settings.pushEnabled ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
+            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+              <div>
+                <h4 className="font-medium text-gray-900">Push Notifications</h4>
+                <p className="text-sm text-gray-500">Browser push notifications</p>
               </div>
-
-              <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                <div>
-                  <h4 className="font-medium text-gray-900">Slack Integration</h4>
-                  <p className="text-sm text-gray-500">Send alerts to Slack channels</p>
-                </div>
-                <button
-                  onClick={() => handleToggle('', 'slackEnabled')}
-                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                    settings.slackEnabled ? 'bg-green-600' : 'bg-gray-200'
+              <button
+                onClick={() => handleToggle('', 'pushEnabled')}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                  settings.pushEnabled ? 'bg-green-600' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    settings.pushEnabled ? 'translate-x-5' : 'translate-x-0'
                   }`}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      settings.slackEnabled ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
+                />
+              </button>
             </div>
           </div>
         </div>
@@ -254,7 +208,7 @@ export default function NotificationSettings() {
         <div className="border-t border-gray-200 pt-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Notifications</h3>
           <div className="space-y-3">
-            {recentNotifications.map((notification, index) => (
+            {recentNotifications.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((notification, index) => (
               <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div>
                   <p className="font-medium text-gray-900">{notification.type}</p>
@@ -273,6 +227,30 @@ export default function NotificationSettings() {
               </div>
             ))}
           </div>
+          
+          {recentNotifications.length > itemsPerPage && (
+            <div className="flex items-center justify-between mt-4">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <i className="ri-arrow-left-s-line mr-1"></i>
+                Previous
+              </button>
+              <span className="text-sm text-gray-600">
+                Page {currentPage} of {Math.ceil(recentNotifications.length / itemsPerPage)}
+              </span>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(Math.ceil(recentNotifications.length / itemsPerPage), prev + 1))}
+                disabled={currentPage === Math.ceil(recentNotifications.length / itemsPerPage)}
+                className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+                <i className="ri-arrow-right-s-line ml-1"></i>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Save Button */}

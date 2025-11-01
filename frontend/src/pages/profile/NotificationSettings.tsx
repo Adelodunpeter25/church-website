@@ -24,12 +24,7 @@ export default function NotificationSettings() {
       forms: true,
       reminders: true
     },
-    frequency: 'immediate',
-    quietHours: {
-      enabled: true,
-      start: '22:00',
-      end: '07:00'
-    }
+    frequency: 'immediate'
   });
   const [loading, setLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -58,26 +53,6 @@ export default function NotificationSettings() {
       [category]: {
         ...prev[category as keyof typeof prev],
         [setting]: !prev[category as keyof typeof prev][setting as keyof typeof prev[typeof category]]
-      }
-    }));
-  };
-
-  const handleQuietHoursToggle = () => {
-    setSettings(prev => ({
-      ...prev,
-      quietHours: {
-        ...prev.quietHours,
-        enabled: !prev.quietHours.enabled
-      }
-    }));
-  };
-
-  const handleTimeChange = (type: 'start' | 'end', value: string) => {
-    setSettings(prev => ({
-      ...prev,
-      quietHours: {
-        ...prev.quietHours,
-        [type]: value
       }
     }));
   };
@@ -175,51 +150,6 @@ export default function NotificationSettings() {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Quiet Hours */}
-        <div className="border-t border-gray-200 pt-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">Quiet Hours</h3>
-              <p className="text-sm text-gray-500">Pause notifications during specified hours</p>
-            </div>
-            <button
-              onClick={handleQuietHoursToggle}
-              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                settings.quietHours.enabled ? 'bg-blue-600' : 'bg-gray-200'
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  settings.quietHours.enabled ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
-
-          {settings.quietHours.enabled && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
-                <input
-                  type="time"
-                  value={settings.quietHours.start}
-                  onChange={(e) => handleTimeChange('start', e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
-                <input
-                  type="time"
-                  value={settings.quietHours.end}
-                  onChange={(e) => handleTimeChange('end', e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Save Button */}
