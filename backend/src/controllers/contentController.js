@@ -1,4 +1,5 @@
 import pool from '../config/database.js';
+import { HTTP_STATUS } from '../config/constants.js';
 
 export const getContent = async (req, res) => {
   try {
@@ -11,10 +12,10 @@ export const getContent = async (req, res) => {
     });
 
     console.log(`Found ${result.rows.length} content items`);
-    res.json(content);
+    res.status(HTTP_STATUS.OK).json(content);
   } catch (error) {
     console.error('Get content error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -24,13 +25,13 @@ export const getContentByKey = async (req, res) => {
     const result = await pool.query('SELECT * FROM content WHERE key = $1', [req.params.key]);
     
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Content not found' });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Content not found' });
     }
 
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Get content by key error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -50,7 +51,7 @@ export const updateContent = async (req, res) => {
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Update content error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -62,7 +63,7 @@ export const getServiceTimes = async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Get service times error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -77,10 +78,10 @@ export const createServiceTime = async (req, res) => {
     );
 
     console.log('Service time created:', result.rows[0].id);
-    res.status(201).json(result.rows[0]);
+    res.status(HTTP_STATUS.CREATED).json(result.rows[0]);
   } catch (error) {
     console.error('Create service time error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -95,14 +96,14 @@ export const updateServiceTime = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Service time not found' });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Service time not found' });
     }
 
     console.log('Service time updated:', result.rows[0].id);
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Update service time error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -112,13 +113,13 @@ export const deleteServiceTime = async (req, res) => {
     const result = await pool.query('DELETE FROM service_times WHERE id = $1 RETURNING id', [req.params.id]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Service time not found' });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Service time not found' });
     }
 
     console.log('Service time deleted:', req.params.id);
     res.json({ message: 'Service time deleted successfully' });
   } catch (error) {
     console.error('Delete service time error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };

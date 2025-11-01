@@ -1,5 +1,6 @@
 import pool from '../config/database.js';
 import bcrypt from 'bcryptjs';
+import { HTTP_STATUS, PAGINATION } from '../config/constants.js';
 
 export const getUserStats = async (req, res) => {
   try {
@@ -23,7 +24,7 @@ export const getUserStats = async (req, res) => {
     });
   } catch (error) {
     console.error('Get user stats error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -31,7 +32,7 @@ export const getUserStats = async (req, res) => {
 export const getUsers = async (req, res) => {
   try {
     console.log('Fetching users...');
-    const { search, role, status, membership_status, page = 1, limit = 10 } = req.query;
+    const { search, role, status, membership_status, page = PAGINATION.DEFAULT_PAGE, limit = PAGINATION.DEFAULT_LIMIT } = req.query;
     
     let query = 'SELECT id, name, email, role, phone, address, date_joined, membership_status, birthday, gender, marital_status, status, created_at FROM users WHERE 1=1';
     let countQuery = 'SELECT COUNT(*) FROM users WHERE 1=1';
@@ -93,7 +94,7 @@ export const getUsers = async (req, res) => {
     });
   } catch (error) {
     console.error('Get users error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -103,13 +104,13 @@ export const getUser = async (req, res) => {
     const result = await pool.query('SELECT id, name, email, role, phone, status, created_at FROM users WHERE id = $1', [req.params.id]);
     
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'User not found' });
     }
 
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Get user error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -128,10 +129,10 @@ export const createUser = async (req, res) => {
     );
 
     console.log('User created:', result.rows[0].id);
-    res.status(201).json(result.rows[0]);
+    res.status(HTTP_STATUS.CREATED).json(result.rows[0]);
   } catch (error) {
     console.error('Create user error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -148,14 +149,14 @@ export const updateUser = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'User not found' });
     }
 
     console.log('User updated:', result.rows[0].id);
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Update user error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -165,14 +166,14 @@ export const deleteUser = async (req, res) => {
     const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id', [req.params.id]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'User not found' });
     }
 
     console.log('User deleted:', req.params.id);
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
     console.error('Delete user error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -189,13 +190,13 @@ export const resetPassword = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'User not found' });
     }
 
     console.log('Password reset for user:', req.params.id);
     res.json({ message: 'Password reset successfully' });
   } catch (error) {
     console.error('Reset password error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };

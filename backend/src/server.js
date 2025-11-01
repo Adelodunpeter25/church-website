@@ -2,8 +2,10 @@ import express from 'express';
 import { createServer } from 'http';
 import cors from 'cors';
 import compression from 'compression';
+import swaggerUi from 'swagger-ui-express';
 import dotenv from 'dotenv';
 import pool from './config/database.js';
+import { swaggerSpec } from './config/swagger.js';
 import { serveFiles } from './services/storageService.js';
 import { initWebSocket, broadcastStreamStatusChange } from './websocket/livestreamWebSocket.js';
 import healthRoutes from './routes/healthRoutes.js';
@@ -53,6 +55,8 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
   res.json({ status: 'ok', message: 'Church API is running' });
 });
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);

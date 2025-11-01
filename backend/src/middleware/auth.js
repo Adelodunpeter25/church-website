@@ -1,11 +1,12 @@
 import jwt from 'jsonwebtoken';
+import { HTTP_STATUS } from '../config/constants.js';
 
 export const authenticate = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
     
     if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
+      return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: 'No token provided' });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -20,25 +21,25 @@ export const authenticate = async (req, res, next) => {
       const tokenIat = new Date(decoded.iat * 1000);
       const logoutTime = new Date(blacklist.rows[0].created_at);
       if (tokenIat < logoutTime) {
-        return res.status(401).json({ error: 'Token has been invalidated' });
+        return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: 'Token has been invalidated' });
       }
     }
     
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(401).json({ error: 'Invalid token' });
+    return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: 'Invalid token' });
   }
 };
 
 export const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({ error: 'Not authenticated' });
+      return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: 'Not authenticated' });
     }
 
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' });
+      return res.status(HTTP_STATUS.FORBIDDEN).json({ error: 'Insufficient permissions' });
     }
 
     next();

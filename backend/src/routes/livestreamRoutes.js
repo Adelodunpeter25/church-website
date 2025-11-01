@@ -3,6 +3,64 @@ import { getLivestreams, getCurrentLivestream, createLivestream, updateLivestrea
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /livestreams:
+ *   get:
+ *     summary: Get all livestreams
+ *     tags: [Livestreams]
+ *     responses:
+ *       200:
+ *         description: Livestreams retrieved
+ *   post:
+ *     summary: Create livestream
+ *     tags: [Livestreams]
+ *     responses:
+ *       201:
+ *         description: Livestream created
+ */
+
+/**
+ * @swagger
+ * /livestreams/current:
+ *   get:
+ *     summary: Get current active livestream
+ *     tags: [Livestreams]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Current livestream retrieved
+ */
+
+/**
+ * @swagger
+ * /livestreams/{id}/chat:
+ *   get:
+ *     summary: Get chat messages
+ *     tags: [Livestreams]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Chat messages retrieved
+ *   post:
+ *     summary: Send chat message
+ *     tags: [Livestreams]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       201:
+ *         description: Message sent
+ */
+
 router.get('/', getLivestreams);
 router.get('/current', getCurrentLivestream);
 router.get('/history', getStreamHistory);
