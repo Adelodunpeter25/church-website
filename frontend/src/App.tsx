@@ -18,6 +18,7 @@ import ContentManagementPage from './pages/content/ContentManagementPage'
 import SettingsPage from './pages/settings/SettingsPage'
 import ProfilePage from './pages/profile/ProfilePage'
 import PublicFormPage from './pages/forms/PublicFormPage'
+import NotFound from './pages/NotFound'
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
         <Route path="/content" element={<ProtectedRoute allowedRoles={['admin', 'pastor']}><ContentManagementPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin']}><SettingsPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   )
