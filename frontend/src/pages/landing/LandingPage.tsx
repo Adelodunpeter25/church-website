@@ -14,7 +14,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="text-center text-white">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Welcome to Our Church Community
+              Welcome to Bibleway Fellowship Tabernacle
             </h1>
             <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto opacity-90">
               Join us in worship, fellowship, and service as we grow together in faith and love. 
