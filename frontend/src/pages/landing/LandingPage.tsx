@@ -113,7 +113,7 @@ export default function LandingPage() {
                   return `${hour12}:${minutes} ${ampm}`;
                 };
                 return (
-                  <div key={service.id} className="flex items-start space-x-4 p-8 bg-white rounded-lg shadow-md border border-gray-200 min-h-[200px]">
+                  <div key={service.id} className="flex items-start space-x-4 p-8 bg-white rounded-lg shadow-md border border-gray-200 min-h-[200px] transition-all duration-500 ease-in-out hover:shadow-xl hover:-translate-y-2 hover:border-blue-300 cursor-pointer">
                     <div className={`w-12 h-12 ${color.bg} rounded-lg flex items-center justify-center flex-shrink-0`}>
                       <i className={`${color.icon} ${color.text} text-xl`}></i>
                     </div>
