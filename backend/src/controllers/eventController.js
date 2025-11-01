@@ -1,9 +1,12 @@
 import pool from '../config/database.js';
+import { HTTP_STATUS } from '../config/constants.js';
+import { parsePaginationParams, formatPaginationResponse } from '../utils/pagination.js';
 
 export const getEvents = async (req, res) => {
   try {
     console.log('Fetching events...');
-    const { search, status, type, page = 1, limit = 10 } = req.query;
+    const { search, status, type } = req.query;
+    const { page, limit } = parsePaginationParams(req.query);
     
     let query = 'SELECT * FROM events WHERE 1=1';
     let countQuery = 'SELECT COUNT(*) FROM events WHERE 1=1';
@@ -36,28 +39,18 @@ export const getEvents = async (req, res) => {
 
     const offset = (page - 1) * limit;
     query += ` ORDER BY date DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
-    params.push(limit, offset);
+    const queryParams = [...params, limit, offset];
 
     const [result, countResult] = await Promise.all([
-      pool.query(query, params),
-      pool.query(countQuery, params.slice(0, paramCount - 1))
+      pool.query(query, queryParams),
+      pool.query(countQuery, params)
     ]);
 
-    const total = parseInt(countResult.rows[0].count);
-    console.log(`Found ${result.rows.length} events (page ${page} of ${Math.ceil(total / limit)})`);
-    
-    res.json({
-      data: result.rows,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
-    });
+    console.log(`Found ${result.rows.length} events (page ${page})`);
+    res.json(formatPaginationResponse(result.rows, countResult.rows[0].count, page, limit));
   } catch (error) {
     console.error('Get events error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -67,13 +60,13 @@ export const getEvent = async (req, res) => {
     const result = await pool.query('SELECT * FROM events WHERE id = $1', [req.params.id]);
     
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Event not found' });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Event not found' });
     }
 
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Get event error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -123,10 +116,10 @@ export const createEvent = async (req, res) => {
     );
 
     console.log('Event created:', result.rows[0].id);
-    res.status(201).json(result.rows[0]);
+    res.status(HTTP_STATUS.CREATED).json(result.rows[0]);
   } catch (error) {
     console.error('Create event error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -180,14 +173,14 @@ export const updateEvent = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Event not found' });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Event not found' });
     }
 
     console.log('Event updated:', result.rows[0].id);
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Update event error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -197,14 +190,14 @@ export const deleteEvent = async (req, res) => {
     const result = await pool.query('DELETE FROM events WHERE id = $1 RETURNING id', [req.params.id]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Event not found' });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Event not found' });
     }
 
     console.log('Event deleted:', req.params.id);
     res.json({ message: 'Event deleted successfully' });
   } catch (error) {
     console.error('Delete event error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -221,10 +214,10 @@ export const registerForEvent = async (req, res) => {
     await pool.query('UPDATE events SET registered_count = registered_count + 1 WHERE id = $1', [req.params.id]);
 
     console.log('Registration successful');
-    res.status(201).json({ message: 'Registration successful' });
+    res.status(HTTP_STATUS.CREATED).json({ message: 'Registration successful' });
   } catch (error) {
     console.error('Register event error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -237,7 +230,7 @@ export const unregisterFromEvent = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Registration not found' });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Registration not found' });
     }
 
     await pool.query('UPDATE events SET registered_count = registered_count - 1 WHERE id = $1', [req.params.id]);
@@ -246,7 +239,7 @@ export const unregisterFromEvent = async (req, res) => {
     res.json({ message: 'Unregistration successful' });
   } catch (error) {
     console.error('Unregister event error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -266,7 +259,7 @@ export const getEventAttendees = async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Get attendees error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -281,14 +274,14 @@ export const markAttendance = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Registration not found' });
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: 'Registration not found' });
     }
 
     console.log('Attendance marked');
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Mark attendance error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -316,6 +309,6 @@ export const getMemberEvents = async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Get member events error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };

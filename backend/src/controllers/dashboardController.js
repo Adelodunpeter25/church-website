@@ -1,4 +1,5 @@
 import pool from '../config/database.js';
+import { HTTP_STATUS } from '../config/constants.js';
 
 export const getDashboardStats = async (req, res) => {
   try {
@@ -64,7 +65,7 @@ export const getDashboardStats = async (req, res) => {
     res.json(response);
   } catch (error) {
     console.error('Dashboard stats error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -91,7 +92,7 @@ export const getRecentActivity = async (req, res) => {
     res.json(activities.rows);
   } catch (error) {
     console.error('Recent activity error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -140,7 +141,7 @@ export const getMemberStats = async (req, res) => {
     });
   } catch (error) {
     console.error('Get member stats error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -153,7 +154,7 @@ export const getMemberRecentSermons = async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Get member recent sermons error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
 
@@ -168,6 +169,6 @@ export const getMemberUpcomingEvents = async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Get member upcoming events error:', error.message);
-    res.status(500).json({ error: error.message });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 };
