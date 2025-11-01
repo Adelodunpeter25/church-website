@@ -5,9 +5,7 @@ import PublicFooter from '@/components/layout/PublicFooter';
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     phone: '',
-    subject: '',
     message: ''
   });
 
@@ -15,7 +13,7 @@ export default function ContactPage() {
     e.preventDefault();
     console.log('Form submitted:', formData);
     alert('Thank you for your message! We will get back to you soon.');
-    setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+    setFormData({ name: '', phone: '', message: '' });
   };
 
   return (
@@ -53,18 +51,6 @@ export default function ContactPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="your@email.com"
-                  />
-                </div>
-
-                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
                   <input
                     type="tel"
@@ -72,18 +58,6 @@ export default function ContactPage() {
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="(555) 123-4567"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="How can we help?"
                   />
                 </div>
 
@@ -120,20 +94,24 @@ export default function ContactPage() {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">Address</h3>
                     <p className="text-gray-600">
-                      123 Faith Street<br />
-                      Community City, CC 12345<br />
-                      United States
+                      5, Ali-Asekun Street,<br />
+                      Olojojo Bus Stop,<br />
+                      Oworonsoki,<br />
+                      Lagos, Nigeria.
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <i className="ri-phone-line text-green-600 text-xl"></i>
+                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i className="ri-time-line text-orange-600 text-xl"></i>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Phone</h3>
-                    <p className="text-gray-600">(555) 123-PRAY</p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Service Times</h3>
+                    <p className="text-gray-600">
+                      Wednesdays @ 5:30pm<br />
+                      Sundays @ 8:30am
+                    </p>
                   </div>
                 </div>
 
@@ -143,20 +121,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">Email</h3>
-                    <p className="text-gray-600">info@ourchurch.com</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <i className="ri-time-line text-orange-600 text-xl"></i>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Office Hours</h3>
-                    <p className="text-gray-600">
-                      Monday - Friday: 9:00 AM - 5:00 PM<br />
-                      Saturday - Sunday: Closed
-                    </p>
+                    <p className="text-gray-600">biblewayft@gmail.com</p>
                   </div>
                 </div>
               </div>
@@ -164,7 +129,7 @@ export default function ContactPage() {
               {/* Map */}
               <div className="bg-gray-100 rounded-lg overflow-hidden h-64">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3024.123456789!2d-74.0060!3d40.7128!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQyJzQ2LjEiTiA3NMKwMDAnMjEuNiJX!5e0!3m2!1sen!2sus!4v1234567890"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3964.0876!2d3.3792!3d6.5244!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNsKwMzEnMjcuOCJOIDPCsDIyJzQ1LjEiRQ!5e0!3m2!1sen!2sng!4v1234567890"
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
