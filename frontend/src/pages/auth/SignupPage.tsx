@@ -103,7 +103,7 @@ export default function SignupPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="you@example.com"
+                  placeholder="yourname@egmail.com"
                 />
               </div>
 
@@ -117,7 +117,7 @@ export default function SignupPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="+1 (555) 123-4567"
+                  placeholder="+234 0000 0000"
                 />
               </div>
 
