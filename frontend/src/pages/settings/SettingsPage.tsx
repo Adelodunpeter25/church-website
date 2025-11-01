@@ -3,17 +3,15 @@
 import { useState } from 'react';
 import Sidebar from '@/components/layout/Sidebar';
 import DashboardHeader from '@/components/layout/DashboardHeader';
-import GeneralSettings from './GeneralSettings';
 import SystemSettings from './SystemSettings';
 import SecuritySettings from './SecuritySettings';
 import NotificationSettings from './NotificationSettings';
 
 export default function SettingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeTab, setActiveTab] = useState('system');
 
   const tabs = [
-    { id: 'general', name: 'General', icon: 'ri-settings-3-line' },
     { id: 'system', name: 'System', icon: 'ri-server-line' },
     { id: 'security', name: 'Security', icon: 'ri-shield-check-line' },
     { id: 'notifications', name: 'Notifications', icon: 'ri-notification-3-line' }
@@ -56,7 +54,6 @@ export default function SettingsPage() {
               </div>
 
               <div className="p-6">
-                {activeTab === 'general' && <GeneralSettings />}
                 {activeTab === 'system' && <SystemSettings />}
                 {activeTab === 'security' && <SecuritySettings />}
                 {activeTab === 'notifications' && <NotificationSettings />}
