@@ -24,6 +24,7 @@ import contentRoutes from './routes/contentRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import permissionRoutes from './routes/permissionRoutes.js';
+import { securityHeaders } from './middleware/security.js';
 
 dotenv.config();
 
@@ -31,7 +32,8 @@ const app = express();
 const httpServer = createServer(app);
 const PORT = process.env.PORT;
 
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
+app.use(securityHeaders);
+app.use(cors({ origin: process.env.FRONTEND_URL || '' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', serveFiles);
