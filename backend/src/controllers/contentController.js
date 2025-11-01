@@ -69,11 +69,11 @@ export const getServiceTimes = async (req, res) => {
 export const createServiceTime = async (req, res) => {
   try {
     console.log('Creating service time');
-    const { day, time, service } = req.body;
+    const { day, time, service, description } = req.body;
 
     const result = await pool.query(
-      'INSERT INTO service_times (day, time, service) VALUES ($1, $2, $3) RETURNING *',
-      [day, time, service]
+      'INSERT INTO service_times (day, time, service, description) VALUES ($1, $2, $3, $4) RETURNING *',
+      [day, time, service, description || null]
     );
 
     console.log('Service time created:', result.rows[0].id);
@@ -87,11 +87,11 @@ export const createServiceTime = async (req, res) => {
 export const updateServiceTime = async (req, res) => {
   try {
     console.log('Updating service time:', req.params.id);
-    const { day, time, service } = req.body;
+    const { day, time, service, description } = req.body;
 
     const result = await pool.query(
-      'UPDATE service_times SET day = $1, time = $2, service = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *',
-      [day, time, service, req.params.id]
+      'UPDATE service_times SET day = $1, time = $2, service = $3, description = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5 RETURNING *',
+      [day, time, service, description || null, req.params.id]
     );
 
     if (result.rows.length === 0) {
