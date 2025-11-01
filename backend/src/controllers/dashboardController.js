@@ -3,80 +3,62 @@ import pool from '../config/database.js';
 export const getDashboardStats = async (req, res) => {
   try {
     console.log('Fetching dashboard stats...');
-    const totalMembers = await pool.query(`
-      SELECT COUNT(*) as count FROM users WHERE membership_status = 'active' AND role = 'member'
-    `);
-    const newMembersThisWeek = await pool.query(`
-      SELECT COUNT(*) as count FROM users 
-      WHERE date_joined >= CURRENT_DATE - INTERVAL '7 days' AND role = 'member'
-    `);
-
-    let thisWeekAttendance = { rows: [{ count: 0 }] };
-    let lastWeekAttendance = { rows: [{ count: 0 }] };
-    let attendanceChange = 0;
     
+    // Execute all queries in parallel
+    const [members, sermons, events, announcements, forms, livestream] = await Promise.all([
+      pool.query(`
+        SELECT 
+          COUNT(*) FILTER (WHERE membership_status = 'active' AND role = 'member') as total_members,
+          COUNT(*) FILTER (WHERE date_joined >= CURRENT_DATE - INTERVAL '7 days' AND role = 'member') as new_members
+        FROM users
+      `),
+      pool.query(`
+        SELECT 
+          COUNT(*) as total_sermons,
+          COALESCE(SUM(downloads), 0) as total_downloads,
+          COALESCE(SUM(downloads) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'), 0) as recent_downloads
+        FROM sermons
+      `),
+      pool.query(`SELECT COUNT(*) as count FROM events WHERE date >= CURRENT_DATE`),
+      pool.query(`SELECT COUNT(*) as count FROM announcements`),
+      pool.query(`SELECT COUNT(*) as count FROM forms`),
+      pool.query(`SELECT COALESCE(viewers, 0) as count, is_live FROM livestreams ORDER BY created_at DESC LIMIT 1`)
+    ]);
+
+    let attendanceData = { thisWeek: 0, lastWeek: 0 };
     try {
-      thisWeekAttendance = await pool.query(`
-        SELECT COUNT(DISTINCT user_id) as count FROM attendance 
-        WHERE date >= CURRENT_DATE - INTERVAL '7 days' AND present = true
+      const attendance = await pool.query(`
+        SELECT 
+          COUNT(DISTINCT user_id) FILTER (WHERE date >= CURRENT_DATE - INTERVAL '7 days') as this_week,
+          COUNT(DISTINCT user_id) FILTER (WHERE date >= CURRENT_DATE - INTERVAL '14 days' AND date < CURRENT_DATE - INTERVAL '7 days') as last_week
+        FROM attendance WHERE present = true
       `);
-      lastWeekAttendance = await pool.query(`
-        SELECT COUNT(DISTINCT user_id) as count FROM attendance 
-        WHERE date >= CURRENT_DATE - INTERVAL '14 days' 
-        AND date < CURRENT_DATE - INTERVAL '7 days' AND present = true
-      `);
-      attendanceChange = lastWeekAttendance.rows[0].count > 0 
-        ? Math.round(((thisWeekAttendance.rows[0].count - lastWeekAttendance.rows[0].count) / lastWeekAttendance.rows[0].count) * 100)
-        : 0;
+      attendanceData = attendance.rows[0];
     } catch (err) {
       console.log('attendance table does not exist yet');
     }
 
-    const sermonDownloads = await pool.query(`
-      SELECT COALESCE(SUM(downloads), 0) as count FROM sermons
-    `);
-    const downloadsLastMonth = await pool.query(`
-      SELECT COALESCE(SUM(downloads), 0) as count FROM sermons 
-      WHERE created_at < CURRENT_DATE - INTERVAL '30 days'
-    `);
-    const downloadsChange = downloadsLastMonth.rows[0].count > 0
-      ? Math.round(((sermonDownloads.rows[0].count - downloadsLastMonth.rows[0].count) / downloadsLastMonth.rows[0].count) * 100)
+    const attendanceChange = attendanceData.last_week > 0 
+      ? Math.round(((attendanceData.this_week - attendanceData.last_week) / attendanceData.last_week) * 100)
       : 0;
 
-    const liveViewers = await pool.query(`
-      SELECT COALESCE(viewers, 0) as count, is_live FROM livestreams 
-      ORDER BY created_at DESC LIMIT 1
-    `);
-
-    const totalSermons = await pool.query(`
-      SELECT COUNT(*) as count FROM sermons
-    `);
-
-    const upcomingEvents = await pool.query(`
-      SELECT COUNT(*) as count FROM events WHERE date >= CURRENT_DATE
-    `);
-
-    const activeAnnouncements = await pool.query(`
-      SELECT COUNT(*) as count FROM announcements
-    `);
-
-    const totalForms = await pool.query(`
-      SELECT COUNT(*) as count FROM forms
-    `);
+    const downloadsChange = sermons.rows[0].total_downloads > sermons.rows[0].recent_downloads
+      ? Math.round(((sermons.rows[0].recent_downloads) / (sermons.rows[0].total_downloads - sermons.rows[0].recent_downloads)) * 100)
+      : 0;
 
     const response = {
-      totalMembers: parseInt(totalMembers.rows[0].count),
-      newMembersThisWeek: parseInt(newMembersThisWeek.rows[0].count),
-      weeklyAttendance: parseInt(thisWeekAttendance.rows[0].count),
+      totalMembers: parseInt(members.rows[0].total_members),
+      newMembersThisWeek: parseInt(members.rows[0].new_members),
+      weeklyAttendance: parseInt(attendanceData.this_week),
       attendanceChange: attendanceChange,
-      sermonDownloads: parseInt(sermonDownloads.rows[0].count),
+      sermonDownloads: parseInt(sermons.rows[0].total_downloads),
       downloadsChange: downloadsChange,
-      liveViewers: parseInt(liveViewers.rows[0]?.count || 0),
-      isLive: liveViewers.rows[0]?.is_live || false,
-      totalSermons: parseInt(totalSermons.rows[0].count),
-      upcomingEvents: parseInt(upcomingEvents.rows[0].count),
-      activeAnnouncements: parseInt(activeAnnouncements.rows[0].count),
-      totalForms: parseInt(totalForms.rows[0].count)
+      liveViewers: parseInt(livestream.rows[0]?.count || 0),
+      isLive: livestream.rows[0]?.is_live || false,
+      totalSermons: parseInt(sermons.rows[0].total_sermons),
+      upcomingEvents: parseInt(events.rows[0].count),
+      activeAnnouncements: parseInt(announcements.rows[0].count),
+      totalForms: parseInt(forms.rows[0].count)
     };
     console.log('Dashboard stats:', response);
     res.json(response);

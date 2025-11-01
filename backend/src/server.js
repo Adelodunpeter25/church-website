@@ -1,6 +1,7 @@
 import express from 'express';
 import { createServer } from 'http';
 import cors from 'cors';
+import compression from 'compression';
 import dotenv from 'dotenv';
 import pool from './config/database.js';
 import { serveFiles } from './services/storageService.js';
@@ -32,6 +33,7 @@ const app = express();
 const httpServer = createServer(app);
 const PORT = process.env.PORT;
 
+app.use(compression());
 app.use(securityHeaders);
 app.use(cors({ 
   origin: process.env.FRONTEND_URL || '',
