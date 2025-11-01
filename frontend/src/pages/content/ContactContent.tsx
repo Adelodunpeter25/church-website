@@ -21,13 +21,13 @@ export default function ContactContent() {
   const loadContent = async () => {
     try {
       const data = await getContent();
-      setAddressLine1(data.address_line1 || '5, Ali-Asekun Street,');
-      setAddressLine2(data.address_line2 || 'Olojojo Bus Stop,');
-      setAddressLine3(data.address_line3 || 'Oworonsoki,');
-      setAddressLine4(data.address_line4 || 'Lagos, Nigeria.');
-      setEmail(data.contact_email || 'biblewayft@gmail.com');
-      setServiceTime1(data.service_time1 || 'Wednesdays @ 5:30pm');
-      setServiceTime2(data.service_time2 || 'Sundays @ 8:30am');
+      setAddressLine1(data.address_line1 || '');
+      setAddressLine2(data.address_line2 || '');
+      setAddressLine3(data.address_line3 || '');
+      setAddressLine4(data.address_line4 || '');
+      setEmail(data.contact_email || '');
+      setServiceTime1(data.service_time1 || '');
+      setServiceTime2(data.service_time2 || '');
     } catch (error) {
       console.error('Error loading content:', error);
     } finally {

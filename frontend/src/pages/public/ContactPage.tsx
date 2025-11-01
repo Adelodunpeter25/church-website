@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import PublicNavbar from '@/components/layout/PublicNavbar';
 import PublicFooter from '@/components/layout/PublicFooter';
+import { usePublicContent } from '@/hooks/usePublicContent';
 
 export default function ContactPage() {
+  const { content, loading } = usePublicContent();
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -15,6 +17,14 @@ export default function ContactPage() {
     alert('Thank you for your message! We will get back to you soon.');
     setFormData({ name: '', phone: '', message: '' });
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -95,10 +105,10 @@ export default function ContactPage() {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">Address</h3>
                     <p className="text-gray-600">
-                      5, Ali-Asekun Street,<br />
-                      Olojojo Bus Stop,<br />
-                      Oworonsoki,<br />
-                      Lagos, Nigeria.
+                      {content.address_line1}<br />
+                      {content.address_line2}<br />
+                      {content.address_line3}<br />
+                      {content.address_line4}
                     </p>
                   </div>
                 </div>
@@ -110,8 +120,8 @@ export default function ContactPage() {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">Service Times</h3>
                     <p className="text-gray-600">
-                      Wednesdays @ 5:30pm<br />
-                      Sundays @ 8:30am
+                      {content.service_time1}<br />
+                      {content.service_time2}
                     </p>
                   </div>
                 </div>
@@ -122,7 +132,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">Email</h3>
-                    <p className="text-gray-600">biblewayft@gmail.com</p>
+                    <p className="text-gray-600">{content.contact_email}</p>
                   </div>
                 </div>
               </div>
