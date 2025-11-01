@@ -1,6 +1,6 @@
 import { getToken, removeToken } from '@/utils/auth';
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export const getMediaUrl = (path: string | null | undefined) => {
   if (!path) return null;
@@ -15,6 +15,7 @@ const request = async (endpoint: string, options: RequestInit = {}) => {
   
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
+    credentials: 'include',
     headers: {
       ...(!isFormData && { 'Content-Type': 'application/json' }),
       ...(token && { Authorization: `Bearer ${token}` }),

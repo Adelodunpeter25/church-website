@@ -33,7 +33,12 @@ const httpServer = createServer(app);
 const PORT = process.env.PORT;
 
 app.use(securityHeaders);
-app.use(cors({ origin: process.env.FRONTEND_URL || '' }));
+app.use(cors({ 
+  origin: process.env.FRONTEND_URL || '',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', serveFiles);
