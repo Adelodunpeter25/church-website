@@ -41,16 +41,27 @@ export default function PublicNavbar() {
       </div>
 
       {isMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
-            <Link to="/" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Home</Link>
-            <Link to="/about" className="block px-3 py-2 text-gray-700 hover:text-blue-600">About</Link>
-            <a href="/#services" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Services</a>
-            <Link to="/contact" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Contact</Link>
-            <Link to="/login" className="block px-3 py-2 text-gray-700 hover:text-blue-600">Login</Link>
-            <Link to="/signup" className="block px-3 py-2 bg-blue-600 text-white rounded-lg">Sign Up</Link>
+        <>
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" onClick={() => setIsMenuOpen(false)}></div>
+          <div className="fixed top-0 right-0 h-full w-64 bg-white shadow-xl z-50 md:hidden">
+            <div className="p-4">
+              <button onClick={() => setIsMenuOpen(false)} className="absolute top-4 right-4 text-gray-700 hover:text-blue-600">
+                <i className="ri-close-line text-2xl"></i>
+              </button>
+              <div className="mt-12 space-y-1">
+                <Link to="/" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg">Home</Link>
+                <Link to="/about" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg">About</Link>
+                <a href="/#services" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg">Services</a>
+                <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg">Contact</Link>
+                <hr className="my-4" />
+                <div className="space-y-3">
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-center font-medium">Login</Link>
+                  <Link to="/signup" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-center font-medium">Sign Up</Link>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </nav>
   );

@@ -33,52 +33,35 @@ export default function LandingPage() {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">About Our Church</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We are a vibrant community of believers committed to loving God, loving people, and making disciples.
-            </p>
+      <section id="about" className="py-20 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="inline-block">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">ABOUT</h2>
+              <div className="h-1 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full"></div>
+            </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow border border-gray-100">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
-                <i className="ri-heart-line text-white text-3xl"></i>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Love & Compassion</h3>
-              <p className="text-gray-600 text-center leading-relaxed">
-                We believe in showing Christ's love through our actions, caring for one another and our community with open hearts.
+          <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-gray-100">
+            <div className="space-y-6 text-gray-700 text-lg leading-relaxed">
+              <p className="first-letter:text-5xl first-letter:font-bold first-letter:text-blue-600 first-letter:mr-2 first-letter:float-left">
+                We are honored that you are visiting our website. We are a non-denominational Bible believing church. Our mission is to spread the Gospel of Jesus Christ to all the world. We believe in an End-Time Message as foretold in <span className="font-semibold text-gray-900">Malachi 4:5-6, Rev. 10:7, and Luke 17:30</span>, and delivered in our day by Rev William Marrion Branham.
               </p>
-              <div className="mt-6 pt-6 border-t border-gray-100 text-center">
-                <span className="text-blue-600 font-semibold text-sm">Our Foundation</span>
+              
+              <div className="border-l-4 border-blue-600 pl-6 py-2 bg-blue-50 rounded-r-lg">
+                <p className="italic">
+                  At Bibleway Fellowship Tabernacle, our mission is to help establish a personal relationship between you and your Maker. We believe that if we do our part, then we can expect to see the exceeding abundantly above all that we could ever ask or think of.
+                </p>
               </div>
-            </div>
-            
-            <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow border border-gray-100">
-              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
-                <i className="ri-group-line text-white text-3xl"></i>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Community</h3>
-              <p className="text-gray-600 text-center leading-relaxed">
-                Our church family welcomes everyone. We grow together through fellowship, support, and shared experiences in faith.
+              
+              <p>
+                Our doors are open to anyone regardless of what denomination they belong to. Come, let us worship His majesty. Let us kneel before the LORD our God and our maker.
               </p>
-              <div className="mt-6 pt-6 border-t border-gray-100 text-center">
-                <span className="text-green-600 font-semibold text-sm">Our Family</span>
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow border border-gray-100">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
-                <i className="ri-hand-heart-line text-white text-3xl"></i>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Service</h3>
-              <p className="text-gray-600 text-center leading-relaxed">
-                We serve our local and global communities, reaching out to help those in need and spread God's love everywhere.
-              </p>
-              <div className="mt-6 pt-6 border-t border-gray-100 text-center">
-                <span className="text-purple-600 font-semibold text-sm">Our Mission</span>
+              
+              <div className="pt-6 border-t border-gray-200">
+                <p className="text-base text-gray-600">
+                  Please use this site to access information regarding upcoming meetings and click the menu links for further information about our church. We look forward to hearing from you and answering any questions you might have.
+                </p>
               </div>
             </div>
           </div>
