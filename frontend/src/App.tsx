@@ -1,31 +1,40 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import LandingPage from './pages/landing/LandingPage'
 import LoginPage from './pages/auth/LoginPage'
 import SignupPage from './pages/auth/SignupPage'
-import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
-import Dashboard from './pages/dashboard/Dashboard'
-import MemberDashboard from './pages/member-dashboard/MemberDashboard'
-import MembershipPage from './pages/membership/MembershipPage'
-import SermonsPage from './pages/sermons/SermonsPage'
-import EventsPage from './pages/events/EventsPage'
-import LiveStreamPage from './pages/live/LiveStreamPage'
-import AnnouncementsPage from './pages/announcements/AnnouncementsPage'
-import FormsPage from './pages/forms/FormsPage'
-import PlaylistsPage from './pages/playlists/PlaylistsPage'
-import UserManagementPage from './pages/users/UserManagementPage'
-import ContentManagementPage from './pages/content/ContentManagementPage'
-import SettingsPage from './pages/settings/SettingsPage'
-import ProfilePage from './pages/profile/ProfilePage'
-import PublicFormPage from './pages/forms/PublicFormPage'
-import NotFound from './pages/NotFound'
-import AboutPage from './pages/public/AboutPage'
-import ContactPage from './pages/public/ContactPage'
+
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
+const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'))
+const MemberDashboard = lazy(() => import('./pages/member-dashboard/MemberDashboard'))
+const MembershipPage = lazy(() => import('./pages/membership/MembershipPage'))
+const SermonsPage = lazy(() => import('./pages/sermons/SermonsPage'))
+const EventsPage = lazy(() => import('./pages/events/EventsPage'))
+const LiveStreamPage = lazy(() => import('./pages/live/LiveStreamPage'))
+const AnnouncementsPage = lazy(() => import('./pages/announcements/AnnouncementsPage'))
+const FormsPage = lazy(() => import('./pages/forms/FormsPage'))
+const PlaylistsPage = lazy(() => import('./pages/playlists/PlaylistsPage'))
+const UserManagementPage = lazy(() => import('./pages/users/UserManagementPage'))
+const ContentManagementPage = lazy(() => import('./pages/content/ContentManagementPage'))
+const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'))
+const ProfilePage = lazy(() => import('./pages/profile/ProfilePage'))
+const PublicFormPage = lazy(() => import('./pages/forms/PublicFormPage'))
+const NotFound = lazy(() => import('./pages/NotFound'))
+const AboutPage = lazy(() => import('./pages/public/AboutPage'))
+const ContactPage = lazy(() => import('./pages/public/ContactPage'))
+
+const LoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  </div>
+)
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/landing" element={<Navigate to="/" replace />} />
         <Route path="/about" element={<AboutPage />} />
@@ -48,7 +57,8 @@ function App() {
         <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin']}><SettingsPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
-      </Routes>
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

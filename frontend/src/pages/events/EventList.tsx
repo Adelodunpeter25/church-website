@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useEvents } from '@/hooks/useEvents';
 import { Event } from '@/types';
+import LazyImage from '@/components/LazyImage';
 
 export default function EventList() {
   const { getEvents } = useEvents();
@@ -201,7 +202,7 @@ const oldEvents = [
               </div>
 
               <div className="ml-6 flex-shrink-0">
-                <img 
+                <LazyImage 
                   className="h-24 w-32 rounded-lg object-top object-cover" 
                   src={`https://readdy.ai/api/search-image?query=church%20event%20activity%20featuring%20people%20gathering%20in%20community%20fellowship%20with%20warm%20friendly%20atmosphere%2C%20modern%20church%20interior%20or%20outdoor%20setting%2C%20diverse%20group%20of%20people%20participating%20in%20$%7Bevent.category.toLowerCase%28%29%7D%20activity&width=200&height=150&seq=event${event.id}&orientation=landscape`}
                   alt={event.title}
