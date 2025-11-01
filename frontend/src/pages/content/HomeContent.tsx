@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useContent } from '@/hooks/useContent';
+import RichTextEditor from '@/components/RichTextEditor';
 
 export default function HomeContent() {
   const { getContent, updateContent } = useContent();
@@ -77,11 +78,9 @@ export default function HomeContent() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Hero Subtitle</label>
-              <textarea
-                rows={3}
+              <RichTextEditor
                 value={heroSubtitle}
-                onChange={(e) => setHeroSubtitle(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={setHeroSubtitle}
                 placeholder="Join us in worship, fellowship, and service..."
               />
             </div>
@@ -93,11 +92,9 @@ export default function HomeContent() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">About Section</h3>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">About Text</label>
-            <textarea
-              rows={10}
+            <RichTextEditor
               value={aboutText}
-              onChange={(e) => setAboutText(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={setAboutText}
               placeholder="We are honored that you are visiting our website..."
             />
             <p className="mt-1 text-sm text-gray-500">

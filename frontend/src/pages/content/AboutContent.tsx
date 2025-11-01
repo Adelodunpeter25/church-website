@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useContent } from '@/hooks/useContent';
+import RichTextEditor from '@/components/RichTextEditor';
 
 export default function AboutContent() {
   const { getContent, updateContent } = useContent();
@@ -65,11 +66,9 @@ export default function AboutContent() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Leadership Section</h3>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Leadership Text</label>
-            <textarea
-              rows={6}
+            <RichTextEditor
               value={leadershipText}
-              onChange={(e) => setLeadershipText(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={setLeadershipText}
               placeholder="Since 1984, hundreds of people have darkened our doors..."
             />
             <p className="mt-1 text-sm text-gray-500">
@@ -83,11 +82,9 @@ export default function AboutContent() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Scripture Card</h3>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Scripture Text</label>
-            <textarea
-              rows={4}
+            <RichTextEditor
               value={scriptureText}
-              onChange={(e) => setScriptureText(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={setScriptureText}
               placeholder="Scripture verse and reference..."
             />
             <p className="mt-1 text-sm text-gray-500">
@@ -101,11 +98,9 @@ export default function AboutContent() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Brief History Section</h3>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Church History</label>
-            <textarea
-              rows={15}
+            <RichTextEditor
               value={historyText}
-              onChange={(e) => setHistoryText(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={setHistoryText}
               placeholder="Bibleway Fellowship Tabernacle is a church situated in the heartland of Lagos..."
             />
             <p className="mt-1 text-sm text-gray-500">

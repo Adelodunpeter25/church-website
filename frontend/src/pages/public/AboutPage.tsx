@@ -39,17 +39,13 @@ export default function AboutPage() {
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-gray-100">
-              <div className="space-y-6 text-gray-700 text-lg leading-relaxed">
-                <p className="first-letter:text-5xl first-letter:font-bold first-letter:text-blue-600 first-letter:mr-2 first-letter:float-left">
-                  {content.leadership_text}
-                </p>
+              <div className="prose prose-lg max-w-none text-gray-700 [&>p:first-child]:first-letter:text-5xl [&>p:first-child]:first-letter:font-bold [&>p:first-child]:first-letter:text-blue-600 [&>p:first-child]:first-letter:mr-2 [&>p:first-child]:first-letter:float-left" dangerouslySetInnerHTML={{ __html: content.leadership_text }}>
               </div>
             </div>
             
             <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-xl p-8 text-white flex flex-col justify-center">
-              <p className="text-xl italic mb-6 leading-relaxed">
-                {content.scripture_text}
-              </p>
+              <div className="prose prose-xl max-w-none text-white [&>p]:text-white [&>p]:italic" dangerouslySetInnerHTML={{ __html: content.scripture_text }}>
+              </div>
             </div>
           </div>
         </div>
@@ -66,7 +62,7 @@ export default function AboutPage() {
           </div>
           
           <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-gray-100">
-            <div className="space-y-6 text-gray-700 text-lg leading-relaxed" dangerouslySetInnerHTML={{ __html: content.history_text?.replace(/\n/g, '</p><p>') }}>
+            <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: content.history_text }}>
             </div>
           </div>
         </div>
