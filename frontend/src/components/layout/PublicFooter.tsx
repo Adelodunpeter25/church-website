@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
+import { usePublicContent } from '@/hooks/usePublicContent';
 
 export default function PublicFooter() {
+  const { content } = usePublicContent();
   return (
     <footer className="bg-gray-900 text-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -27,17 +29,18 @@ export default function PublicFooter() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Contact Info</h3>
             <ul className="space-y-2 text-gray-300">
-              <li className="flex items-center">
-                <i className="ri-map-pin-line mr-2"></i>
-                123 Faith Street, CC 12345
-              </li>
-              <li className="flex items-center">
-                <i className="ri-phone-line mr-2"></i>
-                (555) 123-PRAY
+              <li className="flex items-start">
+                <i className="ri-map-pin-line mr-2 mt-1 flex-shrink-0"></i>
+                <span>
+                  {content.address_line1}<br />
+                  {content.address_line2}<br />
+                  {content.address_line3}<br />
+                  {content.address_line4}
+                </span>
               </li>
               <li className="flex items-center">
                 <i className="ri-mail-line mr-2"></i>
-                info@ourchurch.com
+                {content.contact_email}
               </li>
             </ul>
           </div>
